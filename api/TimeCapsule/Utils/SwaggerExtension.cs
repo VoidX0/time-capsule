@@ -128,8 +128,6 @@ public class MarkdownDocumentFilter : IDocumentFilter
     /// <returns></returns>
     private static string ComponentDoc() => """
                                             ## 组件列表
-                                            > [Documentation](/docs/index.html)
-                                            >
                                             > [SerilogUi](/serilog-ui)
                                             >
                                             > [Hangfire](/hangfire)
