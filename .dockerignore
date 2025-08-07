@@ -1,7 +1,7 @@
-*/.idea/
-*/.fleet/
-*/.vs/
-*/.vscode/
+**/.idea/
+**/.fleet/
+**/.vs/
+**/.vscode/
 
 .token
 
@@ -15,15 +15,33 @@ api/*.user
 api/*.Development.*
 
 # 前端
-web/dist
-web/.nitro
-web/.output
-web/env.d.ts
 web/node_modules
-web/.eslintcache
-web/components.d.ts
-web/type-router.d.ts
-web/auto-imports.d.ts
-web/.eslint-auto-import.js
-web/vite.config.ts.timestamp*
-web/*.snap
+web/.pnp
+web/.pnp.*
+web/.yarn/*
+!web/.yarn/patches
+!web/.yarn/plugins
+!web/.yarn/releases
+!web/.yarn/versions
+# testing
+web/coverage
+# next.js
+web/.next/
+web/out/
+# production
+web/build
+# misc
+web/.DS_Store
+web/*.pem
+# debug
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+web/.pnpm-debug.log*
+# env files (can opt-in for committing if needed)
+web/.env*
+# vercel
+web/.vercel
+# typescript
+web/*.tsbuildinfo
+web/next-env.d.ts
