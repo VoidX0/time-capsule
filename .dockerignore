@@ -1,0 +1,29 @@
+*/.idea/
+*/.fleet/
+*/.vs/
+*/.vscode/
+
+.token
+
+# 后端
+api/bin/
+api/obj/
+api/packages/
+api/riderModule.iml
+api/_ReSharper.Caches/
+api/*.user
+api/*.Development.*
+
+# 前端
+web/dist
+web/.nitro
+web/.output
+web/env.d.ts
+web/node_modules
+web/.eslintcache
+web/components.d.ts
+web/type-router.d.ts
+web/auto-imports.d.ts
+web/.eslint-auto-import.js
+web/vite.config.ts.timestamp*
+web/*.snap
