@@ -13,6 +13,13 @@ export default function Home() {
                     height={38}
                     priority
                 />
+                <Image
+                    src="/logo.png"
+                    alt="app logo"
+                    width={100}
+                    height={100}
+                    priority
+                />
                 <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
                     <li className="mb-2 tracking-[-.01em]">
                         Get started by editing{" "}
