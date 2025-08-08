@@ -10,7 +10,7 @@ import {
   Map,
   PieChart,
   Settings2,
-  SquareTerminal,
+  SquareTerminal
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -18,13 +18,8 @@ import { NavMain } from '@/components/main/nav-main'
 import { NavProjects } from '@/components/main/nav-projects'
 import { NavUser } from '@/components/main/nav-user'
 import { TeamSwitcher } from '@/components/main/team-switcher'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
-} from '@/components/ui/sidebar'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
+import { ThemeToggle } from '@/components/main/theme-toggle'
 
 // This is sample data.
 const data = {
@@ -167,6 +162,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+        </div>
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
