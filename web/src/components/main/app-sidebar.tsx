@@ -10,7 +10,7 @@ import {
   Map,
   PieChart,
   Settings2,
-  SquareTerminal
+  SquareTerminal,
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -18,8 +18,14 @@ import { NavMain } from '@/components/main/nav-main'
 import { NavProjects } from '@/components/main/nav-projects'
 import { NavUser } from '@/components/main/nav-user'
 import { TeamSwitcher } from '@/components/main/team-switcher'
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
 import { ThemeToggle } from '@/components/main/theme-toggle'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
+} from '@/components/ui/sidebar'
 
 // This is sample data.
 const data = {
