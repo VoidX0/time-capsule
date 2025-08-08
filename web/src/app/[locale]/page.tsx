@@ -1,21 +1,22 @@
 'use client'
 
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { IconContext } from 'react-icons'
 import { LuGithub, LuLogIn } from 'react-icons/lu'
 
 export default function Home() {
   const locale = useLocale()
+  const t = useTranslations('HomePage')
   return (
     <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-sans sm:p-20">
       <main className="row-start-2 flex flex-col items-center gap-[32px] sm:items-start">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+          <h1 className="max-w-[600px] text-center text-4xl font-bold sm:text-left">
             <span className="text-primary">Time capsule</span>{' '}
           </h1>
           <p className="text-muted-foreground max-w-[600px] text-center text-lg sm:text-left">
-            Playback application based on local monitoring video.
+            {t('description')}
           </p>
         </div>
         <Image
@@ -26,19 +27,9 @@ export default function Home() {
           priority
         />
         <ol className="list-inside list-decimal text-center font-mono text-sm/6 sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Use your local videos on{' '}
-            <code className="rounded bg-black/[.05] px-1 py-0.5 font-mono font-semibold dark:bg-white/[.06]">
-              /camera
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Automatically create video index.
-          </li>
-          <li className="tracking-[-.01em]">
-            Seamless drag playback timeline.
-          </li>
+          <li className="tracking-[-.01em]">{t('details01')}</li>
+          <li className="tracking-[-.01em]">{t('details02')}</li>
+          <li className="tracking-[-.01em]"> {t('details03')}</li>
         </ol>
 
         <div className="flex flex-col items-center gap-4 sm:flex-row">
@@ -47,7 +38,7 @@ export default function Home() {
             href={`/${locale}/login`}
             rel="noopener noreferrer"
           >
-            Login
+            {t('login')}
             <IconContext.Provider value={{ size: '2em' }}>
               <LuLogIn />
             </IconContext.Provider>
@@ -62,7 +53,7 @@ export default function Home() {
           rel="noopener noreferrer"
         >
           <LuGithub />
-          Go to Github →
+          {t('github')}
         </a>
       </footer>
     </div>

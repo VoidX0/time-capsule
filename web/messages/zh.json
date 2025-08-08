@@ -4,7 +4,12 @@
     "en": "English",
     "zh": "中文"
   },
-  "Home": {
-    "hello": "你好，世界！"
+  "HomePage": {
+    "description": "基于本地监控视频的回放应用",
+    "details01": "使用本地视频文件夹 /camera",
+    "details02": "自动创建视频索引",
+    "details03": "无缝拖动回放时间轴",
+    "login": "登陆",
+    "github": "前往 GitHub →"
   }
 }

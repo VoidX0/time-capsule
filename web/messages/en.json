@@ -4,7 +4,12 @@
     "en": "English",
     "zh": "中文"
   },
-  "Home": {
-    "hello": "Hello, world!"
+  "HomePage": {
+    "description": "Playback application based on local monitoring video",
+    "details01": "Use your local videos on /camera",
+    "details02": "Automatically create video index",
+    "details03": "Seamless drag playback timeline",
+    "login": "Login",
+    "github": "Go to GitHub →"
   }
 }
