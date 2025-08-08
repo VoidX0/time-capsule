@@ -40,8 +40,8 @@ ENV NODE_ENV=production
 # 复制后端产物
 COPY --from=api_publish /app/publish .
 # 复制前端产物
-COPY --from=web_publish /app/.next/standalone /nextjs/
-COPY --from=web_publish /app/.next/static /nextjs/.next/
+COPY --from=web_publish /app/.next/standalone /nextjs
+COPY --from=web_publish /app/.next/static /nextjs/.next/static
 COPY --from=web_publish /app/public /nextjs/public
 # 复制入口脚本
 COPY ./entrypoint.sh /app/entrypoint.sh
