@@ -1,3 +1,3 @@
 # TimeCapsule
 
-时光匣
+时间胶囊

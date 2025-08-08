@@ -36,6 +36,6 @@ Port = 587 # 非加密使用25
 EnableSsl = true # 是否启用SSL
 Username = "" # 邮箱用户名
 Password = "" # 邮箱密码/授权码
-Title = "时光匣" # 邮件标题
+Title = "时间胶囊" # 邮件标题
 TemplateRegisterConfirm = "验证码$code，您正在注册成为新用户，感谢您的支持！" # 注册确认模版
 TemplateLoginConfirm = "验证码$code，您正在登录，若非本人操作，请勿泄露。" # 登录确认模版
