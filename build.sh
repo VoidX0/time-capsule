@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # 配置信息
 REGISTRY_HOST=ghcr.io
