@@ -1,10 +1,12 @@
 'use client'
 
+import { useLocale } from 'next-intl'
 import Image from 'next/image'
 import { IconContext } from 'react-icons'
 import { LuGithub, LuLogIn } from 'react-icons/lu'
 
 export default function Home() {
+  const locale = useLocale()
   return (
     <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-sans sm:p-20">
       <main className="row-start-2 flex flex-col items-center gap-[32px] sm:items-start">
@@ -42,7 +44,7 @@ export default function Home() {
         <div className="flex flex-col items-center gap-4 sm:flex-row">
           <a
             className="bg-foreground text-background flex h-10 items-center justify-center gap-2 rounded-full border border-solid border-transparent px-4 text-sm font-medium transition-colors hover:bg-[#383838] sm:h-12 sm:w-auto sm:px-5 sm:text-base dark:hover:bg-[#ccc]"
-            href="/login"
+            href={`/${locale}/login`}
             rel="noopener noreferrer"
           >
             Login

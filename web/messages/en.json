@@ -1,0 +1,10 @@
+{
+  "Locales": {
+    "current": "English",
+    "en": "English",
+    "zh": "中文"
+  },
+  "Home": {
+    "hello": "Hello, world!"
+  }
+}
