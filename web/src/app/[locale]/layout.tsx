@@ -31,7 +31,7 @@ export default async function RootLayout({
 }>) {
   const { locale } = await params
   // 检查 locale 是否在支持的路由中
-  if (!routing.locales.includes(locale as any)) {
+  if (!routing.locales.includes(locale as never)) {
     notFound()
   }
   const messages = await getMessages()

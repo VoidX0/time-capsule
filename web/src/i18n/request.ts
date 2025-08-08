@@ -5,7 +5,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   // 对应于路由配置中的 `[locale]` 段
   let locale = await requestLocale
   // 确保使用有效的语言环境
-  if (!locale || !routing.locales.includes(locale as any)) {
+  if (!locale || !routing.locales.includes(locale as never)) {
     locale = routing.defaultLocale
   }
 
