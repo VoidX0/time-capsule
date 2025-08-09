@@ -29,6 +29,7 @@ jobs:
           args: --apply-fixes
           push-fixes: pull-request
           upload-result: true
+          results-dir: /data/results
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_764744085 }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
