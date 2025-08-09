@@ -24,18 +24,15 @@ namespace TimeCapsule.Controllers.System;
 public class AuthenticationController : ControllerBase
 {
     private ISqlSugarClient Db { get; } = DbScoped.SugarScope;
-    private readonly SystemOptions _systemOptions;
     private readonly TokenOptions _tokenOptions;
     private readonly SmtpApi _smtpApi;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    /// <param name="systemOptions"></param>
     /// <param name="tokenOptions"></param>
-    public AuthenticationController(IOptions<SystemOptions> systemOptions, IOptions<TokenOptions> tokenOptions)
+    public AuthenticationController(IOptions<TokenOptions> tokenOptions)
     {
-        _systemOptions = systemOptions.Value;
         _tokenOptions = tokenOptions.Value;
         _smtpApi = new SmtpApi();
     }

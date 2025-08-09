@@ -4,13 +4,11 @@ using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Options;
-using Serilog;
 using SqlSugar;
 using SqlSugar.IOC;
 using TimeCapsule.Core.Models.Db;
 using TimeCapsule.Models;
 using TimeCapsule.Models.Options;
-using ILogger = Serilog.ILogger;
 
 namespace TimeCapsule.Controllers;
 
@@ -25,7 +23,6 @@ public class VideoController : ControllerBase
 {
     private readonly SystemOptions _systemOptions;
     private readonly ISqlSugarClient _db = DbScoped.SugarScope;
-    private readonly ILogger _logger = Log.ForContext<VideoController>();
 
     /// <summary>
     /// 构造函数
@@ -116,7 +113,7 @@ public class VideoController : ControllerBase
                 _ => BadRequest("无效的片段类型")
             };
         }
-        catch (Exception ex)
+        catch
         {
             return StatusCode(500, "Internal server error");
         }
@@ -125,6 +122,7 @@ public class VideoController : ControllerBase
     // 生成初始化段（仅元数据）
     private async Task<IActionResult> GenerateInitSegment(string filePath)
     {
+        await Task.CompletedTask;
         // 使用FFmpeg生成初始化段
         var args = $"-i \"{filePath}\" " +
                    "-map 0 " +
@@ -145,6 +143,7 @@ public class VideoController : ControllerBase
     // 生成媒体段（实际视频数据）
     private async Task<IActionResult> GenerateMediaSegment(string filePath, double startTime)
     {
+        await Task.CompletedTask;
         // 使用FFmpeg生成媒体段
         var args = $"-ss {startTime} " +
                    $"-i \"{filePath}\" " +

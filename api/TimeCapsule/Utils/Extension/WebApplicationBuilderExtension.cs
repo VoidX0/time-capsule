@@ -105,7 +105,7 @@ public static class WebApplicationBuilderExtension
     public static void InitStorage(this WebApplicationBuilder builder)
     {
         var system = builder.GetConfiguration<SystemOptions>();
-        var storage = new DirectoryInfo(Path.Combine(system.StoragePath ?? ""));
+        var storage = new DirectoryInfo(Path.Combine(system.StoragePath));
         if (!storage.Exists) storage.Create();
     }
 
@@ -117,7 +117,7 @@ public static class WebApplicationBuilderExtension
     {
         var system = builder.GetConfiguration<SystemOptions>();
         var connection = builder.GetConfiguration<ConnectionOptions>();
-        var logPath = new DirectoryInfo(Path.Combine(system.StoragePath ?? "", "Logs"));
+        var logPath = new DirectoryInfo(Path.Combine(system.StoragePath, "Logs"));
         if (!logPath.Exists) logPath.Create();
         // 日志输出设置
         var configuration = new LoggerConfiguration()
@@ -170,7 +170,7 @@ public static class WebApplicationBuilderExtension
     public static void ConfigureSerilogUi(this WebApplicationBuilder builder)
     {
         var system = builder.GetConfiguration<SystemOptions>();
-        var db = Path.Combine(system.StoragePath ?? "", "Logs", "logs.db");
+        var db = Path.Combine(system.StoragePath, "Logs", "logs.db");
         builder.Services.AddSerilogUi(x => x
                 .UseSqliteServer(y => y
                     .WithConnectionString($"Data Source={db};")

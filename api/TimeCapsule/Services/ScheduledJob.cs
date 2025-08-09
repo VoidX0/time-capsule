@@ -82,7 +82,7 @@ public class ScheduledJob
     /// </summary>
     public void RemoveLocalLogs()
     {
-        var logPath = new DirectoryInfo(Path.Combine(SystemOptions.StoragePath ?? "", "Logs"));
+        var logPath = new DirectoryInfo(Path.Combine(SystemOptions.StoragePath, "Logs"));
         if (!logPath.Exists)
         {
             Logger.Warning("日志目录不存在: {LogPath}", logPath.FullName);

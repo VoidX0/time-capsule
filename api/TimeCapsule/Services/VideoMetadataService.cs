@@ -160,7 +160,7 @@ public class VideoMetadataService
 
             return segment;
         }
-        catch (Exception _)
+        catch
         {
             segment.DurationActual = TimeSpan.Zero;
             return segment;

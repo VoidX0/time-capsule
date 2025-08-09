@@ -59,7 +59,7 @@ public static class WebApplicationExtension
     {
         var system = app.Services.GetRequiredService<IOptions<SystemOptions>>().Value;
         var logger = Log.ForContext<Program>();
-        var ffmpegPath = Path.Combine(system.StoragePath ?? "", "ffmpeg");
+        var ffmpegPath = Path.Combine(system.StoragePath, "ffmpeg");
         // 下载ffmpeg
         if (!Directory.Exists(ffmpegPath))
         {
