@@ -1,0 +1,58 @@
+name: PR WEB Check CI
+on:
+  pull_request:
+    branches:
+      - main # 仅在主分支的 PR 上触发
+    types:
+      - opened # 当 PR 被创建时触发
+      - synchronize # 当 PR 被更新时触发
+      - reopened # 当 PR 被重新打开时触发
+    paths:
+      - 'web/**' # 仅监控 web 目录下的变更
+
+jobs:
+  web-check:
+    name: Web Frontend Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Cache pnpm store
+        uses: actions/cache@v3
+        id: pnpm-cache
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: ESLint check
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-check
+          eslint_flags: "src/"
+
+      - name: Build production bundle
+        run: pnpm build
