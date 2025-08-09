@@ -49,5 +49,6 @@ jobs:
           tags: |
             ghcr.io/${{ env.OWNER }}/${{ env.IMAGE }}:latest
             ghcr.io/${{ env.OWNER }}/${{ env.IMAGE }}:${{ github.sha }}
+          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
