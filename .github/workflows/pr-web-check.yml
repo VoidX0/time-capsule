@@ -49,6 +49,8 @@ jobs:
           reporter: github-pr-check
           workdir: "web"
           eslint_flags: "src/"
+          level: "warning"
+          fail_level: "error"
 
       - name: Build production bundle
         working-directory: web
