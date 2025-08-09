@@ -18,15 +18,24 @@ jobs:
       IMAGE: time-capsule # 镜像名称
 
     steps:
-      - name: Convert owner to lowercase # 仓库所有者
+      - name: Checkout repository # 签出代码
+        uses: actions/checkout@v4
+
+      - name: Convert owner to lowercase # 转换仓库所有者
         id: set-owner
         run: |
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           echo "OWNER=$OWNER" >> $GITHUB_ENV
-          echo "Converted ${{ github.repository_owner }} to $OWNER"
+          echo "Registry owner set to: $OWNER"
 
-      - name: Checkout repository # 签出代码
-        uses: actions/checkout@v4
+      - name: Extract package version # 提取 package.json 中的版本号
+        id: package-version
+        run: |
+          PACKAGE_VERSION=$(jq -r '.version' web/package.json)
+          # 替换为Docker兼容的版本格式（替换无效字符）
+          VERSION=$(echo "$PACKAGE_VERSION" | tr -cd '[:alnum:].-_')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
 
       #      - name: Set up QEMU # 启用 QEMU 支持, 以支持多架构构建，如 linux/arm64
       #        uses: docker/setup-qemu-action@v3
@@ -48,7 +57,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ env.OWNER }}/${{ env.IMAGE }}:latest
-            ghcr.io/${{ env.OWNER }}/${{ env.IMAGE }}:${{ github.sha }}
+            ghcr.io/${{ env.OWNER }}/${{ env.IMAGE }}:${{ env.VERSION }}
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
