@@ -1,11 +1,14 @@
-name: Qodana
+name: PR API Check CI
 on:
-  workflow_dispatch:
   pull_request:
-  push:
-    branches: # Specify your branches here
-      - main # The 'main' branch
-      - 'releases/*' # The release branches
+    branches:
+      - main # 仅在主分支的 PR 上触发
+    types:
+      - opened # 当 PR 被创建时触发
+      - synchronize # 当 PR 被更新时触发
+      - reopened # 当 PR 被重新打开时触发
+    paths:
+      - 'api/**' # 仅监控 web 目录下的变更
 
 jobs:
   qodana:
@@ -20,9 +23,13 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}  # to check out the actual pull request commit, not the merge commit
           fetch-depth: 0  # a full history is required for pull request analysis
       - name: 'Qodana Scan'
+        working-directory: 'api'
         uses: JetBrains/qodana-action@v2025.1
         with:
           pr-mode: false
+          args: --apply-fixes
+          push-fixes: pull-request
+          github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_764744085 }}
           QODANA_ENDPOINT: 'https://qodana.cloud'
