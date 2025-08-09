@@ -4,8 +4,8 @@ on:
     branches:
       - main # 推送到主分支时触发
     paths:
-      - '**' # 监控所有文件变更
-      - '!.github/**' # 排除 .github 目录的变更
+      - 'api/**'
+      - 'web/**'
 
 jobs:
   build-and-push:
