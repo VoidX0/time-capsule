@@ -22,22 +22,10 @@ builder.ConfigureJwt(); // 配置Jwt
 builder.ConfigureDb(); // 配置数据库
 builder.Services.AddSingleton<VideoMetadataService>(); // 视频元数据服务
 builder.Services.AddSingleton<ScheduledJob>(); // 定时任务
-// 添加 CORS 策略
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(name: "AllowAllOrigins",
-        configurePolicy: policy =>
-        {
-            policy.AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
-});
 
 // 构建App
 var app = builder.Build();
 App.Application = app; // 全局App
-app.UseCors("AllowAllOrigins");
 await app.FfmpegInit(); // ffmpeg初始化
 app.ApiLogs(); // 启用API日志
 app.ApiReference(); // 启用API参考
