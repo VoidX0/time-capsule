@@ -7,5 +7,6 @@ export function ThemeProvider({
   children,
   ...props
 }: React.ComponentProps<typeof NextThemesProvider>) {
+  const appearance = 'system'
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>
 }
