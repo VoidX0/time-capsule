@@ -27,12 +27,10 @@ services:
       ConnectionOptions__DbConnection: "HOST=postgres; PORT=5432; DATABASE=time_capsule; USER ID=root; PASSWORD=time_capsule;"
     ports:
       - "8080:8080" # api
-      - "80:80" # web
+      - "3000:3000" # web
     volumes:
       - /vol4/1000/Monitor:/camera # 挂载监控视频目录
       - ./storage:/app/storage #存储
-      - ./storage/caddy/data:/data # Caddy数据
-      - ./storage/caddy/config:/config # Caddy配置
     depends_on:
       postgres:
         condition: service_healthy

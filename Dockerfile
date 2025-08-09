@@ -33,8 +33,11 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 EXPOSE 8080 3000
 LABEL org.opencontainers.image.source=https://github.com/VoidX0/time-capsule
+# 安装工具
+RUN apt-get update && apt-get install -y wget ca-certificates
 # 安装前端环境
-RUN apt-get update && apt-get install -y nodejs && \
+RUN wget -qO- https://deb.nodesource.com/setup_lts.x | bash - && \
+    apt-get install -y nodejs && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 ENV NODE_ENV=production
 # 复制后端产物
@@ -43,7 +46,8 @@ COPY --from=api_publish /app/publish .
 COPY --from=web_publish /app/.next/standalone /nextjs
 COPY --from=web_publish /app/.next/static /nextjs/.next/static
 COPY --from=web_publish /app/public /nextjs/public
-# 复制入口脚本
+# 入口脚本
 COPY ./entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 # 启动
 ENTRYPOINT ["./entrypoint.sh"]
