@@ -1,0 +1,47 @@
+**/.idea/
+**/.fleet/
+**/.vs/
+**/.vscode/
+
+.token
+
+# 后端
+api/bin/
+api/obj/
+api/packages/
+api/riderModule.iml
+api/_ReSharper.Caches/
+api/*.user
+api/*.Development.*
+
+# 前端
+web/node_modules
+web/.pnp
+web/.pnp.*
+web/.yarn/*
+!web/.yarn/patches
+!web/.yarn/plugins
+!web/.yarn/releases
+!web/.yarn/versions
+# testing
+web/coverage
+# next.js
+web/.next/
+web/out/
+# production
+web/build
+# misc
+web/.DS_Store
+web/*.pem
+# debug
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+web/.pnpm-debug.log*
+# env files (can opt-in for committing if needed)
+web/.env*
+# vercel
+web/.vercel
+# typescript
+web/*.tsbuildinfo
+web/next-env.d.ts

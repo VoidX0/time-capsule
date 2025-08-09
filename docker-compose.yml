@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:latest
+    restart: always
+    container_name: postgres
+    environment:
+      TZ: "Asia/Shanghai"
+      POSTGRES_USER: "root" #创建管理员用户
+      POSTGRES_PASSWORD: "time_capsule" #创建管理员密码
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./storage/postgres/data:/var/lib/postgresql/data #数据
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  time-capsule:
+    image: ghcr.io/voidx0/time-capsule:latest
+    restart: always
+    container_name: time-capsule
+    environment:
+      TZ: "Asia/Shanghai"
+      SystemOptions__Instance: "docker-server"
+      ConnectionOptions__DbConnection: "HOST=postgres; PORT=5432; DATABASE=time_capsule; USER ID=root; PASSWORD=time_capsule;"
+    ports:
+      - "8080:8080" # api
+      - "3000:3000" # web
+    volumes:
+      - /vol4/1000/Monitor:/camera # 挂载监控视频目录
+      - ./storage:/app/storage #存储
+    depends_on:
+      postgres:
+        condition: service_healthy
