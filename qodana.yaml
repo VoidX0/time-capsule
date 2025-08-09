@@ -6,3 +6,26 @@ include:
   - name: CheckDependencyLicenses
 dotnet:
   solution: api/TimeCapsule.sln
+#关闭的检查项
+exclude:
+  - name: EventNeverSubscribedTo.Global #事件从未被订阅
+  - name: UnusedAutoPropertyAccessor.Global #自动属性中的访问器从未被使用
+  - name: NotAccessedPositionalProperty.Global #位置属性从未被访问
+
+  - name: UnusedMember.Global #类型成员从未被使用
+  - name: UnusedMemberInSuper.Global #类型成员从未与基类型或接口一起使用，始终通过更具体的类型访问
+  - name: UnusedMethodReturnValue.Global #方法返回值从未被使用
+  - name: UnusedMethodReturnValue.Local #方法返回值从未被使用
+  - name: NotAccessedPrimaryConstructorParameterCompiler #主构造函数的形参已被声明，但从未被使用
+
+  - name: MemberCanBePrivate.Global #成员可被设为 private
+  - name: PropertyCanBeMadeInitOnly.Global #属性 setter 可被替换为 'init' 访问器以强制执行属性不变性
+  - name: AutoPropertyCanBeMadeGetOnly.Local #自动属性在初始化后没有写入用法，可被设为只获取
+  - name: AutoPropertyCanBeMadeGetOnly.Global #自动属性在初始化后没有写入用法，可被设为只获取
+  - name: MemberCanBeMadeStatic.Local #非 virtual 实例成员不使用 'this' 对象(既不隐式也不显式)，可被设为 static (共享)
+  - name: MemberCanBeMadeStatic.Global #非 virtual 实例成员不使用 'this' 对象(既不隐式也不显式)，可被设为 static (共享)
+
+  - name: SYSLIB1054 #使用 “LibraryImportAttribute” 而不是 “DllImportAttribute” 在编译时生成 P/Invoke 封送代码
+  - name: CA1401 #P/Invokes 应该是不可见的
+  - name: CA2101 #RoslynAnalyzers 指定对 P/Invoke 字符串参数进行封送处理
+  - name: CA1822 #成员可被设为 static (共享)
