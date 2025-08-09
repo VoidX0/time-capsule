@@ -14,7 +14,17 @@ jobs:
       contents: read
       packages: write
 
+    env:
+      IMAGE: time-capsule # 镜像名称
+
     steps:
+      - name: Convert owner to lowercase # 仓库所有者
+        id: set-owner
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "OWNER=$OWNER" >> $GITHUB_ENV
+          echo "Converted ${{ github.repository_owner }} to $OWNER"
+
       - name: Checkout repository # 签出代码
         uses: actions/checkout@v4
 
@@ -37,7 +47,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/time-capsule:latest
-            ghcr.io/${{ github.repository_owner }}/time-capsule:${{ github.sha }}
+            ghcr.io/${{ env.OWNER }}/${{ env.IMAGE }}:latest
+            ghcr.io/${{ env.OWNER }}/${{ env.IMAGE }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
