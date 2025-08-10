@@ -11,7 +11,7 @@ on:
       - 'api/**' # 仅监控 api 目录下的变更
 
 jobs:
-  build:
+  api-check:
     runs-on: ubuntu-latest
     
     steps:
