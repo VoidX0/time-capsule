@@ -1,0 +1,40 @@
+name: PR API Check CI
+on:
+  pull_request:
+    branches:
+      - main # 仅在主分支的 PR 上触发
+    types:
+      - opened # 当 PR 被创建时触发
+      - synchronize # 当 PR 被更新时触发
+      - reopened # 当 PR 被重新打开时触发
+    paths:
+      - 'api/**' # 仅监控 api 目录下的变更
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        working-directory: api
+        run: dotnet restore
+
+      - name: Build
+        working-directory: api
+        run: dotnet build --no-restore
+
+      - name: Test
+        working-directory: api
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Package Security Check
+        working-directory: api
+        run: dotnet list package --vulnerable

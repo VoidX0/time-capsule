@@ -1,0 +1,41 @@
+﻿# SerilogUI配置
+[SerilogUi]
+UserName = "root"
+Password = "time_capsule"
+
+# 系统配置
+[SystemOptions]
+Instance = "" # 实例名称
+StoragePath = "/app/storage" # 持久化存储路径
+CameraPath = "/camera" # 摄像头基础路径
+ApiLogs = true # 启用API日志
+ApiReference = true # 启用API参考
+ApiHangfire = true # 启用Hangfire Dashboard
+DefaultUser = "root" # 默认用户名
+DefaultPassword = "time_capsule" # 默认密码
+CronSyncVideoMetadata = "0 0 15 * * *" # 视频元数据同步Cron表达式
+
+# Token配置
+[TokenOptions]
+AesKey = "hqFbWJOAztOfRxXRsMDI6oJVVbjIYB92hnFNyZFM/14=" # AES加密密钥
+AesIv = "1mSh76L5ueVr0GN7NGIkTA==" # AES偏移
+Secret = "Develop-TimeCapsuleApi-Secret-Key"
+Issuer = "developer"
+Audience = "developer"
+AccessExpiration = 24 # 访问令牌过期时间(小时)
+
+# 连接配置
+[ConnectionOptions]
+DbConnection = "HOST=postgres; PORT=5432; DATABASE=api_db; USER ID=root; PASSWORD=root;" # 数据库连接
+LogServer = "" # 日志服务, 如: "http://loki:3100"，为空时仅使用本地日志
+
+# SMTP邮箱配置
+[SmtpOptions]
+Server = "smtp.163.com" # SMTP服务器地址
+Port = 587 # 非加密使用25
+EnableSsl = true # 是否启用SSL
+Username = "" # 邮箱用户名
+Password = "" # 邮箱密码/授权码
+Title = "时间胶囊" # 邮件标题
+TemplateRegisterConfirm = "验证码$code，您正在注册成为新用户，感谢您的支持！" # 注册确认模版
+TemplateLoginConfirm = "验证码$code，您正在登录，若非本人操作，请勿泄露。" # 登录确认模版
