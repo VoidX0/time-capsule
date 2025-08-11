@@ -8,7 +8,13 @@ import { NavCameras } from '@/components/main/nav-cameras'
 import { NavMain } from '@/components/main/nav-main'
 import { NavUser } from '@/components/main/nav-user'
 import { ThemeToggle } from '@/components/main/theme-toggle'
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
+} from '@/components/ui/sidebar'
 import { useLocale } from 'next-intl'
 import Image from 'next/image'
 
