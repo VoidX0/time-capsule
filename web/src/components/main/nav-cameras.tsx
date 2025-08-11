@@ -1,19 +1,13 @@
 'use client'
 
-import {
-  Folder,
-  Forward,
-  type LucideIcon,
-  MoreHorizontal,
-  Trash2,
-} from 'lucide-react'
+import { Gauge, type LucideIcon, MonitorCog, MonitorPlay, MoreHorizontal } from 'lucide-react'
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import {
   SidebarGroup,
@@ -22,31 +16,37 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
+  useSidebar
 } from '@/components/ui/sidebar'
+import { useLocale } from 'next-intl'
+import Link from 'next/link'
 
-export function NavProjects({
-  projects,
+export function NavCameras({
+  cameras,
 }: {
-  projects: {
+  cameras: {
     name: string
-    url: string
+    id: string
     icon: LucideIcon
   }[]
 }) {
   const { isMobile } = useSidebar()
+  const locale = useLocale()
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
+      <SidebarGroupLabel>Cameras</SidebarGroupLabel>
       <SidebarMenu>
-        {projects.map((item) => (
+        {cameras.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
+              <Link
+                href={`/${locale}/${item.id}/dashboard`}
+                className="flex items-center gap-2"
+              >
                 <item.icon />
                 <span>{item.name}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -61,28 +61,37 @@ export function NavProjects({
                 align={isMobile ? 'end' : 'start'}
               >
                 <DropdownMenuItem>
-                  <Folder className="text-muted-foreground" />
-                  <span>View Project</span>
+                  <Link
+                    href={`/${locale}/${item.id}/dashboard`}
+                    className="flex items-center gap-2"
+                  >
+                    <Gauge className="text-muted-foreground" />
+                    <span>Dashboard</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Forward className="text-muted-foreground" />
-                  <span>Share Project</span>
+                  <Link
+                    href={`/${locale}/${item.id}/playback`}
+                    className="flex items-center gap-2"
+                  >
+                    <MonitorPlay className="text-muted-foreground" />
+                    <span>Playback</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <Trash2 className="text-muted-foreground" />
-                  <span>Delete Project</span>
+                  <Link
+                    href={`/${locale}/${item.id}/manage`}
+                    className="flex items-center gap-2"
+                  >
+                    <MonitorCog className="text-muted-foreground" />
+                    <span>Manage</span>
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <MoreHorizontal className="text-sidebar-foreground/70" />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   )

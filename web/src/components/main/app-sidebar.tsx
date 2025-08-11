@@ -1,14 +1,20 @@
 'use client'
 
-import { Frame, LayoutDashboard, Map, PieChart, Search, Settings } from 'lucide-react'
+import { Camera, LayoutDashboard, Search, Settings } from 'lucide-react'
 import * as React from 'react'
 
 import LanguageToggle from '@/components/main/language-toggle'
+import { NavCameras } from '@/components/main/nav-cameras'
 import { NavMain } from '@/components/main/nav-main'
-import { NavProjects } from '@/components/main/nav-projects'
 import { NavUser } from '@/components/main/nav-user'
 import { ThemeToggle } from '@/components/main/theme-toggle'
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
+} from '@/components/ui/sidebar'
 import { useLocale } from 'next-intl'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -41,21 +47,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         isActive: pathname === `/${locale}/settings`,
       },
     ],
-    projects: [
+    cameras: [
       {
-        name: 'Design Engineering',
-        url: '#',
-        icon: Frame,
+        name: 'Camera 1',
+        id: '1952625044269490177',
+        icon: Camera,
       },
       {
-        name: 'Sales & Marketing',
-        url: '#',
-        icon: PieChart,
+        name: 'Camera 2',
+        id: '1952625044269490178',
+        icon: Camera,
       },
       {
-        name: 'Travel',
-        url: '#',
-        icon: Map,
+        name: 'Camera 3',
+        id: '1952625044269490179',
+        icon: Camera,
+      },
+      {
+        name: 'Camera 4',
+        id: '1952625044269490180',
+        icon: Camera,
       },
     ],
   }
@@ -75,7 +86,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarHeader>
       <SidebarContent>
-        <NavProjects projects={data.projects} />
+        <NavCameras cameras={data.cameras} />
       </SidebarContent>
       <SidebarFooter>
         <div>
