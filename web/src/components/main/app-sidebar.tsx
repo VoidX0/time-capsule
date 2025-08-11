@@ -39,8 +39,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ],
     cameras: [
       {
-        name: 'Camera 1',
-        id: '1952625044269490177',
+        name: 'Camera',
+        id: '1155667788',
         icon: Camera,
       },
       {
