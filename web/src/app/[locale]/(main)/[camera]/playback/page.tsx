@@ -1,12 +1,22 @@
-export default async function Page({
+'use client'
+
+import { useEffect, useState } from 'react'
+
+export default function Page({
   params,
 }: Readonly<{
   params: Promise<{ locale: string; camera: string }>
 }>) {
-  const { camera } = await params
+  const [cameraInfo, setCameraInfo] = useState('')
+  useEffect(() => {
+    params.then(({ camera }) => {
+      setCameraInfo(camera)
+    })
+  }, [params])
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <label>Camera Playback {camera}</label>
+      <label>Camera Playback {cameraInfo}</label>
       <div className="grid auto-rows-min gap-4 md:grid-cols-3">
         <div className="bg-muted/50 aspect-video rounded-xl" />
         <div className="bg-muted/50 aspect-video rounded-xl" />
