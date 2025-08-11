@@ -1,17 +1,6 @@
 'use client'
 
-import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
-} from 'lucide-react'
+import { Frame, LayoutDashboard, Map, PieChart, Search, Settings } from 'lucide-react'
 import * as React from 'react'
 
 import LanguageToggle from '@/components/main/language-toggle'
@@ -19,146 +8,57 @@ import { NavMain } from '@/components/main/nav-main'
 import { NavProjects } from '@/components/main/nav-projects'
 import { NavUser } from '@/components/main/nav-user'
 import { ThemeToggle } from '@/components/main/theme-toggle'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
-} from '@/components/ui/sidebar'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
+import { useLocale } from 'next-intl'
 import Image from 'next/image'
-
-// This is sample data.
-const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
-  teams: [
-    {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free',
-    },
-  ],
-  navMain: [
-    {
-      title: 'Playground',
-      url: '#',
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: 'History',
-          url: '#',
-        },
-        {
-          title: 'Starred',
-          url: '#',
-        },
-        {
-          title: 'Settings',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Models',
-      url: '#',
-      icon: Bot,
-      items: [
-        {
-          title: 'Genesis',
-          url: '#',
-        },
-        {
-          title: 'Explorer',
-          url: '#',
-        },
-        {
-          title: 'Quantum',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Documentation',
-      url: '#',
-      icon: BookOpen,
-      items: [
-        {
-          title: 'Introduction',
-          url: '#',
-        },
-        {
-          title: 'Get Started',
-          url: '#',
-        },
-        {
-          title: 'Tutorials',
-          url: '#',
-        },
-        {
-          title: 'Changelog',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Settings',
-      url: '#',
-      icon: Settings2,
-      items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-        {
-          title: 'Team',
-          url: '#',
-        },
-        {
-          title: 'Billing',
-          url: '#',
-        },
-        {
-          title: 'Limits',
-          url: '#',
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: 'Design Engineering',
-      url: '#',
-      icon: Frame,
-    },
-    {
-      name: 'Sales & Marketing',
-      url: '#',
-      icon: PieChart,
-    },
-    {
-      name: 'Travel',
-      url: '#',
-      icon: Map,
-    },
-  ],
-}
+import { usePathname } from 'next/navigation'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const locale = useLocale()
+  const pathname = usePathname()
+  const data = {
+    user: {
+      name: 'shadcn',
+      email: 'm@example.com',
+      avatar: '/avatars/shadcn.jpg',
+    },
+    navMain: [
+      {
+        title: 'Search',
+        url: '#',
+        icon: Search,
+      },
+      {
+        title: 'Dashboard',
+        url: `/${locale}/dashboard`,
+        icon: LayoutDashboard,
+        isActive: pathname === `/${locale}/dashboard`,
+      },
+      {
+        title: 'Settings',
+        url: `/${locale}/settings`,
+        icon: Settings,
+        isActive: pathname === `/${locale}/settings`,
+      },
+    ],
+    projects: [
+      {
+        name: 'Design Engineering',
+        url: '#',
+        icon: Frame,
+      },
+      {
+        name: 'Sales & Marketing',
+        url: '#',
+        icon: PieChart,
+      },
+      {
+        name: 'Travel',
+        url: '#',
+        icon: Map,
+      },
+    ],
+  }
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -172,9 +72,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           />
           <span className="truncate font-medium">Time Capsule</span>
         </div>
+        <NavMain items={data.navMain} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
