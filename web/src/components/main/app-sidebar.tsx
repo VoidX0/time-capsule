@@ -38,6 +38,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: LayoutDashboard,
       },
       {
+        title: 'Cameras',
+        url: `/${locale}/cameras`,
+        icon: Camera,
+      },
+      {
         title: 'Settings',
         url: `/${locale}/settings`,
         icon: Settings,

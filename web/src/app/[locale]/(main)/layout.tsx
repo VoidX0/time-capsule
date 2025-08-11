@@ -1,7 +1,11 @@
 import { AppSidebar } from '@/components/main/app-sidebar'
 import MainBreadcrumb from '@/components/main/main-breadcrumb'
 import { Separator } from '@/components/ui/separator'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
 
 export default function MainLayout({
   children,
