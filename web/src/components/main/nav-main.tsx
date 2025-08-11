@@ -8,6 +8,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export function NavMain({
   items,
@@ -16,14 +17,15 @@ export function NavMain({
     title: string
     url: string
     icon: LucideIcon
-    isActive?: boolean
   }[]
 }) {
+  const pathname = usePathname()
+
   return (
     <SidebarMenu>
       {items.map((item) => (
         <SidebarMenuItem key={item.title}>
-          <SidebarMenuButton asChild isActive={item.isActive}>
+          <SidebarMenuButton asChild isActive={pathname === item.url}>
             <Link href={item.url} className="flex items-center gap-2">
               <item.icon />
               <span>{item.title}</span>

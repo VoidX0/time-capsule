@@ -1,13 +1,19 @@
 'use client'
 
-import { Gauge, type LucideIcon, MonitorCog, MonitorPlay, MoreHorizontal } from 'lucide-react'
+import {
+  Gauge,
+  type LucideIcon,
+  MonitorCog,
+  MonitorPlay,
+  MoreHorizontal,
+} from 'lucide-react'
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
   SidebarGroup,
@@ -16,10 +22,11 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { useLocale } from 'next-intl'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export function NavCameras({
   cameras,
@@ -32,6 +39,7 @@ export function NavCameras({
 }) {
   const { isMobile } = useSidebar()
   const locale = useLocale()
+  const pathname = usePathname()
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -39,7 +47,7 @@ export function NavCameras({
       <SidebarMenu>
         {cameras.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild isActive={pathname.includes(item.id)}>
               <Link
                 href={`/${locale}/${item.id}/dashboard`}
                 className="flex items-center gap-2"
@@ -60,34 +68,25 @@ export function NavCameras({
                 side={isMobile ? 'bottom' : 'right'}
                 align={isMobile ? 'end' : 'start'}
               >
-                <DropdownMenuItem>
-                  <Link
-                    href={`/${locale}/${item.id}/dashboard`}
-                    className="flex items-center gap-2"
-                  >
+                <Link href={`/${locale}/${item.id}/dashboard`}>
+                  <DropdownMenuItem>
                     <Gauge className="text-muted-foreground" />
                     <span>Dashboard</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link
-                    href={`/${locale}/${item.id}/playback`}
-                    className="flex items-center gap-2"
-                  >
+                  </DropdownMenuItem>
+                </Link>
+                <Link href={`/${locale}/${item.id}/playback`}>
+                  <DropdownMenuItem>
                     <MonitorPlay className="text-muted-foreground" />
                     <span>Playback</span>
-                  </Link>
-                </DropdownMenuItem>
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Link
-                    href={`/${locale}/${item.id}/manage`}
-                    className="flex items-center gap-2"
-                  >
+                <Link href={`/${locale}/${item.id}/manage`}>
+                  <DropdownMenuItem>
                     <MonitorCog className="text-muted-foreground" />
                     <span>Manage</span>
-                  </Link>
-                </DropdownMenuItem>
+                  </DropdownMenuItem>
+                </Link>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

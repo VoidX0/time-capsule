@@ -8,20 +8,12 @@ import { NavCameras } from '@/components/main/nav-cameras'
 import { NavMain } from '@/components/main/nav-main'
 import { NavUser } from '@/components/main/nav-user'
 import { ThemeToggle } from '@/components/main/theme-toggle'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
-} from '@/components/ui/sidebar'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
 import { useLocale } from 'next-intl'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const locale = useLocale()
-  const pathname = usePathname()
   const data = {
     user: {
       name: 'shadcn',
@@ -38,13 +30,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: 'Dashboard',
         url: `/${locale}/dashboard`,
         icon: LayoutDashboard,
-        isActive: pathname === `/${locale}/dashboard`,
       },
       {
         title: 'Settings',
         url: `/${locale}/settings`,
         icon: Settings,
-        isActive: pathname === `/${locale}/settings`,
       },
     ],
     cameras: [
