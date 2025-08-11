@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
+import Link from 'next/link'
 import { IconContext } from 'react-icons'
 import { LuGithub, LuLogIn } from 'react-icons/lu'
 
@@ -33,7 +34,7 @@ export default function Home() {
         </ol>
 
         <div className="flex flex-col items-center gap-4 sm:flex-row">
-          <a
+          <Link
             className="bg-foreground text-background flex h-10 items-center justify-center gap-2 rounded-full border border-solid border-transparent px-4 text-sm font-medium transition-colors hover:bg-[#383838] sm:h-12 sm:w-auto sm:px-5 sm:text-base dark:hover:bg-[#ccc]"
             href={`/${locale}/login`}
             rel="noopener noreferrer"
@@ -42,11 +43,11 @@ export default function Home() {
             <IconContext.Provider value={{ size: '2em' }}>
               <LuLogIn />
             </IconContext.Provider>
-          </a>
+          </Link>
         </div>
       </main>
       <footer className="row-start-3 flex flex-wrap items-center justify-center gap-[24px]">
-        <a
+        <Link
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
           href="https://github.com/VoidX0/time-capsule"
           target="_blank"
@@ -54,7 +55,7 @@ export default function Home() {
         >
           <LuGithub />
           {t('github')}
-        </a>
+        </Link>
       </footer>
     </div>
   )
