@@ -10,35 +10,37 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useTranslations } from 'next-intl'
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
+  const t = useTranslations('Common')
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" className="mr-2">
           {theme === 'dark' ? (
-            <Moon className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all" />
+            <Moon />
           ) : theme === 'light' ? (
-            <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all" />
+            <Sun />
           ) : (
-            <TvMinimal className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all" />
+            <TvMinimal />
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme('light')}>
           <Sun />
-          Light
+          {t('light')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('dark')}>
           <Moon />
-          Dark
+          {t('dark')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('system')}>
           <TvMinimal />
-          System
+          {t('system')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
