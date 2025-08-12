@@ -20,7 +20,7 @@ builder.ConfigureApiReference(); // 配置API文档
 builder.ConfigureHangfire(); // 配置Hangfire
 builder.ConfigureJwt(); // 配置Jwt
 builder.ConfigureDb(); // 配置数据库
-builder.Services.AddSingleton<VideoMetadataService>(); // 视频元数据服务
+builder.Services.AddSingleton<VideoService>(); // 视频服务
 builder.Services.AddSingleton<ScheduledJob>(); // 定时任务
 
 // 构建App
