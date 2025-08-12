@@ -32,25 +32,23 @@ public class VideoController : ControllerBase
     }
 
     /// <summary>
-    /// 指定Segment视频流
+    /// 指定Segment的视频流
     /// </summary>
-    /// <param name="cameraId">摄像头ID</param>
     /// <param name="segmentId">视频片段ID</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<IActionResult> StreamSegment(string cameraId, string segmentId)
+    public async Task<IActionResult> StreamSegment(string segmentId)
     {
-        var cameraIdActual = long.TryParse(cameraId.Replace(" ", ""), out var cid) ? cid : 0;
         var segmentIdActual = long.TryParse(segmentId.Replace(" ", ""), out var sid) ? sid : 0;
-        // 查询摄像头信息
-        var camera = await _db.Queryable<Camera>().InSingleAsync(cameraIdActual);
-        if (camera == null) return BadRequest("摄像头不存在");
         // 查询视频片段
         var segment = await _db.Queryable<VideoSegment>()
-            .Where(x => x.CameraId == cameraIdActual && x.Id == segmentIdActual)
+            .Where(x => x.Id == segmentIdActual)
             .SplitTable()
             .FirstAsync();
         if (segment == null) return BadRequest("视频片段不存在");
+        // 查询摄像头信息
+        var camera = await _db.Queryable<Camera>().InSingleAsync(segment.CameraId);
+        if (camera == null) return BadRequest("摄像头不存在");
         // 检查文件
         var video = Path.Combine(_systemOptions.CameraPath, camera.BasePath, segment.Path);
         if (!new FileInfo(video).Exists) return BadRequest("视频文件不存在");
