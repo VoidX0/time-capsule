@@ -81,7 +81,7 @@ public class VideoController : ControllerBase
     /// <param name="sid">会话ID（可选）</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<IActionResult> CameraPlaylist(
+    public async Task<ActionResult> CameraPlaylist(
         string cameraId,
         long start,
         int durationSec = 1800,

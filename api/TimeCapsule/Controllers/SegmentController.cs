@@ -38,7 +38,7 @@ public class SegmentController : OrmController<VideoSegment>
     /// <param name="segmentId">视频片段ID</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<IActionResult> GetThumbnail(string segmentId)
+    public async Task<ActionResult> GetThumbnail(string segmentId)
     {
         var segmentIdActual = long.TryParse(segmentId.Replace(" ", ""), out var sid) ? sid : 0;
         // 查询视频片段
