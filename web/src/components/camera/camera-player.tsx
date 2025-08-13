@@ -1,20 +1,19 @@
 'use client'
 
 import Hls from 'hls.js'
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 export interface CameraPlayerHandle {
   /**
    * 跳转到指定时间戳（毫秒）
    */
   seekTo: (timestampMs: number) => void
+
+  /**
+   * 设置播放倍速
+   * @param speed 播放倍速，1.0 为正常速度
+   */
+  setPlaybackRate: (speed: number) => void
 }
 
 interface CameraPlayerProps {
@@ -52,7 +51,7 @@ const CameraPlayer = forwardRef<CameraPlayerHandle, CameraPlayerProps>(
         }
         // 创建新的 HLS 实例
         const hls = new Hls({
-          maxBufferLength: 60,
+          maxBufferLength: 3 * 60, // 最大缓冲长度，单位秒
           enableWorker: true,
           liveSyncDurationCount: 3,
           debug: false,
@@ -133,6 +132,11 @@ const CameraPlayer = forwardRef<CameraPlayerHandle, CameraPlayerProps>(
             setCurrentStartTime(timestampMs)
           }
         },
+        setPlaybackRate: (speed: number) => {
+          if (videoRef.current) {
+            videoRef.current.playbackRate = speed
+          }
+        },
       }),
       [currentStartTime, segmentDurationSec],
     )
@@ -144,6 +148,8 @@ const CameraPlayer = forwardRef<CameraPlayerHandle, CameraPlayerProps>(
           controls
           style={{ width: '100%', background: '#000' }}
           playsInline
+          autoPlay
+          muted // 静音播放，避免自动播放限制
         />
       </div>
     )
