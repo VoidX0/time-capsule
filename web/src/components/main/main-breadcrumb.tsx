@@ -6,7 +6,7 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator,
+  BreadcrumbSeparator
 } from '@/components/ui/breadcrumb'
 import { useLocale } from 'next-intl'
 import { usePathname } from 'next/navigation'
@@ -27,17 +27,17 @@ export default function MainBreadcrumb() {
             Time Capsule
           </BreadcrumbLink>
         </BreadcrumbItem>
+        <BreadcrumbSeparator className="hidden md:block" />
         {isCameraPage && (
           <>
-            <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>
               <BreadcrumbLink href={`/${locale}/${cameraId}/dashboard`}>
                 Camera
               </BreadcrumbLink>
             </BreadcrumbItem>
+            <BreadcrumbSeparator />
           </>
         )}
-        <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbPage>{lastPart}</BreadcrumbPage>
         </BreadcrumbItem>
