@@ -43,6 +43,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "flv.js": "^1.6.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.4",
     "next-intl": "^4.3.4",

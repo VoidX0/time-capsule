@@ -24,7 +24,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     user: {
       name: 'shadcn',
       email: 'm@example.com',
-      avatar: '/avatars/shadcn.jpg',
+      avatar: '/logo.png',
     },
     navMain: [
       {
@@ -51,7 +51,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     cameras: [
       {
         name: 'Camera',
-        id: '1155667788',
+        id: '1952571427730677769',
         icon: Camera,
       },
       {

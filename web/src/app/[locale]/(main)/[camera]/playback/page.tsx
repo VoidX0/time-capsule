@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import SegmentPlayer from '@/components/camera/segment-player'
+import {useEffect, useState} from 'react'
 
 export default function Page({
   params,
@@ -15,14 +16,15 @@ export default function Page({
   }, [params])
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <label>Camera Playback {cameraInfo}</label>
-      <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-        <div className="bg-muted/50 aspect-video rounded-xl" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-4 text-white md:p-8">
+      <h1 className="mb-6 text-3xl font-bold">
+        Camera Playback - {cameraInfo || 'Loading...'}
+      </h1>
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8 rounded-xl bg-gray-800 p-6">
+          <SegmentPlayer />
+        </div>
       </div>
-      <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
     </div>
   )
 }
