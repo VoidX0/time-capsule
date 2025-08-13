@@ -17,6 +17,8 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    // for openapi-typescript
+    "noUncheckedIndexedAccess": true,
     "plugins": [
       {
         "name": "next"

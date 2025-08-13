@@ -22,3 +22,10 @@ pnpm dlx shadcn@latest init
 # 添加组件
 pnpm dlx shadcn@latest add button
 ```
+
+## openapi-typescript
+
+```shell
+# 生成openapi类型
+ pnpm dlx openapi-typescript http://127.0.0.1:8080/openapi/v1.json -o src/api/schema.d.ts
+```

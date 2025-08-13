@@ -1,6 +1,9 @@
 // axios封装
+import type { paths } from '@/api/schema'
 import axios from 'axios'
+import createClient from 'openapi-fetch'
 
+/* axios客户端 */
 export const http = axios.create({
   baseURL: '/api',
 })
@@ -28,3 +31,6 @@ http.interceptors.response.use(
     return Promise.reject(error)
   },
 )
+
+/* openapi-fetch客户端 */
+export const openapi = createClient<paths>({ baseUrl: '/api' })
