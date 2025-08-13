@@ -1,7 +1,7 @@
 'use client'
 
-import SegmentPlayer from '@/components/camera/segment-player'
-import {useEffect, useState} from 'react'
+import CameraPlayer from '@/components/camera/camera-player'
+import { useEffect, useState } from 'react'
 
 export default function Page({
   params,
@@ -22,7 +22,11 @@ export default function Page({
       </h1>
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 rounded-xl bg-gray-800 p-6">
-          <SegmentPlayer />
+          {/*<SegmentPlayer />*/}
+          <CameraPlayer
+            cameraId={cameraInfo}
+            startTime={new Date('2025-08-05 08:01:00').getTime()}
+          />
         </div>
       </div>
     </div>
