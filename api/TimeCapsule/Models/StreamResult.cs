@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Serilog;
-using TimeCapsule.Models.Options;
 using Xabe.FFmpeg;
 using ILogger = Serilog.ILogger;
 
@@ -13,7 +11,6 @@ namespace TimeCapsule.Models;
 public class StreamResult : IActionResult
 {
     private readonly string _args;
-    private readonly SystemOptions _systemOptions;
     private ILogger Logger => Log.ForContext<StreamResult>();
 
     /// <summary>
@@ -23,7 +20,6 @@ public class StreamResult : IActionResult
     public StreamResult(string args)
     {
         _args = args;
-        _systemOptions = App.Services?.GetService<IOptions<SystemOptions>>()?.Value!;
     }
 
     /// <summary>
@@ -48,7 +44,7 @@ public class StreamResult : IActionResult
                 }
                 catch (Exception e)
                 {
-                    Logger.Debug(e, "ffmpeg conversion cancelled");
+                    // Logger.Debug(e, "ffmpeg conversion cancelled");
                 }
             };
             await conversion.Start(cancellationToken); // 启动ffmpeg转换

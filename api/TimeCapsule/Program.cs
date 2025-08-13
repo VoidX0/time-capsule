@@ -1,4 +1,5 @@
 using TimeCapsule;
+using TimeCapsule.Contracts;
 using TimeCapsule.Core.Utils.Extension;
 using TimeCapsule.Services;
 using TimeCapsule.Utils.Extension;
@@ -20,6 +21,8 @@ builder.ConfigureApiReference(); // 配置API文档
 builder.ConfigureHangfire(); // 配置Hangfire
 builder.ConfigureJwt(); // 配置Jwt
 builder.ConfigureDb(); // 配置数据库
+builder.Services.AddMemoryCache(); // 添加内存缓存
+builder.Services.AddSingleton<IHlsService, HlsService>(); // HLS服务
 builder.Services.AddSingleton<VideoService>(); // 视频服务
 builder.Services.AddSingleton<ScheduledJob>(); // 定时任务
 
