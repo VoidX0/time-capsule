@@ -18,7 +18,13 @@ import {
 } from '@/components/ui/tooltip'
 import { openapi } from '@/lib/http'
 import { Calendar, CircleAlert, CircleDot, CircleX, Info } from 'lucide-react'
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react'
 
 type GetTimelineQuery =
   paths['/Camera/GetTimeline']['get']['parameters']['query']
@@ -35,8 +41,8 @@ export interface CameraTimelineHandle {
 interface CameraTimelineProps {
   cameraId: string // 摄像头ID
   initialTime: number // 初始时间戳，单位毫秒
-  onDragStart?: (ts: number) => void // 拖动开始回调
-  onDragEnd?: (ts: number) => void // 拖动结束回调
+  onTimeChange?: (ts: number) => void // 时间开始调整
+  onTimeCommit?: (ts: number) => void // 时间调整完成
 }
 
 /* 聚类方法：按时间排序 & 按 thresholdMs 归类 */
@@ -70,11 +76,12 @@ function clusterTimeline(events: Timeline[], thresholdMs: number) {
 }
 
 const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
-  ({ cameraId, initialTime, onDragStart, onDragEnd }, ref) => {
-    const [timeline, setTimeline] = useState<Timeline[] | undefined>(undefined)
-    const [currentTime, setCurrentTime] = useState(initialTime)
-    const [minTime, setMinTime] = useState(initialTime - 2 * 60 * 60 * 1000)
-    const [maxTime, setMaxTime] = useState(initialTime + 22 * 60 * 60 * 1000)
+  ({ cameraId, initialTime, onTimeChange, onTimeCommit }, ref) => {
+    const scrollTimeout = useRef<NodeJS.Timeout | undefined>(undefined) // 滚动结束后的延时处理
+    const [timeline, setTimeline] = useState<Timeline[] | undefined>(undefined) // 摄像头时间线数据
+    const [currentTime, setCurrentTime] = useState(initialTime) // 当前时间戳
+    const [minTime, setMinTime] = useState(initialTime - 2 * 60 * 60 * 1000) // 最小时间戳
+    const [maxTime, setMaxTime] = useState(initialTime + 22 * 60 * 60 * 1000) // 最大时间戳
     const [selectedCluster, setSelectedCluster] = useState<
       Timeline[] | undefined
     >(undefined)
@@ -118,15 +125,24 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
           setMinTime(newMinTime)
           setMaxTime(newMaxTime)
         } else {
+          // 滚动开始，触发时间变更，清除定时器
+          onTimeChange?.(currentTime)
+          if (scrollTimeout.current) clearTimeout(scrollTimeout.current)
+          // 处理时间滚动
           const delta = e.deltaY > 0 ? 10 * 60 * 1000 : -10 * 60 * 1000
           setCurrentTime((prev) => prev + delta)
+          // 滚动结束，初始化定时器
+          scrollTimeout.current = setTimeout(
+            () => onTimeCommit?.(currentTime),
+            500,
+          )
         }
       }
       window.addEventListener('wheel', handleWheel, { passive: false })
       return () => {
         window.removeEventListener('wheel', handleWheel)
       }
-    }, [currentTime, maxTime, minTime])
+    }, [currentTime, maxTime, minTime, onTimeChange, onTimeCommit])
 
     /* 对外暴露接口 */
     useImperativeHandle(ref, () => ({
@@ -156,9 +172,11 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
                 min={minTime}
                 max={maxTime}
                 step={1000}
-                onValueChange={(val) => setCurrentTime(val[0]!)}
-                onDragStart={() => onDragStart?.(currentTime)}
-                onDragEnd={() => onDragEnd?.(currentTime)}
+                onValueChange={(val) => {
+                  onTimeChange?.(currentTime)
+                  setCurrentTime(val[0]!)
+                }}
+                onValueCommit={(val) => onTimeCommit?.(val[0]!)}
               />
             </TooltipTrigger>
             <TooltipContent>
@@ -192,7 +210,10 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
                   key={index}
                   onClick={() => {
                     if (group.length === 1) {
-                      setCurrentTime(new Date(first.Time!).getTime()) // 单个事件，直接跳转
+                      // 单个事件，直接跳转
+                      onTimeChange?.(currentTime)
+                      setCurrentTime(new Date(first.Time!).getTime())
+                      onTimeCommit?.(new Date(first.Time!).getTime())
                     } else {
                       setSelectedCluster(group) // 多个事件，显示聚类详情
                     }
@@ -271,7 +292,11 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
                   key={idx}
                   className="hover:bg-muted/10 cursor-pointer rounded border-b p-2 pb-2 last:border-b-0"
                   onClick={() => {
+                    // 点击事件，跳转到对应时间
+                    onTimeChange?.(currentTime)
                     setCurrentTime(new Date(item.Time!).getTime())
+                    onTimeCommit?.(currentTime)
+                    // 关闭弹窗
                     setSelectedCluster(undefined)
                   }}
                 >

@@ -1,7 +1,14 @@
 'use client'
 
 import Hls from 'hls.js'
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react'
 
 export interface CameraPlayerHandle {
   /**
