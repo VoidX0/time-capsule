@@ -149,7 +149,6 @@ const CameraPlayer = forwardRef<CameraPlayerHandle, CameraPlayerProps>(
       <div>
         <video
           ref={videoRef}
-          controls
           style={{ width: '100%', background: '#000' }}
           playsInline
           autoPlay
