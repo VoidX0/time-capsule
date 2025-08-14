@@ -1,3 +1,13 @@
+## 0.1.6
+
+### bugfixes
+
+- 修复Camera-Manage-Segments每天录像时长显示错误的问题
+
+### features
+
+- Camera-Manage-Segments新增日期跳转按钮
+
 ## 0.1.5
 
 ### features

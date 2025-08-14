@@ -3,9 +3,17 @@
 import { components } from '@/api/schema'
 import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
+import { CalendarIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type QueryDto = components['schemas']['QueryDto']
@@ -105,7 +113,11 @@ export default function Page({
           <div className="grid grid-cols-1 gap-4">
             {/*按天分组的视频片段*/}
             {Object.entries(segmentsByDate).map(([date, segments]) => (
-              <div key={date} className="bg-muted/50 rounded-xl p-4">
+              <div
+                key={date}
+                id={`date-${date}`}
+                className="bg-muted/50 rounded-xl p-4"
+              >
                 <div className="flex items-center justify-start gap-4">
                   <h2 className="text-xl font-semibold">{date}</h2>
                   <Badge>{segments.length} segments</Badge>
@@ -137,6 +149,37 @@ export default function Page({
               </div>
             ))}
           </div>
+          {/* 浮动按钮 */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                size="icon"
+                className="fixed right-4 bottom-4 rounded-full shadow-lg"
+              >
+                <CalendarIcon className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                onSelect={(selectedDate) => {
+                  if (!selectedDate) return
+                  // 本地日期格式化
+                  const y = selectedDate.getFullYear()
+                  const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
+                  const d = String(selectedDate.getDate()).padStart(2, '0')
+                  const dateKey = `${y}-${m}-${d}`
+                  const target = document.getElementById(`date-${dateKey}`)
+                  if (target) {
+                    target.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'start',
+                    })
+                  }
+                }}
+              />
+            </PopoverContent>
+          </Popover>
         </TabsContent>
         <TabsContent value="settings">
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
