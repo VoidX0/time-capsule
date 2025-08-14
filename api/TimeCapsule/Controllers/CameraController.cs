@@ -1,14 +1,8 @@
 ﻿using System.ComponentModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.Extensions.Options;
-using Serilog;
-using SqlSugar;
-using SqlSugar.IOC;
 using TimeCapsule.Core.Models.Db;
 using TimeCapsule.Models;
-using TimeCapsule.Models.Options;
-using ILogger = Serilog.ILogger;
 
 namespace TimeCapsule.Controllers;
 
@@ -25,28 +19,22 @@ public class CameraController : OrmController<Camera>
     /// 获取时间轴
     /// </summary>
     /// <param name="cameraId">摄像头ID</param>
-    /// <param name="startTs">开始时间戳</param>
-    /// <param name="endTs">结束时间戳</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<ActionResult<List<Timeline>>> GetTimeline(string cameraId, long startTs, long endTs)
+    public async Task<ActionResult<List<Timeline>>> GetTimeline(string cameraId)
     {
         var id = long.TryParse(cameraId, out var parsedId) ? parsedId : 0;
-        var start = DateTimeOffset.FromUnixTimeMilliseconds(startTs).ToLocalTime();
-        var end = DateTimeOffset.FromUnixTimeMilliseconds(endTs).ToLocalTime();
         // 找到时段内所有片段
         var segments = await Db.Queryable<VideoSegment>()
             .Where(x => x.CameraId == id)
-            .Where(x => x.StartTime < end && x.EndTime > start)
             .OrderBy(x => x.StartTime)
             .SplitTable()
             .ToListAsync();
-        // 找到最后一个片段
-        var lastSegment = await Db.Queryable<VideoSegment>()
-            .Where(x => x.CameraId == id)
-            .OrderByDescending(x => x.EndTime)
-            .SplitTable()
-            .FirstAsync();
+        // 找到开头和结尾的片段
+        if (segments.Count == 0) return Ok(new List<Timeline>());
+        var firstSegment = segments.FirstOrDefault();
+        var lastSegment = segments.LastOrDefault();
+        if (firstSegment == null || lastSegment == null) return Ok(new List<Timeline>());
         // 生成时间轴
         var timeline = new List<Timeline>();
         for (var i = 0; i < segments.Count; i++)
@@ -69,15 +57,10 @@ public class CameraController : OrmController<Camera>
             timeline.Add(new Timeline(currentSegment.StartTime, "Online", "", "info"));
         }
 
-        // 如果最后一个片段的结束时间在查询范围内，则添加一个结束时间点
-        if (lastSegment != null && lastSegment.EndTime > start && lastSegment.EndTime < end)
-            timeline.Add(new Timeline(lastSegment.EndTime, "Over", "", "warning"));
+        // 最后添加一个Over
+        timeline.Add(new Timeline(lastSegment.EndTime, "Over", "", "warning"));
 
-        // 添加开始标记
-        timeline.Add(new Timeline(start, start.ToString("MM/dd HH")));
-        // 添加一个结束标记
-        timeline.Add(new Timeline(end, end.ToString("MM/dd HH")));
-
-        return Ok(timeline.OrderBy(x => x.Time).ToList());
+        return Ok(timeline.Concat(Timeline.PointMarks(firstSegment.StartTime, firstSegment.EndTime))
+            .OrderBy(x => x.Time).ToList());
     }
 }
