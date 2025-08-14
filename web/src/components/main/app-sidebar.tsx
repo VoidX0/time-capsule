@@ -1,8 +1,15 @@
 'use client'
 
-import { Camera, LayoutDashboard, Search, Settings } from 'lucide-react'
+import {
+  Camera as CameraIcon,
+  LayoutDashboard,
+  Search,
+  Settings,
+} from 'lucide-react'
 import * as React from 'react'
+import { useEffect, useState } from 'react'
 
+import { paths } from '@/api/schema'
 import LanguageToggle from '@/components/main/language-toggle'
 import { NavCameras } from '@/components/main/nav-cameras'
 import { NavMain } from '@/components/main/nav-main'
@@ -15,11 +22,28 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { openapi } from '@/lib/http'
 import { useLocale } from 'next-intl'
 import Image from 'next/image'
 
+type Camera =
+  paths['/Camera/Query']['post']['responses']['200']['content']['application/json']
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const locale = useLocale()
+  const [cameras, setCameras] = useState<Camera | undefined>([])
+
+  /* 加载摄像头列表 */
+  useEffect(() => {
+    const getCameras = async () => {
+      const { data } = await openapi.POST('/Camera/Query', {
+        body: { Page: 1, PageSize: 1000 },
+      })
+      setCameras(data)
+    }
+    getCameras().then()
+  }, [])
+
   const data = {
     user: {
       name: 'shadcn',
@@ -40,34 +64,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {
         title: 'Cameras',
         url: `/${locale}/cameras`,
-        icon: Camera,
+        icon: CameraIcon,
       },
       {
         title: 'Settings',
         url: `/${locale}/settings`,
         icon: Settings,
-      },
-    ],
-    cameras: [
-      {
-        name: 'Camera',
-        id: '1952571427730677769',
-        icon: Camera,
-      },
-      {
-        name: 'Camera 2',
-        id: '1952625044269490178',
-        icon: Camera,
-      },
-      {
-        name: 'Camera 3',
-        id: '1952625044269490179',
-        icon: Camera,
-      },
-      {
-        name: 'Camera 4',
-        id: '1952625044269490180',
-        icon: Camera,
       },
     ],
   }
@@ -87,7 +89,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarHeader>
       <SidebarContent>
-        <NavCameras cameras={data.cameras} />
+        <NavCameras cameras={cameras ?? []} />
       </SidebarContent>
       <SidebarFooter>
         <div>

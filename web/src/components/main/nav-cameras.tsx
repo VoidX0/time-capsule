@@ -1,19 +1,14 @@
 'use client'
 
-import {
-  Gauge,
-  type LucideIcon,
-  MonitorCog,
-  MonitorPlay,
-  MoreHorizontal,
-} from 'lucide-react'
+import { Camera as CameraIcon, Gauge, MonitorCog, MonitorPlay, MoreHorizontal } from 'lucide-react'
 
+import { paths } from '@/api/schema'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import {
   SidebarGroup,
@@ -22,21 +17,16 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
+  useSidebar
 } from '@/components/ui/sidebar'
 import { useLocale } from 'next-intl'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export function NavCameras({
-  cameras,
-}: {
-  cameras: {
-    name: string
-    id: string
-    icon: LucideIcon
-  }[]
-}) {
+type Camera =
+  paths['/Camera/Query']['post']['responses']['200']['content']['application/json']
+
+export function NavCameras({ cameras }: { cameras: Camera }) {
   const { isMobile } = useSidebar()
   const locale = useLocale()
   const pathname = usePathname()
@@ -46,14 +36,17 @@ export function NavCameras({
       <SidebarGroupLabel>Cameras</SidebarGroupLabel>
       <SidebarMenu>
         {cameras.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild isActive={pathname.includes(item.id)}>
+          <SidebarMenuItem key={item.Id}>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.includes(item.Id?.toString() ?? '')}
+            >
               <Link
-                href={`/${locale}/${item.id}/dashboard`}
+                href={`/${locale}/${item.Id}/dashboard`}
                 className="flex items-center gap-2"
               >
-                <item.icon />
-                <span>{item.name}</span>
+                <CameraIcon />
+                <span>{item.Name}</span>
               </Link>
             </SidebarMenuButton>
             <DropdownMenu>
@@ -68,20 +61,20 @@ export function NavCameras({
                 side={isMobile ? 'bottom' : 'right'}
                 align={isMobile ? 'end' : 'start'}
               >
-                <Link href={`/${locale}/${item.id}/dashboard`}>
+                <Link href={`/${locale}/${item.Id}/dashboard`}>
                   <DropdownMenuItem>
                     <Gauge className="text-muted-foreground" />
                     <span>Dashboard</span>
                   </DropdownMenuItem>
                 </Link>
-                <Link href={`/${locale}/${item.id}/playback`}>
+                <Link href={`/${locale}/${item.Id}/playback`}>
                   <DropdownMenuItem>
                     <MonitorPlay className="text-muted-foreground" />
                     <span>Playback</span>
                   </DropdownMenuItem>
                 </Link>
                 <DropdownMenuSeparator />
-                <Link href={`/${locale}/${item.id}/manage`}>
+                <Link href={`/${locale}/${item.Id}/manage`}>
                   <DropdownMenuItem>
                     <MonitorCog className="text-muted-foreground" />
                     <span>Manage</span>

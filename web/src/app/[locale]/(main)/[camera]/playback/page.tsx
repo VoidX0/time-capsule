@@ -1,6 +1,8 @@
 'use client'
 
-import CameraPlayer, { CameraPlayerHandle } from '@/components/camera/camera-player'
+import CameraPlayer, {
+  CameraPlayerHandle,
+} from '@/components/camera/camera-player'
 import { Button } from '@/components/ui/button'
 import { useEffect, useRef, useState } from 'react'
 
