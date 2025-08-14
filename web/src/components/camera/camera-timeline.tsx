@@ -35,7 +35,8 @@ export interface CameraTimelineHandle {
 interface CameraTimelineProps {
   cameraId: string // 摄像头ID
   initialTime: number // 初始时间戳，单位毫秒
-  onTimeChange: (ts: number) => void // 时间戳变化回调
+  onDragStart?: (ts: number) => void // 拖动开始回调
+  onDragEnd?: (ts: number) => void // 拖动结束回调
 }
 
 /* 聚类方法：按时间排序 & 按 thresholdMs 归类 */
@@ -69,7 +70,7 @@ function clusterTimeline(events: Timeline[], thresholdMs: number) {
 }
 
 const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
-  ({ cameraId, initialTime, onTimeChange }, ref) => {
+  ({ cameraId, initialTime, onDragStart, onDragEnd }, ref) => {
     const [timeline, setTimeline] = useState<Timeline[] | undefined>(undefined)
     const [currentTime, setCurrentTime] = useState(initialTime)
     const [minTime, setMinTime] = useState(initialTime - 2 * 60 * 60 * 1000)
@@ -93,7 +94,6 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
 
     /* 监控当前时间戳变化, 触发通知并调整时间范围 */
     useEffect(() => {
-      onTimeChange(currentTime)
       const hours2 = 2 * 60 * 60 * 1000
       if (currentTime - minTime < hours2) {
         setMinTime(minTime - hours2)
@@ -103,7 +103,7 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
         setMinTime(minTime + hours2)
         setMaxTime(maxTime + hours2)
       }
-    }, [currentTime, maxTime, minTime, onTimeChange])
+    }, [currentTime, maxTime, minTime])
 
     /* 滚轮滚动事件 */
     useEffect(() => {
@@ -157,6 +157,8 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
                 max={maxTime}
                 step={1000}
                 onValueChange={(val) => setCurrentTime(val[0]!)}
+                onDragStart={() => onDragStart?.(currentTime)}
+                onDragEnd={() => onDragEnd?.(currentTime)}
               />
             </TooltipTrigger>
             <TooltipContent>

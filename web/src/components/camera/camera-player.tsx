@@ -8,12 +8,10 @@ export interface CameraPlayerHandle {
    * 跳转到指定时间戳（毫秒）
    */
   seekTo: (timestampMs: number) => void
-
   /**
-   * 设置播放倍速
-   * @param speed 播放倍速，1.0 为正常速度
+   * 直接访问底层 video 元素
    */
-  setPlaybackRate: (speed: number) => void
+  videoElement: HTMLVideoElement | null
 }
 
 interface CameraPlayerProps {
@@ -132,10 +130,9 @@ const CameraPlayer = forwardRef<CameraPlayerHandle, CameraPlayerProps>(
             setCurrentStartTime(timestampMs)
           }
         },
-        setPlaybackRate: (speed: number) => {
-          if (videoRef.current) {
-            videoRef.current.playbackRate = speed
-          }
+        // 直接暴露 video 元素的引用
+        get videoElement() {
+          return videoRef.current
         },
       }),
       [currentStartTime, segmentDurationSec],

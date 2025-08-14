@@ -1,8 +1,12 @@
 'use client'
 
 import { components } from '@/api/schema'
-import CameraPlayer, { CameraPlayerHandle } from '@/components/camera/camera-player'
-import CameraTimeline, { CameraTimelineHandle } from '@/components/camera/camera-timeline'
+import CameraPlayer, {
+  CameraPlayerHandle,
+} from '@/components/camera/camera-player'
+import CameraTimeline, {
+  CameraTimelineHandle,
+} from '@/components/camera/camera-timeline'
 import { Button } from '@/components/ui/button'
 import { openapi } from '@/lib/http'
 import { ChevronsLeft } from 'lucide-react'
@@ -46,7 +50,8 @@ export default function Page({
 
   /* 设置播放速率 */
   useEffect(() => {
-    playerRef.current?.setPlaybackRate(playbackRate)
+    if (!playerRef.current?.videoElement?.playbackRate) return
+    playerRef.current.videoElement.playbackRate = playbackRate
   }, [playbackRate])
 
   return (
@@ -60,12 +65,13 @@ export default function Page({
           cameraId={cameraInfo?.Id?.toString() ?? ''}
           initialStartTime={initialTime}
           onPlayProgress={(ts) => {
-            // setProgress(ts) // 更新进度
-            // timelineRef.current?.seekTo(ts) // 同步到时间轴
+            setProgress(ts) // 更新进度
+            timelineRef.current?.seekTo(ts) // 同步到时间轴
           }}
-          onStartTimeChange={() =>
-            playerRef.current?.setPlaybackRate(playbackRate)
-          }
+          onStartTimeChange={() => {
+            if (!playerRef.current?.videoElement?.playbackRate) return
+            playerRef.current.videoElement.playbackRate = playbackRate
+          }}
         />
         {/*播放器控制*/}
         <p>{new Date(progress).toLocaleString()}</p>
@@ -82,9 +88,10 @@ export default function Page({
           ref={timelineRef}
           cameraId={cameraInfo?.Id?.toString() ?? ''}
           initialTime={initialTime}
-          onTimeChange={(ts) => {
-            setProgress(ts) // 更新进度
-            playerRef.current?.seekTo(ts) // 同步到播放器
+          onDragStart={() => playerRef.current?.videoElement?.pause()}
+          onDragEnd={(ts) => {
+            playerRef.current?.seekTo(ts)
+            playerRef.current?.videoElement?.play()
           }}
         />
       </div>
