@@ -1529,16 +1529,15 @@ export interface components {
         Timeline: {
             /**
              * Format: date-time
-             * @description 开始时间
+             * @description 时间点
              */
-            Start?: string;
-            /**
-             * Format: date-time
-             * @description 结束时间
-             */
-            End?: string;
-            /** @description 视频是否可用 */
-            VideoAvailable?: boolean;
+            Time?: string;
+            /** @description 标题 */
+            Title?: string | null;
+            /** @description 描述 */
+            Description?: string | null;
+            /** @description 级别 */
+            Level?: string | null;
         };
         /**
          * Format: int32
