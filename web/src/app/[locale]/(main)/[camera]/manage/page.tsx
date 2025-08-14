@@ -5,6 +5,7 @@ import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { openapi } from '@/lib/http'
+import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { useEffect, useState } from 'react'
 
 type QueryDto = components['schemas']['QueryDto']
@@ -107,12 +108,11 @@ export default function Page({
               <div key={date} className="bg-muted/50 rounded-xl p-4">
                 <div className="flex items-center justify-start gap-4">
                   <h2 className="text-xl font-semibold">{date}</h2>
+                  <Badge>{segments.length} segments</Badge>
                   <Badge>
                     {(
                       segments.reduce((sum, seg) => {
-                        const start = new Date(seg.StartTime!).getTime()
-                        const end = new Date(seg.EndTime!).getTime()
-                        return sum + (end - start)
+                        return sum + timeSpanToMilliseconds(seg.DurationActual!)
                       }, 0) /
                       1000 /
                       60 /
