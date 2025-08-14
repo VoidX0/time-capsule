@@ -73,6 +73,11 @@ public class CameraController : OrmController<Camera>
         if (lastSegment != null && lastSegment.EndTime > start && lastSegment.EndTime < end)
             timeline.Add(new Timeline(lastSegment.EndTime, "Over", "", "warning"));
 
-        return Ok(timeline.Concat(Timeline.PointMarks(start, end)).OrderBy(x => x.Time).ToList());
+        // 添加开始标记
+        timeline.Add(new Timeline(start, start.ToString("MM/dd HH")));
+        // 添加一个结束标记
+        timeline.Add(new Timeline(end, end.ToString("MM/dd HH")));
+
+        return Ok(timeline.OrderBy(x => x.Time).ToList());
     }
 }
