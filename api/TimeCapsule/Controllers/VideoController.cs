@@ -58,17 +58,12 @@ public class VideoController : ControllerBase
         // 检查文件
         var video = Path.Combine(_systemOptions.CameraPath, camera.BasePath, segment.Path);
         if (!new FileInfo(video).Exists) return BadRequest("视频文件不存在");
-        // 设置响应头（FLV 流格式）
-        Response.Headers.Append("Content-Type", "video/x-flv");
-        Response.Headers.Append("Connection", "keep-alive");
-        Response.Headers.Append("Cache-Control", "no-cache");
-        // 生成 ffmpeg 命令行参数
-        var args = $"-i \"{video}\" " + // 输入文件
-                   "-c:v libx264 " + // 视频编码器
-                   "-ac 2 " + // 音频编码器
-                   "-f flv " + // 输出格式
-                   "-flvflags no_duration_filesize "; // 避免文件大小限制
-        return new StreamResult(args);
+        // 返回文件流，启用范围请求支持
+        var stream = new FileStream(video, FileMode.Open, FileAccess.Read, FileShare.Read);
+        return new FileStreamResult(stream, "video/mp4")
+        {
+            EnableRangeProcessing = true // 启用范围请求支持
+        };
     }
 
     /// <summary>
@@ -145,7 +140,7 @@ public class VideoController : ControllerBase
             $"-ss {map.StartOffset.ToString(CultureInfo.InvariantCulture)} " +
             $"-t {map.Duration.ToString(CultureInfo.InvariantCulture)} " +
             $"-i \"{map.FilePath}\" " +
-            "-c copy " +
+            "-c:v copy -c:a aac -ar 44100 -ac 2 " +
             "-f mpegts " +
             "-reset_timestamps 1";
         return new StreamResult(args);
