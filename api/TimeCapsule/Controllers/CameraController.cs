@@ -60,7 +60,7 @@ public class CameraController : OrmController<Camera>
         // 最后添加一个Over
         timeline.Add(new Timeline(lastSegment.EndTime, "Over", "", "warning"));
 
-        return Ok(timeline.Concat(Timeline.PointMarks(firstSegment.StartTime, firstSegment.EndTime))
+        return Ok(timeline.Concat(Timeline.PointMarks(firstSegment.StartTime, lastSegment.EndTime))
             .OrderBy(x => x.Time).ToList());
     }
 }
