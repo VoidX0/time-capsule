@@ -4,6 +4,11 @@
     "en": "English",
     "zh": "中文"
   },
+  "Common": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
   "HomePage": {
     "description": "Playback application based on local monitoring video",
     "details01": "Use your local videos on /camera",

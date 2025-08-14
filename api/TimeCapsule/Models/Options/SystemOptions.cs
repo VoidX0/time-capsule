@@ -38,6 +38,11 @@ public class SystemOptions
     /// 摄像头基础目录
     /// </summary>
     public string CameraPath { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 缓存基础目录
+    /// </summary>
+    public string CachePath { get; set; } = string.Empty;
 
     /// <summary>
     /// 启用API日志
@@ -65,7 +70,7 @@ public class SystemOptions
     public string DefaultPassword { get; set; } = string.Empty;
 
     /// <summary>
-    /// 定时任务：同步视频元数据的Cron表达式
+    /// 定时任务：同步视频元数据/重建缓存的Cron表达式
     /// </summary>
-    public string CronSyncVideoMetadata { get; set; } = "0 0 */1 * * *";
+    public string CronSyncAndCache { get; set; } = "0 0 */1 * * *";
 }

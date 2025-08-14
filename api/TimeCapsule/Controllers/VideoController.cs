@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.Globalization;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Options;
 using SqlSugar;
 using SqlSugar.IOC;
+using TimeCapsule.Contracts;
 using TimeCapsule.Core.Models.Db;
 using TimeCapsule.Models;
 using TimeCapsule.Models.Options;
@@ -13,175 +14,135 @@ using TimeCapsule.Models.Options;
 namespace TimeCapsule.Controllers;
 
 /// <summary>
-/// 视频管理
+/// 视频流管理
 /// </summary>
 [ApiController]
-[DisplayName("视频管理")]
+[DisplayName("视频流管理")]
 [Route("[controller]/[action]")]
 [TypeFilter(typeof(AllowAnonymousFilter))]
 public class VideoController : ControllerBase
 {
     private readonly SystemOptions _systemOptions;
     private readonly ISqlSugarClient _db = DbScoped.SugarScope;
+    private readonly IHlsService _hls;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="systemOptions"></param>
-    public VideoController(IOptions<SystemOptions> systemOptions)
+    /// <param name="hls"></param>
+    public VideoController(IOptions<SystemOptions> systemOptions, IHlsService hls)
     {
         _systemOptions = systemOptions.Value;
+        _hls = hls;
     }
 
     /// <summary>
-    /// 视频流
+    /// 指定Segment的视频流(FLV)
     /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> Stream(long cameraId, DateTimeOffset timestamp)
-    {
-        // 1. 查询摄像头信息
-        var camera = await _db.Queryable<Camera>()
-            .Where(x => x.Id == cameraId)
-            .FirstAsync();
-        if (camera == null) return BadRequest("指定的摄像头不存在");
-        // 2. 查询视频片段
-        var segment = await _db.Queryable<VideoSegment>()
-            .Where(x => x.CameraId == cameraId)
-            .Where(x => x.StartTime <= timestamp && timestamp <= x.EndTime)
-            .SplitTable()
-            .FirstAsync();
-        if (segment == null) return BadRequest("指定时间点没有可用的视频");
-
-        // 3. 计算实际偏移量（考虑预缓冲）
-        var actualOffset = (timestamp - segment.StartTime).TotalSeconds -
-                           (segment.DurationTheoretical - segment.DurationActual).TotalSeconds;
-        actualOffset = Math.Max(0, actualOffset);
-        // 4. 组合完整路径
-        var fullPath = Path.Combine(_systemOptions.CameraPath, camera.BasePath, segment.Path);
-
-        // 5. 检查文件是否存在
-        if (!new FileInfo(fullPath).Exists) return BadRequest("指定的视频文件已失效");
-
-        // 6. 设置响应头
-        Response.Headers.Append("Accept-Ranges", "bytes");
-        Response.Headers.Append("Cache-Control", "no-store");
-        Response.Headers.Append("X-Video-Start", segment.StartTime.ToString("o"));
-        Response.Headers.Append("X-Video-End", segment.EndTime.ToString("o"));
-        Response.Headers.Append("X-Video-Offset", actualOffset.ToString("F3"));
-
-        // 7. 流式传输视频
-        return new VideoStreamResult(fullPath, actualOffset);
-    }
-
-    /// <summary>
-    /// MSE视频流
-    /// </summary>
-    /// <param name="cameraId">摄像头ID</param>
-    /// <param name="timestamp">时间</param>
-    /// <param name="segmentType">片段类型：init 或 media</param>
+    /// <param name="segmentId">视频片段ID</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<IActionResult>
-        StreamMse(long cameraId, DateTimeOffset timestamp, string? segmentType = null)
+    public async Task<IActionResult> SegmentStream(string segmentId)
     {
-        try
+        var segmentIdActual = long.TryParse(segmentId.Replace(" ", ""), out var sid) ? sid : 0;
+        // 查询视频片段
+        var segment = await _db.Queryable<VideoSegment>()
+            .Where(x => x.Id == segmentIdActual)
+            .SplitTable()
+            .FirstAsync();
+        if (segment == null) return BadRequest("视频片段不存在");
+        // 查询摄像头信息
+        var camera = await _db.Queryable<Camera>().InSingleAsync(segment.CameraId);
+        if (camera == null) return BadRequest("摄像头不存在");
+        // 检查文件
+        var video = Path.Combine(_systemOptions.CameraPath, camera.BasePath, segment.Path);
+        if (!new FileInfo(video).Exists) return BadRequest("视频文件不存在");
+        // 返回文件流，启用范围请求支持
+        var stream = new FileStream(video, FileMode.Open, FileAccess.Read, FileShare.Read);
+        return new FileStreamResult(stream, "video/mp4")
         {
-            // 1. 查询摄像头信息
-            var camera = await _db.Queryable<Camera>()
-                .Where(x => x.Id == cameraId)
-                .FirstAsync();
-            if (camera == null) return BadRequest("指定的摄像头不存在");
-            // 2. 查询视频片段
-            var segment = await _db.Queryable<VideoSegment>()
-                .Where(x => x.CameraId == cameraId)
-                .Where(x => x.StartTime <= timestamp && timestamp <= x.EndTime)
-                .SplitTable()
-                .FirstAsync();
-            if (segment == null) return BadRequest("指定时间点没有可用的视频");
-            // 3. 计算实际偏移量（考虑预缓冲）
-            var actualOffset = (timestamp - segment.StartTime).TotalSeconds -
-                               (segment.DurationTheoretical - segment.DurationActual).TotalSeconds;
-            actualOffset = Math.Max(0, actualOffset);
-            // 4. 组合完整路径
-            var fullPath = Path.Combine(_systemOptions.CameraPath, camera.BasePath, segment.Path);
-
-            // 处理不同类型的片段请求
-            return segmentType switch
-            {
-                "init" => await GenerateInitSegment(fullPath),
-                "media" => await GenerateMediaSegment(fullPath, actualOffset),
-                _ => BadRequest("无效的片段类型")
-            };
-        }
-        catch
-        {
-            return StatusCode(500, "Internal server error");
-        }
-    }
-
-    // 生成初始化段（仅元数据）
-    private async Task<IActionResult> GenerateInitSegment(string filePath)
-    {
-        await Task.CompletedTask;
-        // 使用FFmpeg生成初始化段
-        var args = $"-i \"{filePath}\" " +
-                   "-map 0 " +
-                   "-c copy " +
-                   "-f mp4 " +
-                   "-movflags frag_keyframe+empty_moov " +
-                   "-bsf:v h264_mp4toannexb " +
-                   "pipe:1";
-
-        var process = StartFfmpegProcess(args);
-
-        Response.Headers.Append("Content-Type", "video/mp4");
-        Response.Headers.Append("X-Segment-Type", "init");
-
-        return new FileStreamResult(process.StandardOutput.BaseStream, "video/mp4");
-    }
-
-    // 生成媒体段（实际视频数据）
-    private async Task<IActionResult> GenerateMediaSegment(string filePath, double startTime)
-    {
-        await Task.CompletedTask;
-        // 使用FFmpeg生成媒体段
-        var args = $"-ss {startTime} " +
-                   $"-i \"{filePath}\" " +
-                   "-t 2 " + // 2秒分片（MSE推荐）
-                   "-c copy " +
-                   "-f mp4 " +
-                   "-movflags frag_keyframe+empty_moov+default_base_moof " +
-                   "-bsf:v h264_mp4toannexb " +
-                   "pipe:1";
-
-        var process = StartFfmpegProcess(args);
-
-        Response.Headers.Append("Content-Type", "video/mp4");
-        Response.Headers.Append("X-Segment-Type", "media");
-        Response.Headers.Append("X-Segment-Start", startTime.ToString("F3"));
-        Response.Headers.Append("X-Segment-Duration", "2");
-
-        return new FileStreamResult(process.StandardOutput.BaseStream, "video/mp4");
-    }
-
-    // 启动FFmpeg进程（公共方法）
-    private Process StartFfmpegProcess(string arguments)
-    {
-        var process = new Process
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = Path.Combine(_systemOptions.StoragePath, "ffmpeg",
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "ffmpeg.exe" : "ffmpeg"),
-                Arguments = arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            }
+            EnableRangeProcessing = true // 启用范围请求支持
         };
+    }
 
-        process.Start();
-        return process;
+    /// <summary>
+    /// 摄像头播放列表(HLS)
+    /// </summary>
+    /// <param name="cameraId">摄像头ID</param>
+    /// <param name="start">开始时间</param>
+    /// <param name="durationSec">持续时间（秒）</param>
+    /// <param name="segmentSec">分片时长（秒）</param>
+    /// <param name="sid">会话ID（可选）</param>
+    /// <returns></returns>
+    [HttpGet]
+    public async Task<ActionResult> CameraPlaylist(
+        string cameraId,
+        long start,
+        int durationSec = 1800,
+        int segmentSec = 10,
+        string? sid = null)
+    {
+        segmentSec = Math.Clamp(segmentSec, 2, 15); // 建议 5~10 秒
+        durationSec = Math.Clamp(durationSec, 60, 7200); // 一次最多 2 小时
+
+        var session = await _hls.BuildPlaylistAsync(sid, cameraId,
+            DateTimeOffset.FromUnixTimeMilliseconds(start).ToLocalTime(), TimeSpan.FromSeconds(durationSec),
+            segmentSec);
+
+        // 生成 m3u8 文本
+        var sb = new StringBuilder();
+        sb.AppendLine("#EXTM3U");
+        sb.AppendLine("#EXT-X-VERSION:3");
+        sb.AppendLine($"#EXT-X-TARGETDURATION:{session.TargetDuration}");
+        sb.AppendLine($"#EXT-X-MEDIA-SEQUENCE:{session.MediaSequenceStart}");
+
+        string? lastFile = null;
+        foreach (var s in session.Segments)
+        {
+            // 文件边界插入 DISCONTINUITY
+            if (s.Discontinuity || lastFile == null || !string.Equals(lastFile, s.FilePath, StringComparison.Ordinal))
+            {
+                sb.AppendLine("#EXT-X-DISCONTINUITY");
+                lastFile = s.FilePath;
+            }
+
+            // 可选：节目时间（便于前端对齐时间轴）
+            sb.AppendLine($"#EXT-X-PROGRAM-DATE-TIME:{FmtPdt(s.Pdt)}");
+            sb.AppendLine($"#EXTINF:{s.Duration:F3},");
+            sb.AppendLine(BaseUrl("CameraStream", s.Seq));
+        }
+
+        sb.AppendLine("#EXT-X-ENDLIST"); // VOD式窗口；如果做直播/长时回放也可不加
+        return Content(sb.ToString(), "application/vnd.apple.mpegurl", Encoding.UTF8);
+
+        string FmtPdt(DateTimeOffset pdt) => pdt.ToString("yyyy-MM-ddTHH:mm:ss.fffzzz");
+
+        string BaseUrl(string action, long seq) =>
+            $"/api/Video/{action}?sid={session.Sid}&seq={seq}";
+    }
+
+    /// <summary>
+    /// 摄像头视频流(HLS)
+    /// </summary>
+    /// <param name="sid">会话ID</param>
+    /// <param name="seq">视频片段序列号</param>
+    /// <returns></returns>
+    [HttpGet]
+    public async Task<IActionResult> CameraStream(string sid, long seq)
+    {
+        await Task.CompletedTask;
+        if (!_hls.TryGetSegment(sid, seq, out var map) || map == null)
+            return NotFound();
+        Response.Headers.Append("Content-Type", "video/mp2t");
+        Response.Headers.Append("Cache-Control", "public, max-age=60");
+        var args =
+            $"-ss {map.StartOffset.ToString(CultureInfo.InvariantCulture)} " +
+            $"-t {map.Duration.ToString(CultureInfo.InvariantCulture)} " +
+            $"-i \"{map.FilePath}\" " +
+            "-c:v copy -c:a aac -ar 44100 -ac 2 " +
+            "-f mpegts " +
+            "-reset_timestamps 1";
+        return new StreamResult(args);
     }
 }

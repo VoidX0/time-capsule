@@ -10,9 +10,9 @@ using Xabe.FFmpeg;
 namespace TimeCapsule.Services;
 
 /// <summary>
-/// 视频元数据服务
+/// 视频相关服务
 /// </summary>
-public class VideoMetadataService
+public class VideoService
 {
     /// <summary>
     /// 系统选项
@@ -28,7 +28,7 @@ public class VideoMetadataService
     /// 构造函数
     /// </summary>
     /// <param name="systemOptions"></param>
-    public VideoMetadataService(IOptions<SystemOptions> systemOptions)
+    public VideoService(IOptions<SystemOptions> systemOptions)
     {
         SystemOptions = systemOptions.Value;
     }
@@ -92,6 +92,80 @@ public class VideoMetadataService
                 await Db.Deleteable(removeSegments).SplitTable().ExecuteCommandAsync();
         });
         return result.IsSuccess ? OperateResult.Success() : OperateResult.Fail(result.ErrorMessage);
+    }
+
+    /// <summary>
+    /// 重建所有摄像头的缓存
+    /// </summary>
+    /// <returns></returns>
+    public async Task<OperateResult> Cache()
+    {
+        // 创建缓存目录
+        if (!Directory.Exists(SystemOptions.CachePath)) Directory.CreateDirectory(SystemOptions.CachePath);
+        var cameras = await Db.Queryable<Camera>().ToListAsync();
+        // 移除已经不存在的摄像头的缓存
+        var dirs = Directory.GetDirectories(SystemOptions.CachePath);
+        foreach (var dir in dirs)
+        {
+            var dirName = Path.GetFileName(dir);
+            if (cameras.Any(x => x.Id.ToString() == dirName)) continue;
+            try
+            {
+                Directory.Delete(dir, true);
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        // 重建缓存
+        var tasks = cameras.Select(x => Task.Run(async () => await Cache(x))).ToList();
+        var results = await Task.WhenAll(tasks);
+        // 组装返回信息
+        var successCount = results.Count(x => x.IsSuccess);
+        var errorCount = results.Count(x => !x.IsSuccess);
+        var message = $"缓存重建完成，共计{cameras.Count}个摄像头，成功{successCount}个，失败{errorCount}个";
+        return OperateResult.Success(message);
+    }
+
+    /// <summary>
+    /// 重建摄像头缓存
+    /// </summary>
+    /// <param name="camera">摄像头</param>
+    /// <returns></returns>
+    public async Task<OperateResult> Cache(Camera camera)
+    {
+        // 创建摄像头缓存目录
+        var path = Path.Combine(SystemOptions.CachePath, camera.Id.ToString());
+        if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+        // 数据库中所有视频段
+        var dbSegments = await Db.Queryable<VideoSegment>()
+            .Where(x => x.CameraId == camera.Id)
+            .SplitTable()
+            .ToListAsync();
+        // 获取缓存目录下的所有缩略图
+        var thumbnails = await GetFiles(path, [".jpg"]);
+        // 检查缩略图对应的视频段是否存在
+        foreach (var thumbnail in thumbnails)
+        {
+            var id = long.TryParse(Path.GetFileNameWithoutExtension(thumbnail), out var parsedId) ? parsedId : 0;
+            if (dbSegments.Any(x => x.Id == id)) continue;
+            // 删除不存在的视频段的缩略图
+            try
+            {
+                File.Delete(Path.Combine(path, thumbnail));
+            }
+            catch
+            {
+                // 忽略删除失败的异常
+            }
+        }
+
+        // 生成缩略图
+        foreach (var segment in dbSegments)
+            await GenerateThumbnail(segment, Path.Combine(SystemOptions.CameraPath, camera.BasePath), path);
+        return OperateResult.Success($"摄像头 {camera.Name} 的缓存重建完成");
     }
 
     /// <summary>
@@ -191,5 +265,35 @@ public class VideoMetadataService
         segment.EndTime = endTime;
         segment.DurationTheoretical = endTime - startTime;
         return true;
+    }
+
+    /// <summary>
+    /// 生成视频片段的缩略图
+    /// </summary>
+    /// <param name="segment">视频片段</param>
+    /// <param name="videoPath">视频路径</param>
+    /// <param name="cachePath">缓存路径</param>
+    /// <returns></returns>
+    private static async Task<bool> GenerateThumbnail(VideoSegment segment, string videoPath, string cachePath)
+    {
+        try
+        {
+            // 生成缩略图的路径
+            var thumbnailPath = Path.Combine(cachePath, $"{segment.Id}.jpg");
+            if (File.Exists(thumbnailPath)) return true; // 如果缩略图已存在，则不再生成
+
+            // 使用 ffmpeg 生成缩略图
+            var args = $"-i \"{Path.Combine(videoPath, segment.Path)}\" " +
+                       $"-frames:v 1 -q:v 2";
+            await FFmpeg.Conversions.New()
+                .AddParameter(args)
+                .SetOutput(thumbnailPath)
+                .Start();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

@@ -16,7 +16,7 @@ namespace TimeCapsule.Services;
 public class ScheduledJob
 {
     private ISqlSugarClient Db { get; } = DbScoped.SugarScope;
-    private readonly VideoMetadataService _metadataService;
+    private readonly VideoService _service;
 
     /// <summary>
     /// 日志
@@ -33,12 +33,12 @@ public class ScheduledJob
     /// </summary>
     /// <param name="recurringJob">定时任务管理器</param>
     /// <param name="systemOptions">系统选项</param>
-    /// <param name="metadataService">视频元数据服务</param>
+    /// <param name="service">视频服务</param>
     public ScheduledJob(IRecurringJobManager recurringJob, IOptions<SystemOptions> systemOptions,
-        VideoMetadataService metadataService)
+        VideoService service)
     {
         SystemOptions = systemOptions.Value;
-        _metadataService = metadataService;
+        _service = service;
         recurringJob.AddOrUpdate(
             "RemoveVerifyData",
             () => RemoveVerifyData(),
@@ -50,9 +50,9 @@ public class ScheduledJob
             "0 0 5 * * *",
             options: new RecurringJobOptions { TimeZone = TimeZoneInfo.Local });
         recurringJob.AddOrUpdate(
-            "SyncVideoMetadata",
-            () => SyncVideoMetadata(),
-            SystemOptions.CronSyncVideoMetadata,
+            "SyncAndCache",
+            () => SyncAndCache(),
+            SystemOptions.CronSyncAndCache,
             options: new RecurringJobOptions { TimeZone = TimeZoneInfo.Local }
         );
     }
@@ -110,13 +110,14 @@ public class ScheduledJob
     }
 
     /// <summary>
-    /// 同步视频元数据
+    /// 同步视频元数据并重建缓存
     /// </summary>
-    public async Task SyncVideoMetadata()
+    public async Task SyncAndCache()
     {
         var watch = Stopwatch.StartNew();
-        var result = await _metadataService.Sync();
+        var sync = await _service.Sync();
+        var cache = await _service.Cache();
         watch.Stop();
-        Logger.Information("{Message}, 耗时: {Time}ms", result.Message, watch.ElapsedMilliseconds);
+        Logger.Information("{Sync}; {Cache}; 耗时: {Time}ms", sync.Message, cache.Message, watch.ElapsedMilliseconds);
     }
 }
