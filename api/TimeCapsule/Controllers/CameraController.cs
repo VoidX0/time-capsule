@@ -41,6 +41,12 @@ public class CameraController : OrmController<Camera>
             .OrderBy(x => x.StartTime)
             .SplitTable()
             .ToListAsync();
+        // 找到最后一个片段
+        var lastSegment = await Db.Queryable<VideoSegment>()
+            .Where(x => x.CameraId == id)
+            .OrderByDescending(x => x.EndTime)
+            .SplitTable()
+            .FirstAsync();
         // 生成时间轴
         var timeline = new List<Timeline>();
         for (var i = 0; i < segments.Count; i++)
@@ -54,14 +60,18 @@ public class CameraController : OrmController<Camera>
             }
 
             // 后续数据
-            var lastSegment = segments[i - 1]; // 上一个数据
+            var preSegment = segments[i - 1]; // 上一个数据
             // 判断当前数据和上一个数据的时间差
-            if (currentSegment.StartTime - lastSegment.EndTime < TimeSpan.FromSeconds(60)) continue;
+            if (currentSegment.StartTime - preSegment.EndTime < TimeSpan.FromSeconds(60)) continue;
             // 添加下线时间点
-            timeline.Add(new Timeline(lastSegment.EndTime, "Offline", "", "warning"));
+            timeline.Add(new Timeline(preSegment.EndTime, "Offline", "", "warning"));
             // 添加当前数据的上线时间点
             timeline.Add(new Timeline(currentSegment.StartTime, "Online", "", "info"));
         }
+
+        // 如果最后一个片段的结束时间在查询范围内，则添加一个结束时间点
+        if (lastSegment != null && lastSegment.EndTime > start && lastSegment.EndTime < end)
+            timeline.Add(new Timeline(lastSegment.EndTime, "Over", "", "warning"));
 
         return Ok(timeline.Concat(Timeline.PointMarks(start, end)).OrderBy(x => x.Time).ToList());
     }
