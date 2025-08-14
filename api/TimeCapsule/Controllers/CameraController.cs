@@ -25,43 +25,44 @@ public class CameraController : OrmController<Camera>
     /// 获取时间轴
     /// </summary>
     /// <param name="cameraId">摄像头ID</param>
+    /// <param name="startTs">开始时间戳</param>
+    /// <param name="endTs">结束时间戳</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<ActionResult<List<Timeline>>> GetTimeline(string cameraId)
+    public async Task<ActionResult<List<Timeline>>> GetTimeline(string cameraId, long startTs, long endTs)
     {
         var id = long.TryParse(cameraId, out var parsedId) ? parsedId : 0;
+        var start = DateTimeOffset.FromUnixTimeMilliseconds(startTs).ToLocalTime();
+        var end = DateTimeOffset.FromUnixTimeMilliseconds(endTs).ToLocalTime();
+        // 找到时段内所有片段
         var segments = await Db.Queryable<VideoSegment>()
             .Where(x => x.CameraId == id)
+            .Where(x => x.StartTime < end && x.EndTime > start)
             .OrderBy(x => x.StartTime)
             .SplitTable()
             .ToListAsync();
         // 生成时间轴
         var timeline = new List<Timeline>();
-        foreach (var segment in segments)
+        for (var i = 0; i < segments.Count; i++)
         {
-            // 时间轴为空
-            if (timeline.Count == 0)
+            var currentSegment = segments[i]; // 当前数据
+            // 第一个数据
+            if (i == 0)
             {
-                timeline.Add(new Timeline(segment.StartTime, segment.EndTime, true));
+                timeline.Add(new Timeline(currentSegment.StartTime, "Online", "", "info"));
                 continue;
             }
 
-            // 时间轴不为空
-            var last = timeline.Last();
-            if (segment.StartTime - last.End < TimeSpan.FromSeconds(60))
-            {
-                // 合并时间段
-                last.End = segment.EndTime;
-            }
-            else
-            {
-                // 添加中间的空白时间段
-                timeline.Add(new Timeline(last.End, segment.StartTime, false));
-                // 添加新的时间段
-                timeline.Add(new Timeline(segment.StartTime, segment.EndTime, true));
-            }
+            // 后续数据
+            var lastSegment = segments[i - 1]; // 上一个数据
+            // 判断当前数据和上一个数据的时间差
+            if (currentSegment.StartTime - lastSegment.EndTime < TimeSpan.FromSeconds(60)) continue;
+            // 添加下线时间点
+            timeline.Add(new Timeline(lastSegment.EndTime, "Offline", "", "warning"));
+            // 添加当前数据的上线时间点
+            timeline.Add(new Timeline(currentSegment.StartTime, "Online", "", "info"));
         }
 
-        return Ok(timeline);
+        return Ok(timeline.Concat(Timeline.PointMarks(start, end)).OrderBy(x => x.Time).ToList());
     }
 }
