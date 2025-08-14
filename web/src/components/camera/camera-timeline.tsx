@@ -2,9 +2,20 @@
 
 import { paths } from '@/api/schema'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { openapi } from '@/lib/http'
 import { Calendar, CircleAlert, CircleDot, CircleX, Info } from 'lucide-react'
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'

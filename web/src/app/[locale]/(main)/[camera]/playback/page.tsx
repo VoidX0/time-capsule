@@ -1,8 +1,6 @@
 'use client'
 
-import CameraPlayer, {
-  CameraPlayerHandle,
-} from '@/components/camera/camera-player'
+import CameraPlayer, { CameraPlayerHandle } from '@/components/camera/camera-player'
 import { Button } from '@/components/ui/button'
 import { useEffect, useRef, useState } from 'react'
 
@@ -20,6 +18,13 @@ export default function Page({
   const playerRef = useRef<CameraPlayerHandle>(null)
   const [progress, setProgress] = useState(0)
   const [startTime, setStartTime] = useState(0)
+  const [playbackRate, setPlaybackRate] = useState(1)
+
+  useEffect(() => {
+    if (playerRef.current) {
+      playerRef.current.setPlaybackRate(playbackRate)
+    }
+  }, [playbackRate])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-4 text-white md:p-8">
@@ -42,22 +47,19 @@ export default function Page({
           >
             跳转
           </Button>
-          <Button onClick={() => playerRef.current?.setPlaybackRate(1)}>
-            X1
-          </Button>
-          <Button onClick={() => playerRef.current?.setPlaybackRate(8)}>
-            X4
-          </Button>
-          <Button onClick={() => playerRef.current?.setPlaybackRate(16)}>
-            X16
-          </Button>
+          <Button onClick={() => setPlaybackRate(1)}>X1</Button>
+          <Button onClick={() => setPlaybackRate(4)}>X4</Button>
+          <Button onClick={() => setPlaybackRate(16)}>X16</Button>
           <CameraPlayer
             ref={playerRef}
             cameraId={cameraInfo}
             initialStartTime={new Date('2025-08-05 08:01:00').getTime()}
             segmentDurationSec={60 * 60}
             onPlayProgress={(time) => setProgress(time)}
-            onStartTimeChange={(time) => setStartTime(time)}
+            onStartTimeChange={(time) => {
+              setStartTime(time)
+              playerRef.current?.setPlaybackRate(playbackRate)
+            }}
           />
         </div>
       </div>
