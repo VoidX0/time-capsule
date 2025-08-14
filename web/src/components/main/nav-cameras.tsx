@@ -1,6 +1,12 @@
 'use client'
 
-import { Camera as CameraIcon, Gauge, MonitorCog, MonitorPlay, MoreHorizontal } from 'lucide-react'
+import {
+  Camera as CameraIcon,
+  Gauge,
+  MonitorCog,
+  MonitorPlay,
+  MoreHorizontal,
+} from 'lucide-react'
 
 import { components } from '@/api/schema'
 import {
@@ -8,7 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
   SidebarGroup,
@@ -17,7 +23,7 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { useLocale } from 'next-intl'
 import Link from 'next/link'
