@@ -20,7 +20,7 @@ export default function Page({
 }: Readonly<{
   params: Promise<{ locale: string; camera: string }>
 }>) {
-  const initialTime = Date.now() - 10 * 24 * 60 * 60 * 1000 // 初始时间为两天前
+  const initialTime = Date.now() - 2 * 24 * 60 * 60 * 1000 // 初始时间为两天前
   const playerRef = useRef<CameraPlayerHandle>(null) // 播放器引用
   const timelineRef = useRef<CameraTimelineHandle>(null) // 时间轴引用
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
