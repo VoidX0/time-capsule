@@ -9,7 +9,7 @@ import {
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 
-import { paths } from '@/api/schema'
+import { components } from '@/api/schema'
 import LanguageToggle from '@/components/main/language-toggle'
 import { NavCameras } from '@/components/main/nav-cameras'
 import { NavMain } from '@/components/main/nav-main'
@@ -26,19 +26,18 @@ import { openapi } from '@/lib/http'
 import { useLocale } from 'next-intl'
 import Image from 'next/image'
 
-type Camera =
-  paths['/Camera/Query']['post']['responses']['200']['content']['application/json']
+type QueryDto = components['schemas']['QueryDto']
+type Camera = components['schemas']['Camera']
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const locale = useLocale()
-  const [cameras, setCameras] = useState<Camera | undefined>([])
+  const [cameras, setCameras] = useState<Camera[] | undefined>([])
 
   /* 加载摄像头列表 */
   useEffect(() => {
     const getCameras = async () => {
-      const { data } = await openapi.POST('/Camera/Query', {
-        body: { Page: 1, PageSize: 1000 },
-      })
+      const body: QueryDto = { PageNumber: 1, PageSize: 100 }
+      const { data } = await openapi.POST('/Camera/Query', { body: body })
       setCameras(data)
     }
     getCameras().then()

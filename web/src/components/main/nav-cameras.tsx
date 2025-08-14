@@ -2,7 +2,7 @@
 
 import { Camera as CameraIcon, Gauge, MonitorCog, MonitorPlay, MoreHorizontal } from 'lucide-react'
 
-import { paths } from '@/api/schema'
+import { components } from '@/api/schema'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,10 +23,9 @@ import { useLocale } from 'next-intl'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-type Camera =
-  paths['/Camera/Query']['post']['responses']['200']['content']['application/json']
+type Camera = components['schemas']['Camera']
 
-export function NavCameras({ cameras }: { cameras: Camera }) {
+export function NavCameras({ cameras }: { cameras: Camera[] }) {
   const { isMobile } = useSidebar()
   const locale = useLocale()
   const pathname = usePathname()

@@ -1,6 +1,6 @@
 'use client'
 
-import { paths } from '@/api/schema'
+import { components, paths } from '@/api/schema'
 import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
@@ -20,8 +20,9 @@ import { openapi } from '@/lib/http'
 import { Calendar, CircleAlert, CircleDot, CircleX, Info } from 'lucide-react'
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 
-type Timeline =
-  paths['/Camera/GetTimeline']['get']['responses']['200']['content']['application/json']
+type GetTimelineQuery =
+  paths['/Camera/GetTimeline']['get']['parameters']['query']
+type Timeline = components['schemas']['Timeline']
 
 export interface CameraTimelineHandle {
   /**
@@ -38,12 +39,12 @@ interface CameraTimelineProps {
 }
 
 /* 聚类方法：按时间排序 & 按 thresholdMs 归类 */
-function clusterTimeline(events: Timeline, thresholdMs: number) {
+function clusterTimeline(events: Timeline[], thresholdMs: number) {
   const sorted = [...events].sort(
     (a, b) => new Date(a.Time!).getTime() - new Date(b.Time!).getTime(),
   )
-  const clusters: Timeline[] = []
-  let cluster: Timeline = []
+  const clusters: Timeline[][] = []
+  let cluster: Timeline[] = []
 
   for (const item of sorted) {
     if (cluster.length === 0) {
@@ -69,21 +70,20 @@ function clusterTimeline(events: Timeline, thresholdMs: number) {
 
 const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
   ({ cameraId, initialTime, onTimeChange }, ref) => {
-    const [timeline, setTimeline] = useState<Timeline | undefined>(undefined)
+    const [timeline, setTimeline] = useState<Timeline[] | undefined>(undefined)
     const [currentTime, setCurrentTime] = useState(initialTime)
     const [minTime, setMinTime] = useState(initialTime - 2 * 60 * 60 * 1000)
     const [maxTime, setMaxTime] = useState(initialTime + 22 * 60 * 60 * 1000)
     const [selectedCluster, setSelectedCluster] = useState<
-      Timeline | undefined
+      Timeline[] | undefined
     >(undefined)
 
     /* 获取摄像头时间线数据 */
     useEffect(() => {
       const getTimeline = async () => {
+        const query: GetTimelineQuery = { cameraId: cameraId }
         const { data } = await openapi.GET('/Camera/GetTimeline', {
-          params: {
-            query: { cameraId: cameraId, startTs: minTime, endTs: maxTime },
-          },
+          params: { query: query },
         })
         return data
       }
