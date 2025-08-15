@@ -1,8 +1,19 @@
 'use client'
 
 import { components } from '@/api/schema'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { ArrowUpRight } from 'lucide-react'
@@ -33,7 +44,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export default function Dashboard({
+export default function Page({
   params,
 }: Readonly<{
   params: Promise<{ locale: string; camera: string }>
@@ -89,6 +100,7 @@ export default function Dashboard({
       const { data } = await openapi.POST('/Segment/Query', { body })
       if (!data?.length) return
       setSegments(data)
+      calculateChartData(data)
     }
     // 计算图表数据
     const calculateChartData = (segments: Segment[]) => {
@@ -119,9 +131,9 @@ export default function Dashboard({
       const cameraId = p.camera
       if (!cameraId) return
       getCameraInfo(cameraId).then()
-      getSegments(cameraId).then(() => calculateChartData(segments))
+      getSegments(cameraId).then()
     })
-  }, [params, segments])
+  }, [params])
 
   const firstSegment = segments.length > 0 ? segments[0] : undefined
   const lastSegment =
@@ -175,7 +187,7 @@ export default function Dashboard({
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <p>
             <strong>ID:</strong> {cameraInfo.Id}
           </p>
@@ -192,13 +204,13 @@ export default function Dashboard({
           </p>
         </CardContent>
       </Card>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Camera Video Params Card */}
         <Card>
           <CardHeader>
             <CardTitle>视频参数</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <p>
               <strong>编码器:</strong> {firstSegment?.VideoCodec}
             </p>
@@ -237,7 +249,7 @@ export default function Dashboard({
           <CardHeader>
             <CardTitle>音频参数</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <p>
               <strong>音频编码器:</strong> {firstSegment?.AudioCodec}
             </p>

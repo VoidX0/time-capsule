@@ -5,8 +5,18 @@ import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { ArrowUp, CalendarIcon, Trash2 } from 'lucide-react'
@@ -144,7 +154,7 @@ export default function Page({
               {/*删除整天*/}
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="icon">
+                  <Button variant="destructive" size="icon">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>

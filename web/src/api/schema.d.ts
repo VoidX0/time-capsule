@@ -753,6 +753,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/Camera/SyncAndCache": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 同步索引并重建缓存 */
+        post: {
+            parameters: {
+                query?: {
+                    /** @description 摄像头ID */
+                    cameraId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/Camera/GetTimeline": {
         parameters: {
             query?: never;
@@ -788,51 +825,6 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/Camera/Insert": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 添加数据 */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            /** @description 实例列表 */
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["Camera"][];
-                    "text/json": components["schemas"]["Camera"][];
-                    "application/*+json": components["schemas"]["Camera"][];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": number[];
-                        "application/json": number[];
-                        "text/json": number[];
-                    };
-                };
-            };
-        };
         delete?: never;
         options?: never;
         head?: never;
@@ -879,6 +871,51 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Camera/Insert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 添加数据 */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description 实例列表 */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["Camera"][];
+                    "text/json": components["schemas"]["Camera"][];
+                    "application/*+json": components["schemas"]["Camera"][];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": number[];
+                        "application/json": number[];
+                        "text/json": number[];
+                    };
+                };
+            };
+        };
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;

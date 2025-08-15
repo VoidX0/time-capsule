@@ -1,8 +1,11 @@
 ﻿using System.ComponentModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.Extensions.Options;
 using TimeCapsule.Core.Models.Db;
 using TimeCapsule.Models;
+using TimeCapsule.Models.Options;
+using TimeCapsule.Services;
 
 namespace TimeCapsule.Controllers;
 
@@ -15,6 +18,37 @@ namespace TimeCapsule.Controllers;
 [TypeFilter(typeof(AllowAnonymousFilter))]
 public class CameraController : OrmController<Camera>
 {
+    private readonly SystemOptions _systemOptions;
+    private readonly VideoService _videoService;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public CameraController(IOptions<SystemOptions> systemOptions, VideoService videoService)
+    {
+        _systemOptions = systemOptions.Value;
+        _videoService = videoService;
+    }
+
+    /// <summary>
+    /// 同步索引并重建缓存
+    /// </summary>
+    /// <param name="cameraId">摄像头ID</param>
+    /// <returns></returns>
+    [HttpPost]
+    public async Task<IActionResult> SyncAndCache(string cameraId)
+    {
+        var id = long.TryParse(cameraId, out var parsedId) ? parsedId : 0;
+        var camera = await Db.Queryable<Camera>().In(id).FirstAsync();
+        if (camera == null) return NotFound("Camera not found");
+        _ = Task.Run(async () =>
+        {
+            await _videoService.Sync(camera);
+            await _videoService.Cache(camera);
+        });
+        return Ok();
+    }
+    
     /// <summary>
     /// 获取时间轴
     /// </summary>
@@ -63,4 +97,53 @@ public class CameraController : OrmController<Camera>
         return Ok(timeline.Concat(Timeline.PointMarks(firstSegment.StartTime, lastSegment.EndTime))
             .OrderBy(x => x.Time).ToList());
     }
+
+    #region ORM
+
+    /// <summary>
+    /// 删除数据
+    /// </summary>
+    /// <param name="entity">实例列表</param>
+    /// <returns></returns>
+    [HttpDelete]
+    public override async Task<ActionResult<int>> Delete(List<Camera> entity)
+    {
+        var delete = await base.Delete(entity);
+        if (delete.Result is not OkObjectResult) return delete;
+        // 删除对应的文件 (删除失败的文件，会在下次Sync时重新同步，所以不需要处理异常)
+        foreach (var camera in entity)
+        {
+            var video = new DirectoryInfo(Path.Combine(_systemOptions.CameraPath, camera.BasePath));
+            var cache = new DirectoryInfo(Path.Combine(_systemOptions.CachePath, camera.Id.ToString()));
+            // 删除视频目录
+            if (video.Exists)
+            {
+                try
+                {
+                    video.Delete(true);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+
+            // 删除缓存目录
+            if (cache.Exists)
+            {
+                try
+                {
+                    cache.Delete(true);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
+
+        return delete;
+    }
+
+    #endregion
 }
