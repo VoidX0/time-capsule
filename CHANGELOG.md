@@ -1,3 +1,11 @@
+## 0.1.7
+
+### features
+
+- Camera-Segments移动到单独页面
+- Camera-Manage页面改为Camera-Settings
+- 完成Camera-Dashboard页面
+
 ## 0.1.6
 
 ### bugfixes

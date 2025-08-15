@@ -52,8 +52,8 @@ public class SegmentController : OrmController<VideoSegment>
         if (!new FileInfo(video).Exists) return BadRequest("缩略图不存在");
         // 设置响应头
         Response.Headers.Append("Content-Type", "image/jpeg");
-        Response.Headers.Append("Cache-Control", "no-cache");
-        Response.Headers.Append("Connection", "keep-alive");
+        Response.Headers.CacheControl = "public,max-age=43200"; // 缓存12小时
+        Response.Headers.Expires = DateTime.UtcNow.AddHours(12).ToString("R");
         // 返回缩略图
         var fileStream = new FileStream(video, FileMode.Open, FileAccess.Read, FileShare.Read);
         return File(fileStream, "image/jpeg", enableRangeProcessing: true);
