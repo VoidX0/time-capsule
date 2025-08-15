@@ -4,6 +4,9 @@ import { components } from '@/api/schema'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
+import { ArrowUpRight } from 'lucide-react'
+import { useLocale } from 'next-intl'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 type QueryDto = components['schemas']['QueryDto']
@@ -15,6 +18,7 @@ export default function Dashboard({
 }: Readonly<{
   params: Promise<{ locale: string; camera: string }>
 }>) {
+  const locale = useLocale()
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined)
   const [segments, setSegments] = useState<Segment[]>([])
 
@@ -212,7 +216,14 @@ export default function Dashboard({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>片段数量</CardTitle>
+            <CardTitle>
+              <div className="flex items-center justify-between">
+                片段数量
+                <Link href={`/${locale}/${cameraInfo.Id}/segments`}>
+                  <ArrowUpRight />
+                </Link>
+              </div>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{segments.length} 个</p>
