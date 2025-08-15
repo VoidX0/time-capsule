@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  Camera as CameraIcon,
-  Gauge,
-  MonitorCog,
-  MonitorPlay,
-  MoreHorizontal,
-} from 'lucide-react'
+import { Camera as CameraIcon, Clapperboard, Gauge, MonitorCog, MonitorPlay, MoreHorizontal } from 'lucide-react'
 
 import { components } from '@/api/schema'
 import {
@@ -14,7 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import {
   SidebarGroup,
@@ -23,7 +17,7 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
+  useSidebar
 } from '@/components/ui/sidebar'
 import { useLocale } from 'next-intl'
 import Link from 'next/link'
@@ -72,6 +66,12 @@ export function NavCameras({ cameras }: { cameras: Camera[] }) {
                     <span>Dashboard</span>
                   </DropdownMenuItem>
                 </Link>
+                <Link href={`/${locale}/${item.Id}/segments`}>
+                  <DropdownMenuItem>
+                    <Clapperboard className="text-muted-foreground" />
+                    <span>Segments</span>
+                  </DropdownMenuItem>
+                </Link>
                 <Link href={`/${locale}/${item.Id}/playback`}>
                   <DropdownMenuItem>
                     <MonitorPlay className="text-muted-foreground" />
@@ -79,10 +79,10 @@ export function NavCameras({ cameras }: { cameras: Camera[] }) {
                   </DropdownMenuItem>
                 </Link>
                 <DropdownMenuSeparator />
-                <Link href={`/${locale}/${item.Id}/manage`}>
+                <Link href={`/${locale}/${item.Id}/settings`}>
                   <DropdownMenuItem>
                     <MonitorCog className="text-muted-foreground" />
-                    <span>Manage</span>
+                    <span>Settings</span>
                   </DropdownMenuItem>
                 </Link>
               </DropdownMenuContent>
