@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
-import { ArrowUp, CalendarIcon } from 'lucide-react'
+import { ArrowUp, CalendarIcon, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type QueryDto = components['schemas']['QueryDto']
@@ -192,23 +192,100 @@ export default function Page({
           </DialogHeader>
           {selectedSegment && (
             <div className="space-y-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => deleteSegment(selectedSegment)}
+              >
+                <Trash2 />
+              </Button>
               <p>
                 <strong>ID:</strong> {selectedSegment.Id}
               </p>
               <p>
-                <strong>Start:</strong>{' '}
+                <strong>摄像头ID:</strong> {selectedSegment.CameraId}
+              </p>
+              <p>
+                <strong>同步时间:</strong>{' '}
+                {new Date(selectedSegment.SyncTime!).toLocaleString()}
+              </p>
+              <p>
+                <strong>文件大小:</strong>{' '}
+                {selectedSegment.Size ? selectedSegment.Size.toFixed(2) : 'N/A'}{' '}
+                MB
+              </p>
+              <p>
+                <strong>录制开始时间:</strong>{' '}
                 {new Date(selectedSegment.StartTime!).toLocaleString()}
               </p>
               <p>
-                <strong>End:</strong>{' '}
+                <strong>录制结束时间:</strong>{' '}
                 {new Date(selectedSegment.EndTime!).toLocaleString()}
               </p>
-              <Button
-                variant="destructive"
-                onClick={() => deleteSegment(selectedSegment)}
-              >
-                Delete
-              </Button>
+              <p>
+                <strong>实际录制时长:</strong>{' '}
+                {selectedSegment.DurationActual
+                  ? selectedSegment.DurationActual
+                  : 'N/A'}
+              </p>
+              <p>
+                <strong>理论录制时长:</strong>{' '}
+                {selectedSegment.DurationTheoretical
+                  ? selectedSegment.DurationTheoretical
+                  : 'N/A'}
+              </p>
+              <p>
+                <strong>视频编码器:</strong>{' '}
+                {selectedSegment.VideoCodec || 'N/A'}
+              </p>
+              <p>
+                <strong>视频分辨率:</strong>{' '}
+                {selectedSegment.VideoWidth
+                  ? selectedSegment.VideoWidth
+                  : 'N/A'}{' '}
+                x{' '}
+                {selectedSegment.VideoHeight
+                  ? selectedSegment.VideoHeight
+                  : 'N/A'}
+              </p>
+              <p>
+                <strong>视频帧率:</strong>{' '}
+                {selectedSegment.VideoFps
+                  ? selectedSegment.VideoFps.toFixed(2)
+                  : 'N/A'}{' '}
+                fps
+              </p>
+              <p>
+                <strong>视频比特率:</strong>{' '}
+                {selectedSegment.VideoBitrate
+                  ? selectedSegment.VideoBitrate.toFixed(2)
+                  : 'N/A'}{' '}
+                Kbps
+              </p>
+              <p>
+                <strong>音频编码器:</strong>{' '}
+                {selectedSegment.AudioCodec || 'N/A'}
+              </p>
+              <p>
+                <strong>音频采样率:</strong>{' '}
+                {selectedSegment.AudioSampleRate
+                  ? selectedSegment.AudioSampleRate.toFixed(2)
+                  : 'N/A'}{' '}
+                Hz
+              </p>
+              <p>
+                <strong>音频声道数:</strong>{' '}
+                {selectedSegment.AudioChannels
+                  ? selectedSegment.AudioChannels
+                  : 'N/A'}
+              </p>
+              <p>
+                <strong>音频比特率:</strong>{' '}
+                {selectedSegment.AudioBitrate
+                  ? selectedSegment.AudioBitrate.toFixed(2)
+                  : 'N/A'}{' '}
+                Kbps
+              </p>
             </div>
           )}
         </DialogContent>
