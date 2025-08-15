@@ -33,7 +33,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export default function Dashboard({
+export default function Page({
   params,
 }: Readonly<{
   params: Promise<{ locale: string; camera: string }>
