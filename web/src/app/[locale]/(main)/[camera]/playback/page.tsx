@@ -79,7 +79,7 @@ export default function Page({
   }
   // 初始化完成
   return (
-    <div className="mx-auto grid max-w-6xl gap-4 rounded-xl md:p-8">
+    <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl md:w-2/3 md:p-8">
       <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.Name || ''}</h1>
       {/*播放器*/}
       <CameraPlayer
