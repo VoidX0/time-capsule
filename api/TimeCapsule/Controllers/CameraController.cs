@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using TimeCapsule.Core.Models.Db;
 using TimeCapsule.Models;
 using TimeCapsule.Models.Options;
+using TimeCapsule.Services;
 
 namespace TimeCapsule.Controllers;
 
@@ -18,15 +19,36 @@ namespace TimeCapsule.Controllers;
 public class CameraController : OrmController<Camera>
 {
     private readonly SystemOptions _systemOptions;
+    private readonly VideoService _videoService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public CameraController(IOptions<SystemOptions> systemOptions)
+    public CameraController(IOptions<SystemOptions> systemOptions, VideoService videoService)
     {
         _systemOptions = systemOptions.Value;
+        _videoService = videoService;
     }
 
+    /// <summary>
+    /// 同步索引并重建缓存
+    /// </summary>
+    /// <param name="cameraId">摄像头ID</param>
+    /// <returns></returns>
+    [HttpPost]
+    public async Task<IActionResult> SyncAndCache(string cameraId)
+    {
+        var id = long.TryParse(cameraId, out var parsedId) ? parsedId : 0;
+        var camera = await Db.Queryable<Camera>().In(id).FirstAsync();
+        if (camera == null) return NotFound("Camera not found");
+        _ = Task.Run(async () =>
+        {
+            await _videoService.Sync(camera);
+            await _videoService.Cache(camera);
+        });
+        return Ok();
+    }
+    
     /// <summary>
     /// 获取时间轴
     /// </summary>

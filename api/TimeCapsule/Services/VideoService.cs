@@ -1,11 +1,13 @@
 ﻿using System.Globalization;
 using Microsoft.Extensions.Options;
+using Serilog;
 using SqlSugar;
 using SqlSugar.IOC;
 using TimeCapsule.Core.Models.Common;
 using TimeCapsule.Core.Models.Db;
 using TimeCapsule.Models.Options;
 using Xabe.FFmpeg;
+using ILogger = Serilog.ILogger;
 
 namespace TimeCapsule.Services;
 
@@ -23,6 +25,11 @@ public class VideoService
     /// 数据库
     /// </summary>
     private ISqlSugarClient Db { get; } = DbScoped.SugarScope;
+
+    /// <summary>
+    /// 日志记录器
+    /// </summary>
+    private ILogger Logger => Log.ForContext<VideoService>();
 
     /// <summary>
     /// 构造函数
@@ -91,6 +98,17 @@ public class VideoService
             if (removeSegments.Count != 0)
                 await Db.Deleteable(removeSegments).SplitTable().ExecuteCommandAsync();
         });
+        if (result.IsSuccess)
+        {
+            Logger.Information("摄像头 {CameraName} ({CameraId}) 元数据同步完成，共计新增 {NewCount} 个视频段，移除 {RemoveCount} 个视频段",
+                camera.Name, camera.Id, newSegments.Count, removeSegments.Count);
+        }
+        else
+        {
+            Logger.Warning(result.ErrorException, "摄像头 {CameraName} ({CameraId}) 元数据同步失败: {ErrorMessage}",
+                camera.Name, camera.Id, result.ErrorMessage);
+        }
+
         return result.IsSuccess ? OperateResult.Success() : OperateResult.Fail(result.ErrorMessage);
     }
 
@@ -165,6 +183,8 @@ public class VideoService
         // 生成缩略图
         foreach (var segment in dbSegments)
             await GenerateThumbnail(segment, Path.Combine(SystemOptions.CameraPath, camera.BasePath), path);
+        Logger.Information("摄像头 {CameraName} ({CameraId}) 的缓存重建完成，共计 {SegmentCount} 个视频段",
+            camera.Name, camera.Id, dbSegments.Count);
         return OperateResult.Success($"摄像头 {camera.Name} 的缓存重建完成");
     }
 
