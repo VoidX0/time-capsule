@@ -1,12 +1,8 @@
 'use client'
 
 import { components } from '@/api/schema'
-import CameraPlayer, {
-  CameraPlayerHandle,
-} from '@/components/camera/camera-player'
-import CameraTimeline, {
-  CameraTimelineHandle,
-} from '@/components/camera/camera-timeline'
+import CameraPlayer, { CameraPlayerHandle } from '@/components/camera/camera-player'
+import CameraTimeline, { CameraTimelineHandle } from '@/components/camera/camera-timeline'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { openapi } from '@/lib/http'
@@ -20,7 +16,7 @@ import {
   CirclePlay,
   Fullscreen,
   Volume2,
-  VolumeOff,
+  VolumeOff
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -41,7 +37,7 @@ export default function Page({
 
   /* 初始化时间 */
   useEffect(() => {
-    setInitialTime(Date.now() - 10 * 24 * 60 * 60 * 1000)
+    setInitialTime(Date.now() - 2 * 24 * 60 * 60 * 1000)
   }, [])
 
   /* 加载摄像头信息 */

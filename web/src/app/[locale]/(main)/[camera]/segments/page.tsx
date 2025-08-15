@@ -5,12 +5,7 @@ import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { CalendarIcon } from 'lucide-react'
@@ -100,98 +95,76 @@ export default function Page({
   return (
     <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl md:p-8">
       <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.Name || ''}</h1>
-      <Tabs defaultValue="segments">
-        <TabsList className="w-full">
-          <TabsTrigger className="w-1/2" value="segments">
-            Segments
-          </TabsTrigger>
-          <TabsTrigger className="w-1/2" value="settings">
-            Settings
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="segments">
-          <div className="grid grid-cols-1 gap-4">
-            {/*按天分组的视频片段*/}
-            {Object.entries(segmentsByDate).map(([date, segments]) => (
-              <div
-                key={date}
-                id={`date-${date}`}
-                className="bg-muted/50 rounded-xl p-4"
-              >
-                <div className="flex items-center justify-start gap-4">
-                  <h2 className="text-xl font-semibold">{date}</h2>
-                  <Badge>{segments.length} segments</Badge>
-                  <Badge>
-                    {(
-                      segments.reduce((sum, seg) => {
-                        return sum + timeSpanToMilliseconds(seg.DurationActual!)
-                      }, 0) /
-                      1000 /
-                      60 /
-                      60
-                    ).toFixed(2)}
-                    h
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
-                  {/*一天内的视频切片*/}
-                  {segments.map((segment) => (
-                    <HeroVideoDialog
-                      key={segment.Id}
-                      className="block"
-                      animationStyle="from-center"
-                      videoSrc={`/api/Video/SegmentStream?segmentId=${segment.Id}`}
-                      thumbnailSrc={`/api/Segment/GetThumbnail?segmentId=${segment.Id}`}
-                      thumbnailAlt={`${new Date(segment.StartTime!).toLocaleString()} - ${new Date(segment.EndTime!).toLocaleString()}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* 浮动按钮 */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                size="icon"
-                className="fixed right-4 bottom-4 rounded-full shadow-lg"
-              >
-                <CalendarIcon className="h-5 w-5" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="single"
-                onSelect={(selectedDate) => {
-                  if (!selectedDate) return
-                  // 本地日期格式化
-                  const y = selectedDate.getFullYear()
-                  const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
-                  const d = String(selectedDate.getDate()).padStart(2, '0')
-                  const dateKey = `${y}-${m}-${d}`
-                  const target = document.getElementById(`date-${dateKey}`)
-                  if (target) {
-                    target.scrollIntoView({
-                      behavior: 'smooth',
-                      block: 'start',
-                    })
-                  }
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-        </TabsContent>
-        <TabsContent value="settings">
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-            <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-              <div className="bg-muted/50 aspect-video rounded-xl" />
-              <div className="bg-muted/50 aspect-video rounded-xl" />
-              <div className="bg-muted/50 aspect-video rounded-xl" />
+      <div className="grid grid-cols-1 gap-4">
+        {/*按天分组的视频片段*/}
+        {Object.entries(segmentsByDate).map(([date, segments]) => (
+          <div
+            key={date}
+            id={`date-${date}`}
+            className="bg-muted/50 rounded-xl p-4"
+          >
+            <div className="flex items-center justify-start gap-4">
+              <h2 className="text-xl font-semibold">{date}</h2>
+              <Badge>{segments.length} segments</Badge>
+              <Badge>
+                {(
+                  segments.reduce((sum, seg) => {
+                    return sum + timeSpanToMilliseconds(seg.DurationActual!)
+                  }, 0) /
+                  1000 /
+                  60 /
+                  60
+                ).toFixed(2)}
+                h
+              </Badge>
             </div>
-            <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+              {/*一天内的视频切片*/}
+              {segments.map((segment) => (
+                <HeroVideoDialog
+                  key={segment.Id}
+                  className="block"
+                  animationStyle="from-center"
+                  videoSrc={`/api/Video/SegmentStream?segmentId=${segment.Id}`}
+                  thumbnailSrc={`/api/Segment/GetThumbnail?segmentId=${segment.Id}`}
+                  thumbnailAlt={`${new Date(segment.StartTime!).toLocaleString()} - ${new Date(segment.EndTime!).toLocaleString()}`}
+                />
+              ))}
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        ))}
+      </div>
+      {/* 浮动按钮 */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            size="icon"
+            className="fixed right-4 bottom-4 rounded-full shadow-lg"
+          >
+            <CalendarIcon className="h-5 w-5" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="end">
+          <Calendar
+            mode="single"
+            onSelect={(selectedDate) => {
+              if (!selectedDate) return
+              // 本地日期格式化
+              const y = selectedDate.getFullYear()
+              const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
+              const d = String(selectedDate.getDate()).padStart(2, '0')
+              const dateKey = `${y}-${m}-${d}`
+              const target = document.getElementById(`date-${dateKey}`)
+              if (target) {
+                target.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start',
+                })
+              }
+            }}
+          />
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }
