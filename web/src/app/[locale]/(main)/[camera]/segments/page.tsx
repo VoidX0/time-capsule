@@ -5,7 +5,7 @@ import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
@@ -141,13 +141,32 @@ export default function Page({
                 ).toFixed(2)}
                 h
               </Badge>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => deleteSegments(segments)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {/*删除整天*/}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle>确认删除</DialogTitle>
+                  </DialogHeader>
+                  <p className="py-2">
+                    确定要删除 {segments.length} 个视频片段吗？此操作不可恢复。
+                  </p>
+                  <div className="mt-4 flex justify-end gap-2">
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        deleteSegments(segments).then()
+                      }}
+                    >
+                      删除
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
               {/*一天内的视频切片*/}
@@ -202,6 +221,7 @@ export default function Page({
           </DialogHeader>
           {selectedSegment && (
             <div className="space-y-2">
+              {/*删除单个Segment*/}
               <Button
                 variant="outline"
                 size="icon"
@@ -209,6 +229,7 @@ export default function Page({
               >
                 <Trash2 />
               </Button>
+              {/*详情信息*/}
               <p>
                 <strong>ID:</strong> {selectedSegment.Id}
               </p>
