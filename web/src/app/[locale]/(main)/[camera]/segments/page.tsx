@@ -8,7 +8,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
-import { CalendarIcon } from 'lucide-react'
+import { ArrowUp, CalendarIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type QueryDto = components['schemas']['QueryDto']
@@ -21,10 +21,11 @@ export default function Page({
   params: Promise<{ locale: string; camera: string }>
 }>) {
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
-  const [segments, setSegments] = useState<Segment[] | undefined>([]) // 视频切片列表
+  const [, setSegments] = useState<Segment[] | undefined>([]) // 视频切片列表
   const [segmentsByDate, setSegmentsByDate] = useState<
     Record<string, Segment[]>
   >({}) // 按日期分组的视频切片
+  const [popover, setPopover] = useState(false) // 控制 Popover 开关
 
   /* 加载摄像头信息 */
   useEffect(() => {
@@ -134,37 +135,46 @@ export default function Page({
           </div>
         ))}
       </div>
-      {/* 浮动按钮 */}
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            size="icon"
-            className="fixed right-4 bottom-4 rounded-full shadow-lg"
-          >
-            <CalendarIcon className="h-5 w-5" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
-          <Calendar
-            mode="single"
-            onSelect={(selectedDate) => {
-              if (!selectedDate) return
-              // 本地日期格式化
-              const y = selectedDate.getFullYear()
-              const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
-              const d = String(selectedDate.getDate()).padStart(2, '0')
-              const dateKey = `${y}-${m}-${d}`
-              const target = document.getElementById(`date-${dateKey}`)
-              if (target) {
-                target.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'start',
-                })
-              }
-            }}
-          />
-        </PopoverContent>
-      </Popover>
+      {/* 浮动按钮 - 日期选择 */}
+      {(() => {
+        const handleSelectDate = (selectedDate: Date | undefined) => {
+          if (!selectedDate) return
+          const y = selectedDate.getFullYear()
+          const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
+          const d = String(selectedDate.getDate()).padStart(2, '0')
+          const dateKey = `${y}-${m}-${d}`
+
+          const target = document.getElementById(`date-${dateKey}`)
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+          setPopover(false)
+        }
+
+        return (
+          <Popover open={popover} onOpenChange={setPopover}>
+            <PopoverTrigger asChild>
+              <Button
+                size="icon"
+                className="fixed right-4 bottom-4 rounded-full shadow-lg"
+              >
+                <CalendarIcon className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar mode="single" onSelect={handleSelectDate} />
+            </PopoverContent>
+          </Popover>
+        )
+      })()}
+      {/* 浮动按钮 - 回到顶部 */}
+      <Button
+        size="icon"
+        className="fixed right-16 bottom-4 rounded-full shadow-lg"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      >
+        <ArrowUp className="h-5 w-5" />
+      </Button>
     </div>
   )
 }
