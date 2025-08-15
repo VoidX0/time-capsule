@@ -5,6 +5,7 @@ import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
@@ -26,8 +27,10 @@ export default function Page({
     Record<string, Segment[]>
   >({}) // 按日期分组的视频切片
   const [popover, setPopover] = useState(false) // 控制 Popover 开关
+  const [detailOpen, setDetailOpen] = useState(false) // 控制详情弹窗开关
+  const [selectedSegment, setSelectedSegment] = useState<Segment | null>(null) // 当前选中的Segment
 
-  /* 加载摄像头信息 */
+  /* 加载摄像头与Segment列表 */
   useEffect(() => {
     const getCameraInfo = async (cameraId: string) => {
       const body: QueryDto = {
@@ -37,10 +40,11 @@ export default function Page({
           { FieldName: 'Id', FieldValue: cameraId, CSharpTypeName: 'long' },
         ],
       }
-      const { data } = await openapi.POST('/Camera/Query', { body: body })
+      const { data } = await openapi.POST('/Camera/Query', { body })
       if ((data?.length ?? -1) <= 0) return
       setCameraInfo(data![0])
     }
+
     const getSegments = async (cameraId: string) => {
       const body: QueryDto = {
         PageNumber: 1,
@@ -52,28 +56,22 @@ export default function Page({
             CSharpTypeName: 'long',
           },
         ],
-        Order: [
-          {
-            FieldName: 'StartTime',
-            OrderByType: 1,
-          },
-        ],
+        Order: [{ FieldName: 'StartTime', OrderByType: 1 }],
       }
-      const { data } = await openapi.POST('/Segment/Query', { body: body })
+      const { data } = await openapi.POST('/Segment/Query', { body })
       if ((data?.length ?? -1) <= 0) return
-      setSegments(data!) // 设置视频切片列表
+      setSegments(data!)
       // 按日期分组视频切片
       const grouped: Record<string, Segment[]> = {}
       data!.forEach((segment) => {
         const dateKey =
           new Date(segment.StartTime!).toISOString().split('T')[0] ?? ''
-        if (!grouped[dateKey]) {
-          grouped[dateKey] = []
-        }
+        if (!grouped[dateKey]) grouped[dateKey] = []
         grouped[dateKey].push(segment)
       })
-      setSegmentsByDate(grouped) // 设置按日期分组的视频切片
+      setSegmentsByDate(grouped)
     }
+
     params.then((param) => {
       const cameraId = param.camera
       if (!cameraId) return
@@ -81,6 +79,26 @@ export default function Page({
       getSegments(cameraId).then()
     })
   }, [params])
+
+  /* 删除Segment */
+  const deleteSegment = async (segment: Segment) => {
+    await openapi.DELETE('/Segment/Delete', { body: [segment] })
+
+    // 重新设置segmentsByDate
+    setSegmentsByDate((prev) => {
+      const dateKey = new Date(segment.StartTime!).toISOString().split('T')[0]
+      const copy = { ...prev }
+      if (copy[dateKey!]) {
+        copy[dateKey!] = copy[dateKey!]!.filter((s) => s.Id !== segment.Id)
+        if (copy[dateKey!]?.length === 0) delete copy[dateKey!]
+      }
+      return copy
+    })
+
+    // 关闭详情弹窗
+    setDetailOpen(false)
+    setSelectedSegment(null)
+  }
 
   // 等待摄像头准备好
   if (cameraInfo == undefined) {
@@ -109,9 +127,11 @@ export default function Page({
               <Badge>{segments.length} segments</Badge>
               <Badge>
                 {(
-                  segments.reduce((sum, seg) => {
-                    return sum + timeSpanToMilliseconds(seg.DurationActual!)
-                  }, 0) /
+                  segments.reduce(
+                    (sum, seg) =>
+                      sum + timeSpanToMilliseconds(seg.DurationActual!),
+                    0,
+                  ) /
                   1000 /
                   60 /
                   60
@@ -121,20 +141,79 @@ export default function Page({
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
               {/*一天内的视频切片*/}
-              {segments.map((segment) => (
-                <HeroVideoDialog
-                  key={segment.Id}
-                  className="block"
-                  animationStyle="from-center"
-                  videoSrc={`/api/Video/SegmentStream?segmentId=${segment.Id}`}
-                  thumbnailSrc={`/api/Segment/GetThumbnail?segmentId=${segment.Id}`}
-                  thumbnailAlt={`${new Date(segment.StartTime!).toLocaleString()} - ${new Date(segment.EndTime!).toLocaleString()}`}
-                />
-              ))}
+              {segments.map((segment) => {
+                // 包裹Segment卡片，右键 / 长按 触发详情
+                let touchTimer: NodeJS.Timeout | undefined = undefined
+                // 右键触发详情
+                const handleContextMenu = (e: React.MouseEvent) => {
+                  e.preventDefault()
+                  setSelectedSegment(segment)
+                  setDetailOpen(true)
+                }
+                // 长按触发详情
+                const handleTouchStart = () => {
+                  touchTimer = setTimeout(() => {
+                    setSelectedSegment(segment)
+                    setDetailOpen(true)
+                  }, 500) // 长按 500ms
+                }
+                // 触摸结束清除定时器
+                const handleTouchEnd = () => {
+                  if (touchTimer) clearTimeout(touchTimer)
+                }
+
+                return (
+                  <div
+                    key={segment.Id}
+                    onContextMenu={handleContextMenu}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                  >
+                    <HeroVideoDialog
+                      className="block"
+                      animationStyle="from-center"
+                      videoSrc={`/api/Video/SegmentStream?segmentId=${segment.Id}`}
+                      thumbnailSrc={`/api/Segment/GetThumbnail?segmentId=${segment.Id}`}
+                      thumbnailAlt={`${new Date(segment.StartTime!).toLocaleString()} - ${new Date(segment.EndTime!).toLocaleString()}`}
+                    />
+                  </div>
+                )
+              })}
             </div>
           </div>
         ))}
       </div>
+
+      {/* Segment详情 */}
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Segment Info</DialogTitle>
+          </DialogHeader>
+          {selectedSegment && (
+            <div className="space-y-2">
+              <p>
+                <strong>ID:</strong> {selectedSegment.Id}
+              </p>
+              <p>
+                <strong>Start:</strong>{' '}
+                {new Date(selectedSegment.StartTime!).toLocaleString()}
+              </p>
+              <p>
+                <strong>End:</strong>{' '}
+                {new Date(selectedSegment.EndTime!).toLocaleString()}
+              </p>
+              <Button
+                variant="destructive"
+                onClick={() => deleteSegment(selectedSegment)}
+              >
+                Delete
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* 浮动按钮 - 日期选择 */}
       {(() => {
         const handleSelectDate = (selectedDate: Date | undefined) => {
@@ -143,7 +222,6 @@ export default function Page({
           const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
           const d = String(selectedDate.getDate()).padStart(2, '0')
           const dateKey = `${y}-${m}-${d}`
-
           const target = document.getElementById(`date-${dateKey}`)
           if (target) {
             target.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -167,6 +245,7 @@ export default function Page({
           </Popover>
         )
       })()}
+
       {/* 浮动按钮 - 回到顶部 */}
       <Button
         size="icon"
