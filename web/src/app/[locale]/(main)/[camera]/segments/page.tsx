@@ -80,22 +80,25 @@ export default function Page({
     })
   }, [params])
 
-  /* 删除Segment */
-  const deleteSegment = async (segment: Segment) => {
-    await openapi.DELETE('/Segment/Delete', { body: [segment] })
+  /* 删除Segments */
+  const deleteSegments = async (segmentsToDelete: Segment[]) => {
+    if (segmentsToDelete.length === 0) return
+    await openapi.DELETE('/Segment/Delete', { body: segmentsToDelete })
 
-    // 重新设置segmentsByDate
+    // 更新segmentsByDate
     setSegmentsByDate((prev) => {
-      const dateKey = new Date(segment.StartTime!).toISOString().split('T')[0]
       const copy = { ...prev }
-      if (copy[dateKey!]) {
-        copy[dateKey!] = copy[dateKey!]!.filter((s) => s.Id !== segment.Id)
-        if (copy[dateKey!]?.length === 0) delete copy[dateKey!]
-      }
+      segmentsToDelete.forEach((seg) => {
+        const dateKey = new Date(seg.StartTime!).toISOString().split('T')[0]
+        if (copy[dateKey!]) {
+          copy[dateKey!] = copy[dateKey!]!.filter((s) => s.Id !== seg.Id)
+          if (copy[dateKey!]!.length === 0) delete copy[dateKey!]
+        }
+      })
       return copy
     })
 
-    // 关闭详情弹窗
+    // 如果是从详情弹窗调用的，也要关掉
     setDetailOpen(false)
     setSelectedSegment(null)
   }
@@ -138,6 +141,13 @@ export default function Page({
                 ).toFixed(2)}
                 h
               </Badge>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => deleteSegments(segments)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
               {/*一天内的视频切片*/}
@@ -195,7 +205,7 @@ export default function Page({
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => deleteSegment(selectedSegment)}
+                onClick={() => deleteSegments([selectedSegment!])}
               >
                 <Trash2 />
               </Button>
