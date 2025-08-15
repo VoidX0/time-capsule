@@ -175,7 +175,7 @@ export default function Dashboard({
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <p>
             <strong>ID:</strong> {cameraInfo.Id}
           </p>
@@ -192,13 +192,13 @@ export default function Dashboard({
           </p>
         </CardContent>
       </Card>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Camera Video Params Card */}
         <Card>
           <CardHeader>
             <CardTitle>视频参数</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <p>
               <strong>编码器:</strong> {firstSegment?.VideoCodec}
             </p>
@@ -237,7 +237,7 @@ export default function Dashboard({
           <CardHeader>
             <CardTitle>音频参数</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <p>
               <strong>音频编码器:</strong> {firstSegment?.AudioCodec}
             </p>
