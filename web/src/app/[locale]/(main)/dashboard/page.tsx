@@ -8,7 +8,7 @@ import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { useLocale } from 'next-intl'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
 
 type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
@@ -137,7 +137,7 @@ export default function Page() {
             {/* 小图表 */}
             {s.chartData.length > 0 && (
               <ChartContainer className="mt-2 h-[120px]" config={chartConfig}>
-                <BarChart data={s.chartData.slice(-7)}>
+                <LineChart data={s.chartData.slice(-7)}>
                   {' '}
                   {/* 最近7天 */}
                   <CartesianGrid vertical={false} />
@@ -152,8 +152,8 @@ export default function Page() {
                       />
                     }
                   />
-                  <Bar dataKey="storage" fill="#4f46e5" />
-                </BarChart>
+                  <Line dataKey="storage" fill="#4f46e5" type="monotone" />
+                </LineChart>
               </ChartContainer>
             )}
           </CardContent>
