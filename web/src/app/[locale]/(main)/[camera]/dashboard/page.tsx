@@ -1,17 +1,37 @@
 'use client'
 
 import { components } from '@/api/schema'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { ArrowUpRight } from 'lucide-react'
 import { useLocale } from 'next-intl'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 
 type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
 type Segment = components['schemas']['VideoSegment']
+
+const chartConfig = {
+  views: {
+    label: 'Page Views',
+  },
+  storage: {
+    label: '存储',
+    color: 'hsl(var(--chart-1))',
+  },
+  segment: {
+    label: '片段',
+    color: 'hsl(var(--chart-2))',
+  },
+  duration: {
+    label: '时长',
+    color: 'hsl(var(--chart-3))',
+  },
+} satisfies ChartConfig
 
 export default function Dashboard({
   params,
@@ -19,8 +39,26 @@ export default function Dashboard({
   params: Promise<{ locale: string; camera: string }>
 }>) {
   const locale = useLocale()
-  const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined)
-  const [segments, setSegments] = useState<Segment[]>([])
+  const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
+  const [segments, setSegments] = useState<Segment[]>([]) // 视频切片列表
+  const [activeChart, setActiveChart] =
+    useState<keyof typeof chartConfig>('storage') // 激活的图表
+  const [chartData, setChartData] = useState<
+    { date: string; storage: number; segment: number; duration: number }[]
+  >([])
+
+  const total = useMemo(
+    () => ({
+      storage: chartData
+        .reduce((acc, curr) => acc + curr.storage, 0)
+        .toFixed(2),
+      segment: chartData.reduce((acc, curr) => acc + curr.segment, 0),
+      duration: chartData
+        .reduce((acc, curr) => acc + curr.duration, 0)
+        .toFixed(2),
+    }),
+    [chartData],
+  )
 
   useEffect(() => {
     const getCameraInfo = async (cameraId: string) => {
@@ -52,14 +90,38 @@ export default function Dashboard({
       if (!data?.length) return
       setSegments(data)
     }
+    // 计算图表数据
+    const calculateChartData = (segments: Segment[]) => {
+      const groupedData: Record<
+        string,
+        { storage: number; segment: number; duration: number }
+      > = {}
+      segments.forEach((seg) => {
+        const dateKey = new Date(seg.StartTime!).toISOString().split('T')[0]
+        if (!groupedData[dateKey!]) {
+          groupedData[dateKey!] = { storage: 0, segment: 0, duration: 0 }
+        }
+        groupedData[dateKey!]!.storage += (seg.Size || 0) / 1024 // 转换为 GB
+        groupedData[dateKey!]!.segment += 1
+        groupedData[dateKey!]!.duration +=
+          timeSpanToMilliseconds(seg.DurationActual!) / 1000 / 60 / 60 // 转换为小时
+      })
+      const chartData = Object.entries(groupedData).map(([date, values]) => ({
+        date,
+        storage: values.storage,
+        segment: values.segment,
+        duration: values.duration,
+      }))
+      setChartData(chartData)
+    }
 
     params.then((p) => {
       const cameraId = p.camera
       if (!cameraId) return
       getCameraInfo(cameraId).then()
-      getSegments(cameraId).then()
+      getSegments(cameraId).then(() => calculateChartData(segments))
     })
-  }, [params])
+  }, [params, segments])
 
   const firstSegment = segments.length > 0 ? segments[0] : undefined
   const lastSegment =
@@ -288,6 +350,77 @@ export default function Dashboard({
           </CardContent>
         </Card>
       </div>
+      {/*chart*/}
+      <Card>
+        <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
+          <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
+            <CardTitle>每日趋势</CardTitle>
+            <CardDescription>
+              摄像头每日存储空间、片段数量和录制时长
+            </CardDescription>
+          </div>
+          <div className="flex">
+            {['storage', 'segment', 'duration'].map((key) => {
+              const chart = key as keyof typeof chartConfig
+              return (
+                <button
+                  key={chart}
+                  data-active={activeChart === chart}
+                  className="data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
+                  onClick={() => setActiveChart(chart)}
+                >
+                  <span className="text-muted-foreground text-xs">
+                    {chartConfig[chart].label}
+                  </span>
+                  <span className="text-xl leading-none font-bold sm:text-3xl">
+                    {total[key as keyof typeof total].toLocaleString()}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </CardHeader>
+        <CardContent className="px-2 sm:p-6">
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-[250px] w-full"
+          >
+            <BarChart
+              accessibilityLayer
+              data={chartData}
+              margin={{
+                left: 12,
+                right: 12,
+              }}
+            >
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value) => {
+                  const date = new Date(value)
+                  return date.toLocaleDateString()
+                }}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    className="w-[150px]"
+                    nameKey="views"
+                    labelFormatter={(value) => {
+                      return new Date(value).toLocaleDateString()
+                    }}
+                  />
+                }
+              />
+              <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
     </div>
   )
 }
