@@ -17,7 +17,7 @@ type Segment = components['schemas']['VideoSegment']
 
 const chartConfig = {
   views: {
-    label: 'Page Views',
+    label: '新增',
   },
   storage: {
     label: '存储',
