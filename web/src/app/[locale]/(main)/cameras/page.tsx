@@ -3,7 +3,7 @@
 import { components } from '@/api/schema'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { openapi } from '@/lib/http'
 import { Plus, RefreshCcw, SquarePen, Trash2 } from 'lucide-react'
@@ -126,12 +126,30 @@ export default function Page() {
               <Button onClick={() => startEdit(cam)} variant="outline">
                 <SquarePen />
               </Button>
-              <Button
-                onClick={() => handleDelete(cam.Id)}
-                variant="destructive"
-              >
-                <Trash2 />
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="destructive">
+                    <Trash2 />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle>确认删除</DialogTitle>
+                  </DialogHeader>
+                  <p className="py-2">
+                    确认删除摄像头 <strong>{cam.Name}</strong>{' '}
+                    吗？此操作不会删除摄像头原视频数据，但会删除相关配置和缓存数据。
+                  </p>
+                  <div className="mt-4 flex justify-end gap-2">
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDelete(cam.Id)}
+                    >
+                      删除
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardContent>
         </Card>

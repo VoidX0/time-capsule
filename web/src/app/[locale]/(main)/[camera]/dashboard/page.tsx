@@ -100,6 +100,7 @@ export default function Page({
       const { data } = await openapi.POST('/Segment/Query', { body })
       if (!data?.length) return
       setSegments(data)
+      calculateChartData(data)
     }
     // 计算图表数据
     const calculateChartData = (segments: Segment[]) => {
@@ -130,9 +131,9 @@ export default function Page({
       const cameraId = p.camera
       if (!cameraId) return
       getCameraInfo(cameraId).then()
-      getSegments(cameraId).then(() => calculateChartData(segments))
+      getSegments(cameraId).then()
     })
-  }, [params, segments])
+  }, [params])
 
   const firstSegment = segments.length > 0 ? segments[0] : undefined
   const lastSegment =
