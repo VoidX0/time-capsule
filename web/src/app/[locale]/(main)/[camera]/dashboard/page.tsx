@@ -166,7 +166,14 @@ export default function Dashboard({
       {/* Camera Info Card */}
       <Card>
         <CardHeader>
-          <CardTitle>摄像头信息</CardTitle>
+          <CardTitle>
+            <div className="flex items-center justify-between">
+              摄像头信息
+              <Link href={`/${locale}/${cameraInfo.Id}/settings`}>
+                <ArrowUpRight />
+              </Link>
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4">
           <p>
@@ -270,7 +277,14 @@ export default function Dashboard({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>录制时长</CardTitle>
+            <CardTitle>
+              <div className="flex items-center justify-between">
+                录制时长
+                <Link href={`/${locale}/${cameraInfo.Id}/playback`}>
+                  <ArrowUpRight />
+                </Link>
+              </div>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{totalDuration.toFixed(2)} h</p>
