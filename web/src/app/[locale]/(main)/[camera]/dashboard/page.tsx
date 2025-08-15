@@ -21,15 +21,15 @@ const chartConfig = {
   },
   storage: {
     label: '存储',
-    color: 'hsl(var(--chart-1))',
+    color: '#4f46e5',
   },
   segment: {
     label: '片段',
-    color: 'hsl(var(--chart-2))',
+    color: '#16a34a',
   },
   duration: {
     label: '时长',
-    color: 'hsl(var(--chart-3))',
+    color: '#f59e0b',
   },
 } satisfies ChartConfig
 
