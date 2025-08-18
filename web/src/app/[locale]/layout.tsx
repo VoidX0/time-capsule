@@ -1,11 +1,11 @@
 import { ThemeProvider } from '@/components/theme-provider'
+import { Toaster } from '@/components/ui/sonner'
 import { routing } from '@/i18n/routing'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { notFound } from 'next/navigation'
-import { Toaster } from '@/components/ui/sonner'
 import '../globals.css'
 
 const geistSans = Geist({
@@ -49,7 +49,7 @@ export default async function RootLayout({
         >
           <NextIntlClientProvider messages={messages}>
             {children}
-            <Toaster />
+            <Toaster position="top-right" richColors />
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>
