@@ -1,13 +1,15 @@
 import type { paths } from '@/api/schema'
-import createClient from 'openapi-fetch'
+import createClient, { type Middleware } from 'openapi-fetch'
 
-/* openapi-fetch客户端 */
-export const openapi = createClient<paths>({
-  baseUrl: '/api',
-  headers: {
-    Authorization:
-      typeof window !== 'undefined' && localStorage.getItem('token')
-        ? `Bearer ${localStorage.getItem('token')}`
-        : undefined,
+const authMiddleware: Middleware = {
+  async onRequest({ request }) {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token')
+      if (token) request.headers.set('Authorization', `Bearer ${token}`)
+    }
+    return request
   },
-})
+}
+/* openapi-fetch客户端 */
+export const openapi = createClient<paths>({ baseUrl: '/api' })
+openapi.use(authMiddleware) // 身份验证中间件

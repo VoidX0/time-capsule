@@ -25,23 +25,40 @@ import {
 import { openapi } from '@/lib/http'
 import { useLocale } from 'next-intl'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter()
   const locale = useLocale()
   const [cameras, setCameras] = useState<Camera[] | undefined>([])
 
-  /* 加载摄像头列表 */
+  /* 侧边栏初始化 */
   useEffect(() => {
-    const getCameras = async () => {
+    const init = async () => {
+      // 检查授权
+      const { data, error } = await openapi.GET('/Authentication/Granted')
+      if (error || !data) {
+        // 授权失败 → 跳转登录
+        const currentPath = window.location.pathname + window.location.search
+        router.replace(
+          `/${locale}/login?redirect=${encodeURIComponent(currentPath)}`,
+        )
+        return // 停止执行
+      }
+
+      // 请求摄像头
       const body: QueryDto = { PageNumber: 1, PageSize: 100 }
-      const { data } = await openapi.POST('/Camera/Query', { body: body })
-      setCameras(data)
+      const { data: camerasData } = await openapi.POST('/Camera/Query', {
+        body,
+      })
+      setCameras(camerasData)
     }
-    getCameras().then()
-  }, [])
+
+    init().then()
+  }, [locale, router])
 
   const data = {
     user: {
