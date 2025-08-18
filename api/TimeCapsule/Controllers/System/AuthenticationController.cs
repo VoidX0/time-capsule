@@ -246,6 +246,32 @@ public class AuthenticationController : ControllerBase
         return result.IsSuccess ? Ok() : BadRequest(result.ErrorMessage);
     }
 
+    /// <summary>
+    /// 向角色添加用户
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="roleId">角色ID</param>
+    /// <returns></returns>
+    [HttpPost]
+    public async Task<ActionResult> AddUserToRole(long userId, long roleId)
+    {
+        //获取用户
+        var user = await Db.Queryable<SystemUser>().InSingleAsync(userId);
+        if (user is null) return BadRequest("用户不存在");
+        //获取角色
+        var role = await Db.Queryable<SystemRole>().InSingleAsync(roleId);
+        if (role is null) return BadRequest("角色不存在");
+        //检查用户是否有该角色
+        if (user.Role.Contains(role.Id)) return BadRequest("用户已经有该角色");
+        //添加角色
+        var result = await Db.AsTenant().UseTranAsync(async () =>
+        {
+            user.Role.Add(role.Id);
+            await Db.Updateable(user).ExecuteCommandAsync();
+        });
+        return result.IsSuccess ? Ok() : BadRequest(result.ErrorMessage);
+    }
+
     #endregion
 
     #region DELETE
@@ -267,18 +293,14 @@ public class AuthenticationController : ControllerBase
         //获取用户相关信息
         var users = (await Db.Queryable<SystemUser>().ToListAsync())
             .Where(x => x.Role.Contains(role.Id)).ToList();
-        var usersId = users.Select(x => x.Id).ToList();
-        var userGrants = await Db.Queryable<SystemGrantUser>()
-            .Where(x => usersId.Contains(x.UserId))
-            .ToListAsync();
         var result = await Db.AsTenant().UseTranAsync(async () =>
         {
             // 角色相关
             await Db.Deleteable(role).ExecuteCommandAsync();
             await Db.Deleteable(roleGrants).ExecuteCommandAsync();
             // 用户相关
-            await Db.Deleteable(users).ExecuteCommandAsync();
-            await Db.Deleteable(userGrants).ExecuteCommandAsync();
+            foreach (var user in users) user.Role.Remove(role.Id);
+            await Db.Updateable(users).ExecuteCommandAsync();
         });
         return result.IsSuccess ? Ok() : BadRequest(result.ErrorMessage);
     }
@@ -293,8 +315,6 @@ public class AuthenticationController : ControllerBase
     {
         var user = HttpContext.User.Claims.Parsing();
         if (user is null) return BadRequest("用户未授权");
-        //检查操作用户和删除用户是否相同
-        if (user.Id == userId) return BadRequest("不能删除当前登录用户");
         //获取用户
         var deleteUser = await Db.Queryable<SystemUser>().InSingleAsync(userId);
         if (deleteUser is null) return BadRequest("用户不存在");
@@ -342,6 +362,32 @@ public class AuthenticationController : ControllerBase
         var result = await Db.AsTenant().UseTranAsync(async () =>
         {
             await Db.Deleteable(grant).ExecuteCommandAsync();
+        });
+        return result.IsSuccess ? Ok() : BadRequest(result.ErrorMessage);
+    }
+
+    /// <summary>
+    /// 从角色中移除用户
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="roleId">角色ID</param>
+    /// <returns></returns>
+    [HttpDelete]
+    public async Task<ActionResult> DeleteUserFromRole(long userId, long roleId)
+    {
+        //获取用户
+        var user = await Db.Queryable<SystemUser>().InSingleAsync(userId);
+        if (user is null) return BadRequest("用户不存在");
+        //获取角色
+        var role = await Db.Queryable<SystemRole>().InSingleAsync(roleId);
+        if (role is null) return BadRequest("角色不存在");
+        //检查用户是否有该角色
+        if (!user.Role.Contains(role.Id)) return BadRequest("用户没有该角色");
+        //删除角色
+        var result = await Db.AsTenant().UseTranAsync(async () =>
+        {
+            user.Role.Remove(role.Id);
+            await Db.Updateable(user).ExecuteCommandAsync();
         });
         return result.IsSuccess ? Ok() : BadRequest(result.ErrorMessage);
     }
