@@ -253,6 +253,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/Authentication/AddUserToRole": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 向角色添加用户 */
+        post: {
+            parameters: {
+                query?: {
+                    /** @description 用户ID */
+                    userId?: number;
+                    /** @description 角色ID */
+                    roleId?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/Authentication/DeleteRole": {
         parameters: {
             query?: never;
@@ -384,6 +423,45 @@ export interface paths {
                     userId?: number;
                     /** @description 控制器ID */
                     controllerId?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Authentication/DeleteUserFromRole": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 从角色中移除用户 */
+        delete: {
+            parameters: {
+                query?: {
+                    /** @description 用户ID */
+                    userId?: number;
+                    /** @description 角色ID */
+                    roleId?: number;
                 };
                 header?: never;
                 path?: never;
