@@ -1,8 +1,12 @@
 'use client'
 
 import { components } from '@/api/schema'
-import CameraPlayer, { CameraPlayerHandle } from '@/components/camera/camera-player'
-import CameraTimeline, { CameraTimelineHandle } from '@/components/camera/camera-timeline'
+import CameraPlayer, {
+  CameraPlayerHandle,
+} from '@/components/camera/camera-player'
+import CameraTimeline, {
+  CameraTimelineHandle,
+} from '@/components/camera/camera-timeline'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { openapi } from '@/lib/http'
@@ -16,7 +20,7 @@ import {
   CirclePlay,
   Fullscreen,
   Volume2,
-  VolumeOff
+  VolumeOff,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -79,7 +83,7 @@ export default function Page({
   }
   // 初始化完成
   return (
-    <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl md:w-2/3 md:p-8">
+    <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl p-8 md:w-2/3">
       <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.Name || ''}</h1>
       {/*播放器*/}
       <CameraPlayer
