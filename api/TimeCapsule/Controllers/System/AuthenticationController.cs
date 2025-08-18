@@ -422,11 +422,16 @@ public class AuthenticationController : ControllerBase
     /// <param name="dto">用户信息</param>
     /// <returns></returns>
     [HttpPut]
+    [TypeFilter(typeof(AllowLoginFilter))]
     public async Task<ActionResult> ModifyUser(SystemUser dto)
     {
         //查找用户
         var user = await Db.Queryable<SystemUser>().InSingleAsync(dto.Id);
         if (user == null) return BadRequest("用户不存在");
+        //检查权限
+        var currentUser = HttpContext.User.Claims.Parsing();
+        if (user.Id != currentUser?.Id && currentUser?.Role.Contains(PreDefinedRole.AdminId) != true)
+            return BadRequest("没有权限修改该用户");
         //邮箱格式验证
         if (!IsEmail(dto.Email)) return BadRequest("邮箱格式错误");
         //查找邮箱
