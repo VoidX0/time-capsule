@@ -27,12 +27,14 @@ import { useLocale } from 'next-intl'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
+type SystemUser = components['schemas']['SystemUser']
 type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter()
   const locale = useLocale()
+  const [user, setUser] = useState<SystemUser | undefined>(undefined)
   const [cameras, setCameras] = useState<Camera[] | undefined>([])
 
   /* 侧边栏初始化 */
@@ -48,8 +50,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         )
         return // 停止执行
       }
-
-      // 请求摄像头
+      // 用户信息
+      const { data: userData } = await openapi.GET(
+        '/Authentication/CurrentUser',
+      )
+      setUser(userData)
+      // 摄像头
       const body: QueryDto = { PageNumber: 1, PageSize: 100 }
       const { data: camerasData } = await openapi.POST('/Camera/Query', {
         body,
@@ -60,35 +66,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     init().then()
   }, [locale, router])
 
-  const data = {
-    user: {
-      name: 'shadcn',
-      email: 'm@example.com',
-      avatar: '/logo.png',
+  const navMain = [
+    {
+      title: 'Search',
+      url: '#',
+      icon: Search,
     },
-    navMain: [
-      {
-        title: 'Search',
-        url: '#',
-        icon: Search,
-      },
-      {
-        title: 'Dashboard',
-        url: `/${locale}/dashboard`,
-        icon: LayoutDashboard,
-      },
-      {
-        title: 'Cameras',
-        url: `/${locale}/cameras`,
-        icon: CameraIcon,
-      },
-      {
-        title: 'Settings',
-        url: `/${locale}/settings`,
-        icon: Settings,
-      },
-    ],
-  }
+    {
+      title: 'Dashboard',
+      url: `/${locale}/dashboard`,
+      icon: LayoutDashboard,
+    },
+    {
+      title: 'Cameras',
+      url: `/${locale}/cameras`,
+      icon: CameraIcon,
+    },
+    {
+      title: 'Settings',
+      url: `/${locale}/settings`,
+      icon: Settings,
+    },
+  ]
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -102,7 +102,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           />
           <span className="truncate font-medium">Time Capsule</span>
         </div>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
       </SidebarHeader>
       <SidebarContent>
         <NavCameras cameras={cameras ?? []} />
@@ -112,7 +112,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <ThemeToggle />
           <LanguageToggle />
         </div>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
