@@ -1,6 +1,6 @@
 'use client'
 
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react'
+import { BadgeCheck, Bell, ChevronsUpDown, LogOut } from 'lucide-react'
 
 import { components } from '@/api/schema'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -14,10 +14,20 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
+import { useRouter } from 'next/navigation'
 
 type SystemUser = components['schemas']['SystemUser']
 export function NavUser({ user }: { user: SystemUser | undefined }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+
+  /* 用户登出 */
+  const logout = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('token', '')
+    }
+    router.replace('/')
+  }
 
   return (
     <SidebarMenu>
@@ -66,19 +76,8 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
                 <BadgeCheck />
                 Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell />
@@ -86,7 +85,7 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
               <LogOut />
               Log out
             </DropdownMenuItem>
