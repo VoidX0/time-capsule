@@ -1,10 +1,11 @@
 'use client'
 
+import { LayoutDashboard } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Link from 'next/link'
 import { IconContext } from 'react-icons'
-import { LuGithub, LuLogIn } from 'react-icons/lu'
+import { LuGithub } from 'react-icons/lu'
 
 export default function Home() {
   const locale = useLocale()
@@ -36,13 +37,12 @@ export default function Home() {
         <div className="flex flex-col items-center gap-4 sm:flex-row">
           <Link
             className="bg-foreground text-background flex h-10 items-center justify-center gap-2 rounded-full border border-solid border-transparent px-4 text-sm font-medium transition-colors hover:bg-[#383838] sm:h-12 sm:w-auto sm:px-5 sm:text-base dark:hover:bg-[#ccc]"
-            // href={`/${locale}/login`}
             href={`/${locale}/dashboard`}
             rel="noopener noreferrer"
           >
-            {t('login')}
+            Dashboard
             <IconContext.Provider value={{ size: '2em' }}>
-              <LuLogIn />
+              <LayoutDashboard />
             </IconContext.Provider>
           </Link>
         </div>
