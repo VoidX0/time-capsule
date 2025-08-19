@@ -67,11 +67,19 @@ export default function Page() {
   /* 角色保存 */
   const saveRole = async () => {
     if (!editRole) return
+    let failed = undefined
     if (editRole.Id) {
-      await openapi.PUT('/Authentication/ModifyRole', { body: editRole })
+      const { error } = await openapi.PUT('/Authentication/ModifyRole', {
+        body: editRole,
+      })
+      if (error) failed = error
     } else {
-      await openapi.POST('/Authentication/AddRole', { body: editRole })
+      const { error } = await openapi.POST('/Authentication/AddRole', {
+        body: editRole,
+      })
+      if (error) failed = error
     }
+    if (failed) return
     setRoleDialogOpen(false) // 关闭弹窗
     setEditRole(null) // 清空编辑状态
     refresh().then()
