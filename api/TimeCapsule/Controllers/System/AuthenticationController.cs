@@ -292,6 +292,8 @@ public class AuthenticationController : ControllerBase
         //获取用户
         var deleteUser = await Db.Queryable<SystemUser>().InSingleAsync(userId);
         if (deleteUser is null) return BadRequest("用户不存在");
+        //检查
+        if (user.Id == deleteUser.Id) return BadRequest("禁止删除当前登录用户");
         var result = await Db.AsTenant().UseTranAsync(async () =>
         {
             await Db.Deleteable(deleteUser).ExecuteCommandAsync();
