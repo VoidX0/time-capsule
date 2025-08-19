@@ -1,3 +1,10 @@
+## 0.1.9
+
+### features
+
+- 完成权限管理框架
+- 完成Settings界面
+
 ## 0.1.8
 
 ### features

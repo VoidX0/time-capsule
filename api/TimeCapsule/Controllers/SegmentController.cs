@@ -2,13 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Options;
-using Serilog;
-using SqlSugar;
-using SqlSugar.IOC;
 using TimeCapsule.Core.Models.Db;
-using TimeCapsule.Models;
 using TimeCapsule.Models.Options;
-using ILogger = Serilog.ILogger;
 
 namespace TimeCapsule.Controllers;
 
@@ -18,7 +13,6 @@ namespace TimeCapsule.Controllers;
 [ApiController]
 [DisplayName("视频片段管理")]
 [Route("[controller]/[action]")]
-[TypeFilter(typeof(AllowAnonymousFilter))]
 public class SegmentController : OrmController<VideoSegment>
 {
     private readonly SystemOptions _systemOptions;
@@ -38,6 +32,7 @@ public class SegmentController : OrmController<VideoSegment>
     /// <param name="segmentId">视频片段ID</param>
     /// <returns></returns>
     [HttpGet]
+    [TypeFilter(typeof(AllowAnonymousFilter))]
     public async Task<ActionResult> GetThumbnail(string segmentId)
     {
         var segmentIdActual = long.TryParse(segmentId.Replace(" ", ""), out var sid) ? sid : 0;

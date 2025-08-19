@@ -1,36 +1,31 @@
-// axios封装
 import type { paths } from '@/api/schema'
-import axios from 'axios'
-import createClient from 'openapi-fetch'
+import createClient, { type Middleware } from 'openapi-fetch'
+import { toast } from 'sonner'
 
-/* axios客户端 */
-export const http = axios.create({
-  baseURL: '/api',
-})
-
-// 添加请求拦截器
-http.interceptors.request.use(
-  function (config) {
-    // 发送请求之前
-    return config
+const authMiddleware: Middleware = {
+  async onRequest({ request }) {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token')
+      if (token) request.headers.set('Authorization', `Bearer ${token}`)
+    }
+    return request
   },
-  function (error) {
-    // 请求错误
-    return Promise.reject(error)
-  },
-)
+}
 
-// 添加响应拦截器
-http.interceptors.response.use(
-  function (response) {
-    // 请求成功
+const errorMiddleware: Middleware = {
+  async onResponse({ response }) {
+    if (response.ok) return response
+    // 处理错误响应
+    const clone = response.clone() // 克隆响应以便读取内容
+    let message = await clone.text()
+    if (message.length == 0) message = clone.statusText
+    toast.warning(message)
+    // 返回原始响应
     return response
   },
-  function (error) {
-    // 对响应错误进行处理
-    return Promise.reject(error)
-  },
-)
+}
 
 /* openapi-fetch客户端 */
 export const openapi = createClient<paths>({ baseUrl: '/api' })
+openapi.use(authMiddleware) // 身份验证中间件
+openapi.use(errorMiddleware) // 错误处理中间件

@@ -267,18 +267,14 @@ public class AuthenticationController : ControllerBase
         //获取用户相关信息
         var users = (await Db.Queryable<SystemUser>().ToListAsync())
             .Where(x => x.Role.Contains(role.Id)).ToList();
-        var usersId = users.Select(x => x.Id).ToList();
-        var userGrants = await Db.Queryable<SystemGrantUser>()
-            .Where(x => usersId.Contains(x.UserId))
-            .ToListAsync();
         var result = await Db.AsTenant().UseTranAsync(async () =>
         {
             // 角色相关
             await Db.Deleteable(role).ExecuteCommandAsync();
             await Db.Deleteable(roleGrants).ExecuteCommandAsync();
             // 用户相关
-            await Db.Deleteable(users).ExecuteCommandAsync();
-            await Db.Deleteable(userGrants).ExecuteCommandAsync();
+            foreach (var user in users) user.Role.Remove(role.Id);
+            await Db.Updateable(users).ExecuteCommandAsync();
         });
         return result.IsSuccess ? Ok() : BadRequest(result.ErrorMessage);
     }
@@ -293,11 +289,11 @@ public class AuthenticationController : ControllerBase
     {
         var user = HttpContext.User.Claims.Parsing();
         if (user is null) return BadRequest("用户未授权");
-        //检查操作用户和删除用户是否相同
-        if (user.Id == userId) return BadRequest("不能删除当前登录用户");
         //获取用户
         var deleteUser = await Db.Queryable<SystemUser>().InSingleAsync(userId);
         if (deleteUser is null) return BadRequest("用户不存在");
+        //检查
+        if (user.Id == deleteUser.Id) return BadRequest("禁止删除当前登录用户");
         var result = await Db.AsTenant().UseTranAsync(async () =>
         {
             await Db.Deleteable(deleteUser).ExecuteCommandAsync();
@@ -376,11 +372,16 @@ public class AuthenticationController : ControllerBase
     /// <param name="dto">用户信息</param>
     /// <returns></returns>
     [HttpPut]
+    [TypeFilter(typeof(AllowLoginFilter))]
     public async Task<ActionResult> ModifyUser(SystemUser dto)
     {
         //查找用户
         var user = await Db.Queryable<SystemUser>().InSingleAsync(dto.Id);
         if (user == null) return BadRequest("用户不存在");
+        //检查权限
+        var currentUser = HttpContext.User.Claims.Parsing();
+        if (user.Id != currentUser?.Id && currentUser?.Role.Contains(PreDefinedRole.AdminId) != true)
+            return BadRequest("没有权限修改该用户");
         //邮箱格式验证
         if (!IsEmail(dto.Email)) return BadRequest("邮箱格式错误");
         //查找邮箱
@@ -397,6 +398,7 @@ public class AuthenticationController : ControllerBase
             user.Email = dto.Email;
             user.NickName = dto.NickName;
             user.Password = SecurityAes.Encrypt(password);
+            user.Role = dto.Role;
             await Db.Updateable(user).ExecuteCommandAsync();
         });
         return result.IsSuccess ? Ok() : BadRequest(result.ErrorMessage);
@@ -419,7 +421,7 @@ public class AuthenticationController : ControllerBase
     }
 
     /// <summary>
-    /// 获取可见的用户列表
+    /// 获取所有用户列表
     /// </summary>
     /// <returns></returns>
     [HttpGet]
@@ -431,7 +433,7 @@ public class AuthenticationController : ControllerBase
     }
 
     /// <summary>
-    /// 获取可见的角色列表
+    /// 获取所有角色列表
     /// </summary>
     /// <returns></returns>
     [HttpGet]
@@ -441,10 +443,69 @@ public class AuthenticationController : ControllerBase
     }
 
     /// <summary>
+    /// 获取用户控制器列表
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="isGranted">是否授权</param>
+    /// <returns></returns>
+    [HttpGet]
+    public async Task<ActionResult<List<SystemController>>> UserControllers(string userId, bool isGranted)
+    {
+        var userIdActual = long.TryParse(userId, out var id) ? id : 0;
+        var user = await Db.Queryable<SystemUser>().InSingleAsync(userIdActual);
+        if (user is null) return BadRequest("用户不存在");
+        //获取用户授权的控制器
+        var keys = await Db.Queryable<SystemGrantUser>()
+            .Where(x => x.UserId == user.Id)
+            .Select(x => x.ControllerId)
+            .ToListAsync();
+        //获取所有控制器
+        var controllers = await Db.Queryable<SystemController>()
+            .OrderBy(x => x.Id)
+            .ToListAsync();
+        //过滤控制器
+        var filteredControllers = isGranted
+            ? controllers.Where(x => keys.Contains(x.Id)).ToList()
+            : controllers.Where(x => !keys.Contains(x.Id)).ToList();
+        //返回结果
+        return Ok(filteredControllers);
+    }
+
+    /// <summary>
+    /// 获取角色控制器列表
+    /// </summary>
+    /// <param name="roleId">角色ID</param>
+    /// <param name="isGranted">是否授权</param>
+    /// <returns></returns>
+    [HttpGet]
+    public async Task<ActionResult<List<SystemController>>> RoleControllers(string roleId, bool isGranted)
+    {
+        var roleIdActual = long.TryParse(roleId, out var id) ? id : 0;
+        var role = await Db.Queryable<SystemRole>().InSingleAsync(roleIdActual);
+        if (role is null) return BadRequest("角色不存在");
+        //获取角色授权的控制器
+        var keys = await Db.Queryable<SystemGrantRole>()
+            .Where(x => x.RoleId == role.Id)
+            .Select(x => x.ControllerId)
+            .ToListAsync();
+        //获取所有控制器
+        var controllers = await Db.Queryable<SystemController>()
+            .OrderBy(x => x.Id)
+            .ToListAsync();
+        //过滤控制器
+        var filteredControllers = isGranted
+            ? controllers.Where(x => keys.Contains(x.Id)).ToList()
+            : controllers.Where(x => !keys.Contains(x.Id)).ToList();
+        //返回结果
+        return Ok(filteredControllers);
+    }
+
+    /// <summary>
     /// 获取当前用户信息
     /// </summary>
     /// <returns></returns>
     [HttpGet]
+    [TypeFilter(typeof(AllowLoginFilter))]
     public async Task<ActionResult<SystemUser>> CurrentUser()
     {
         //解析JWT
@@ -455,25 +516,6 @@ public class AuthenticationController : ControllerBase
         if (dbUser is null) return BadRequest("用户不存在");
         dbUser.Password = new string('*', dbUser.Password.Length); //隐藏密码
         return Ok(dbUser);
-    }
-
-    /// <summary>
-    /// 获取当前角色信息
-    /// </summary>
-    /// <returns></returns>
-    [HttpGet]
-    public async Task<ActionResult<List<SystemUser>>> CurrentRole()
-    {
-        //解析JWT
-        var user = HttpContext.User.Claims.Parsing();
-        if (user is null) return BadRequest("用户未授权");
-        //获取角色信息
-        var roles = await Db.Queryable<SystemRole>()
-            .Where(x => user.Role.Contains(x.Id))
-            .OrderBy(x => x.Id)
-            .ToListAsync();
-        if (roles.Count == 0) return BadRequest("用户没有角色");
-        return Ok(roles.First());
     }
 
     /// <summary>

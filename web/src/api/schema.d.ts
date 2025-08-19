@@ -532,7 +532,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 获取可见的用户列表 */
+        /** 获取所有用户列表 */
         get: {
             parameters: {
                 query?: never;
@@ -570,7 +570,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 获取可见的角色列表 */
+        /** 获取所有角色列表 */
         get: {
             parameters: {
                 query?: never;
@@ -589,6 +589,92 @@ export interface paths {
                         "text/plain": components["schemas"]["SystemRole"][];
                         "application/json": components["schemas"]["SystemRole"][];
                         "text/json": components["schemas"]["SystemRole"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Authentication/UserControllers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取用户控制器列表 */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description 用户ID */
+                    userId?: string;
+                    /** @description 是否授权 */
+                    isGranted?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["SystemController"][];
+                        "application/json": components["schemas"]["SystemController"][];
+                        "text/json": components["schemas"]["SystemController"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Authentication/RoleControllers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取角色控制器列表 */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description 角色ID */
+                    roleId?: string;
+                    /** @description 是否授权 */
+                    isGranted?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["SystemController"][];
+                        "application/json": components["schemas"]["SystemController"][];
+                        "text/json": components["schemas"]["SystemController"][];
                     };
                 };
             };
@@ -627,44 +713,6 @@ export interface paths {
                         "text/plain": components["schemas"]["SystemUser"];
                         "application/json": components["schemas"]["SystemUser"];
                         "text/json": components["schemas"]["SystemUser"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/Authentication/CurrentRole": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 获取当前角色信息 */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["SystemUser"][];
-                        "application/json": components["schemas"]["SystemUser"][];
-                        "text/json": components["schemas"]["SystemUser"][];
                     };
                 };
             };
