@@ -25,6 +25,15 @@ Issuer = "developer"
 Audience = "developer"
 AccessExpiration = 24 # 访问令牌过期时间(小时)
 
+# OIDC配置
+[OidcOptions]
+RedirectUri = "" # 重定向到后端的地址
+ClientId = "" # 客户端ID
+ClientSecret = "" # 客户端密钥
+AuthorizationEndpoint = "" # 授权端点
+TokenEndpoint = "" # 令牌端点
+UserInfoEndpoint = "" # 用户信息端点
+
 # 连接配置
 [ConnectionOptions]
 DbConnection = "HOST=postgres; PORT=5432; DATABASE=api_db; USER ID=root; PASSWORD=root;" # 数据库连接

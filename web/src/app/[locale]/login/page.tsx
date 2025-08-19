@@ -2,13 +2,7 @@
 
 import { components } from '@/api/schema'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { openapi } from '@/lib/http'
@@ -24,18 +18,27 @@ export default function Page() {
   const locale = useLocale()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [oidcAddress, setOidcAddress] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  /* 获取公钥 */
   useEffect(() => {
+    // 更新公钥
     const getPublicKey = async () => {
       const { data } = await openapi.GET('/Authentication/GetKey', {
         parseAs: 'text',
       })
       if (data) localStorage.setItem('publicKey', data)
     }
+    // 获取OIDC地址
+    const getOidcAddress = async () => {
+      const { data } = await openapi.GET('/Authentication/OidcLoginAddress', {
+        parseAs: 'text',
+      })
+      setOidcAddress(data ?? '')
+    }
     getPublicKey().then()
+    getOidcAddress().then()
   }, [])
 
   /* 跳转 */
@@ -71,6 +74,34 @@ export default function Page() {
     }
   }
 
+  /* OIDC登录 */
+  const handleOidcLogin = () => {
+    if (oidcAddress.length == 0) return
+    // 打开一个小窗口执行 OIDC 登录
+    window.open(oidcAddress, 'OIDCLogin', 'width=500,height=600')
+    // 监听从回调窗口发送的消息
+    const messageHandler = (event: MessageEvent) => {
+      // 获取返回信息
+      const { token, error } = event.data
+      if (error) {
+        toast.error('OIDC login failed: ' + error)
+        return
+      }
+      // 登录成功
+      if (token) {
+        localStorage.setItem('token', token)
+        redirect()
+      } else {
+        toast.error('OIDC login failed: no token received')
+      }
+
+      // 移除事件监听，避免多次触发
+      window.removeEventListener('message', messageHandler)
+    }
+
+    window.addEventListener('message', messageHandler)
+  }
+
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
       <div className="flex w-full max-w-sm flex-col gap-6">
@@ -88,44 +119,51 @@ export default function Page() {
           <Card>
             <CardHeader className="text-center">
               <CardTitle className="text-xl">Welcome back</CardTitle>
-              <CardDescription>
-                Login with your Apple or Google account
-              </CardDescription>
+              {oidcAddress.length > 0 && (
+                <CardDescription>Login with OIDC</CardDescription>
+              )}
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLogin}>
                 <div className="grid gap-6">
-                  <div className="flex flex-col gap-4">
-                    <Button variant="outline" className="w-full">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
+                  {oidcAddress.length > 0 && (
+                    <div className="flex flex-col gap-4">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleOidcLogin}
                       >
-                        <path
-                          d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
-                          fill="currentColor"
-                        />
-                      </svg>
-                      Login with Apple
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                      Login with Google
-                    </Button>
-                  </div>
-                  <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                    <span className="bg-card text-muted-foreground relative z-10 px-2">
-                      Or continue with
-                    </span>
-                  </div>
+                        <svg
+                          className="icon"
+                          viewBox="0 0 1105 1024"
+                          version="1.1"
+                          xmlns="http://www.w3.org/2000/svg"
+                          p-id="5606"
+                          width="200"
+                          height="200"
+                        >
+                          <path
+                            d="M507.2896 133.44768l130.98496-71.4496v820.9408l-130.97984 69.71392V133.44768z"
+                            fill="#F38019"
+                            p-id="5607"
+                          ></path>
+                          <path
+                            d="M479.39072 323.968a724.30592 724.30592 0 0 0-77.056 16.6144C118.35904 417.01376 37.77536 603.8016 67.95776 701.696c30.11584 97.8944 161.03424 263.2192 439.2704 250.19904 0.13824-27.41248 0.13824-57.73824 0-90.89536-200.49408-26.37824-302.67904-88.82688-306.55488-187.40736-5.74464-147.74272 134.1696-216.90368 217.87136-229.0176 16.82432-2.49344 37.66272-5.67808 61.19936-8.6528l-0.27648-111.9488h-0.07168z m185.12384 107.65312c52.1984 5.6832 103.57248 18.69312 147.0464 44.44672-10.65984 5.19168-34.26816 19.73248-70.82496 43.47904l290.49344 66.39104-16.54272-206.58176-78.37184 44.30336c-116.10112-57.8048-205.19936-91.0336-267.29984-99.6864l-4.50048 107.648z"
+                            fill="#ADAFB3"
+                            p-id="5608"
+                          ></path>
+                        </svg>
+                        Login with OIDC
+                      </Button>
+                    </div>
+                  )}
+                  {oidcAddress.length > 0 && (
+                    <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                      <span className="bg-card text-muted-foreground relative z-10 px-2">
+                        Or continue with
+                      </span>
+                    </div>
+                  )}
                   <div className="grid gap-6">
                     <div className="grid gap-3">
                       <Label htmlFor="email">Email</Label>
