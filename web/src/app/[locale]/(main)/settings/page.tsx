@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { openapi } from '@/lib/http'
 import { rsaEncrypt } from '@/lib/security'
@@ -295,17 +296,33 @@ export default function Page() {
                         >
                           <Shield />
                         </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={async () => {
-                            await openapi.DELETE('/Authentication/DeleteUser', {
-                              params: { query: { userId: user.Id } },
-                            })
-                            refresh().then()
-                          }}
-                        >
-                          <UserRoundX />
-                        </Button>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="destructive">
+                              <UserRoundX />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-40 p-2">
+                            <p className="mb-2 text-sm">确定要删除该用户吗？</p>
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                onClick={async (e) => {
+                                  e.stopPropagation()
+                                  await openapi.DELETE(
+                                    '/Authentication/DeleteUser',
+                                    {
+                                      params: { query: { userId: user.Id } },
+                                    },
+                                  )
+                                  refresh().then()
+                                }}
+                              >
+                                <Check />
+                              </Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </td>
                     </tr>
                   ))}
@@ -360,17 +377,33 @@ export default function Page() {
                         >
                           <Shield />
                         </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={async () => {
-                            await openapi.DELETE('/Authentication/DeleteRole', {
-                              params: { query: { roleId: role.Id } },
-                            })
-                            refresh().then()
-                          }}
-                        >
-                          <ShieldX />
-                        </Button>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="destructive">
+                              <ShieldX />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-40 p-2">
+                            <p className="mb-2 text-sm">确定要删除该角色吗？</p>
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                onClick={async (e) => {
+                                  e.stopPropagation()
+                                  await openapi.DELETE(
+                                    '/Authentication/DeleteRole',
+                                    {
+                                      params: { query: { roleId: role.Id } },
+                                    },
+                                  )
+                                  refresh().then()
+                                }}
+                              >
+                                <Check />
+                              </Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </td>
                     </tr>
                   ))}
