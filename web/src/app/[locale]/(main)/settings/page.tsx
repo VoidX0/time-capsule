@@ -337,7 +337,7 @@ export default function Page() {
         <TabsContent value="role">
           <Card>
             <CardHeader className="flex items-center justify-between">
-              <CardTitle>Roles</CardTitle>
+              <CardTitle>所有角色</CardTitle>
               <Button
                 variant="outline"
                 onClick={() => {
