@@ -5,6 +5,7 @@ import CameraChart from '@/components/camera/camera-chart'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -471,11 +472,9 @@ export default function Page() {
             <div className="flex max-h-40 flex-col gap-2 overflow-y-auto rounded border p-2">
               {roles.map((role) => (
                 <label key={role.Id} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={selectedRoles.includes(role.Id!)}
-                    onChange={(e) => {
-                      const checked = e.target.checked
+                    onCheckedChange={(checked) => {
                       if (checked) {
                         setSelectedRoles([...selectedRoles, role.Id!])
                       } else {
@@ -522,11 +521,9 @@ export default function Page() {
           <div className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded border p-2">
             {unGrantedControllers.map((ctrl) => (
               <label key={ctrl.Id} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={unGrantedCheckedIds.includes(ctrl.Id!)}
-                  onChange={(e) => {
-                    const checked = e.target.checked
+                  onCheckedChange={(checked) => {
                     if (checked) {
                       setUnGrantedCheckedIds([...unGrantedCheckedIds, ctrl.Id!])
                     } else {
@@ -546,11 +543,9 @@ export default function Page() {
           <div className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded border p-2">
             {grantedControllers.map((ctrl) => (
               <label key={ctrl.Id} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={grantedCheckedIds.includes(ctrl.Id!)}
-                  onChange={(e) => {
-                    const checked = e.target.checked
+                  onCheckedChange={(checked) => {
                     if (checked) {
                       setGrantedCheckedIds([...grantedCheckedIds, ctrl.Id!])
                     } else {
