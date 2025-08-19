@@ -219,7 +219,7 @@ export default function Page() {
 
   return (
     <div className="max-w-8xl mx-auto w-full gap-6 p-8">
-      <Tabs defaultValue="role">
+      <Tabs defaultValue="statistics">
         {/* 一级 Tabs */}
         <TabsList className="mb-4 w-full">
           <TabsTrigger value="statistics" className="w-1/3">
