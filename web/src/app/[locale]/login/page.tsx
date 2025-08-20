@@ -120,50 +120,50 @@ export default function Page() {
             <CardHeader className="text-center">
               <CardTitle className="text-xl">Welcome back</CardTitle>
               {oidcAddress.length > 0 && (
-                <CardDescription>Login with OIDC</CardDescription>
+                <CardDescription>Login with</CardDescription>
               )}
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleLogin}>
-                <div className="grid gap-6">
-                  {oidcAddress.length > 0 && (
-                    <div className="flex flex-col gap-4">
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={handleOidcLogin}
+              <div className="grid gap-6">
+                {/*其他登录方式*/}
+                {oidcAddress.length > 0 && (
+                  <div className="flex flex-col gap-4">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleOidcLogin}
+                    >
+                      <svg
+                        viewBox="0 0 1000 1000"
+                        xmlns="http://www.w3.org/2000/svg"
+                        p-id="5606"
+                        width="200"
+                        height="200"
                       >
-                        <svg
-                          className="icon"
-                          viewBox="0 0 1105 1024"
-                          version="1.1"
-                          xmlns="http://www.w3.org/2000/svg"
-                          p-id="5606"
-                          width="200"
-                          height="200"
-                        >
-                          <path
-                            d="M507.2896 133.44768l130.98496-71.4496v820.9408l-130.97984 69.71392V133.44768z"
-                            fill="#F38019"
-                            p-id="5607"
-                          ></path>
-                          <path
-                            d="M479.39072 323.968a724.30592 724.30592 0 0 0-77.056 16.6144C118.35904 417.01376 37.77536 603.8016 67.95776 701.696c30.11584 97.8944 161.03424 263.2192 439.2704 250.19904 0.13824-27.41248 0.13824-57.73824 0-90.89536-200.49408-26.37824-302.67904-88.82688-306.55488-187.40736-5.74464-147.74272 134.1696-216.90368 217.87136-229.0176 16.82432-2.49344 37.66272-5.67808 61.19936-8.6528l-0.27648-111.9488h-0.07168z m185.12384 107.65312c52.1984 5.6832 103.57248 18.69312 147.0464 44.44672-10.65984 5.19168-34.26816 19.73248-70.82496 43.47904l290.49344 66.39104-16.54272-206.58176-78.37184 44.30336c-116.10112-57.8048-205.19936-91.0336-267.29984-99.6864l-4.50048 107.648z"
-                            fill="#ADAFB3"
-                            p-id="5608"
-                          ></path>
-                        </svg>
-                        Login with OIDC
-                      </Button>
-                    </div>
-                  )}
-                  {oidcAddress.length > 0 && (
-                    <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                      <span className="bg-card text-muted-foreground relative z-10 px-2">
-                        Or continue with
-                      </span>
-                    </div>
-                  )}
+                        <path
+                          d="M507.2896 133.44768l130.98496-71.4496v820.9408l-130.97984 69.71392V133.44768z"
+                          fill="currentColor"
+                          p-id="5607"
+                        ></path>
+                        <path
+                          d="M479.39072 323.968a724.30592 724.30592 0 0 0-77.056 16.6144C118.35904 417.01376 37.77536 603.8016 67.95776 701.696c30.11584 97.8944 161.03424 263.2192 439.2704 250.19904 0.13824-27.41248 0.13824-57.73824 0-90.89536-200.49408-26.37824-302.67904-88.82688-306.55488-187.40736-5.74464-147.74272 134.1696-216.90368 217.87136-229.0176 16.82432-2.49344 37.66272-5.67808 61.19936-8.6528l-0.27648-111.9488h-0.07168z m185.12384 107.65312c52.1984 5.6832 103.57248 18.69312 147.0464 44.44672-10.65984 5.19168-34.26816 19.73248-70.82496 43.47904l290.49344 66.39104-16.54272-206.58176-78.37184 44.30336c-116.10112-57.8048-205.19936-91.0336-267.29984-99.6864l-4.50048 107.648z"
+                          fill="currentColor"
+                          p-id="5608"
+                        ></path>
+                      </svg>
+                      Login with OIDC
+                    </Button>
+                  </div>
+                )}
+                {oidcAddress.length > 0 && (
+                  <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                    <span className="bg-card text-muted-foreground relative z-10 px-2">
+                      Or continue with
+                    </span>
+                  </div>
+                )}
+                {/*登录表单*/}
+                <form onSubmit={handleLogin}>
                   <div className="grid gap-6">
                     <div className="grid gap-3">
                       <Label htmlFor="email">Email</Label>
@@ -202,14 +202,15 @@ export default function Page() {
                       Login
                     </Button>
                   </div>
-                  <div className="text-center text-sm">
-                    Don&apos;t have an account?{' '}
-                    <Link href="#" className="underline underline-offset-4">
-                      Sign up
-                    </Link>
-                  </div>
+                </form>
+                {/*注册*/}
+                <div className="text-center text-sm">
+                  Don&apos;t have an account?{' '}
+                  <Link href="#" className="underline underline-offset-4">
+                    Sign up
+                  </Link>
                 </div>
-              </form>
+              </div>
             </CardContent>
           </Card>
           <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
