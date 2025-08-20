@@ -13,6 +13,9 @@
     "settings": "Settings",
     "segments": "Segments",
     "playback": "Playback",
+    "cameraSearch": "Camera Search",
+    "cameraSearchPlaceholder": "Search cameras by name",
+    "cameraSearchNoResults": "No cameras found",
     "account": "Account",
     "notifications": "Notifications",
     "logout": "Logout"

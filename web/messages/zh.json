@@ -13,6 +13,9 @@
     "settings": "设置",
     "segments": "视频片段",
     "playback": "录像回放",
+    "cameraSearch": "摄像头搜索",
+    "cameraSearchPlaceholder": "按名称搜索摄像头",
+    "cameraSearchNoResults": "未找到摄像头",
     "account": "账户",
     "notifications": "通知",
     "logout": "注销"
