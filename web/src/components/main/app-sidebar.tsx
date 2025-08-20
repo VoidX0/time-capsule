@@ -23,7 +23,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { openapi } from '@/lib/http'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
@@ -32,6 +32,7 @@ type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const t = useTranslations('MainLayout')
   const router = useRouter()
   const locale = useLocale()
   const [user, setUser] = useState<SystemUser | undefined>(undefined)
@@ -68,22 +69,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const navMain = [
     {
-      title: 'Search',
+      title: t('navSearch'),
       url: '#',
       icon: Search,
     },
     {
-      title: 'Dashboard',
+      title: t('navDashboard'),
       url: `/${locale}/dashboard`,
       icon: LayoutDashboard,
     },
     {
-      title: 'Cameras',
+      title: t('cameras'),
       url: `/${locale}/cameras`,
       icon: CameraIcon,
     },
     {
-      title: 'Settings',
+      title: t('settings'),
       url: `/${locale}/settings`,
       icon: Settings,
     },

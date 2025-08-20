@@ -16,7 +16,7 @@ import { RiEnglishInput } from 'react-icons/ri'
 export default function LanguageToggle() {
   const locale = useLocale()
   const pathname = usePathname()
-  const t = useTranslations('Locales')
+  const t = useTranslations('Common')
 
   return (
     <DropdownMenu>

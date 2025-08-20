@@ -1,12 +1,21 @@
 {
-  "Locales": {
-    "en": "English",
-    "zh": "中文"
-  },
   "Common": {
+    "en": "English",
+    "zh": "中文",
     "light": "浅色",
     "dark": "深色",
     "system": "跟随系统"
+  },
+  "MainLayout": {
+    "navSearch": "搜索",
+    "navDashboard": "仪表盘",
+    "cameras": "摄像头",
+    "settings": "设置",
+    "segments": "视频片段",
+    "playback": "录像回放",
+    "account": "账户",
+    "notifications": "通知",
+    "logout": "注销"
   },
   "HomePage": {
     "description": "基于本地监控视频的回放应用",

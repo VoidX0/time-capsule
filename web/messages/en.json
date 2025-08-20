@@ -1,12 +1,21 @@
 {
-  "Locales": {
-    "en": "English",
-    "zh": "中文"
-  },
   "Common": {
+    "en": "English",
+    "zh": "中文",
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "MainLayout": {
+    "navSearch": "Search",
+    "navDashboard": "Dashboard",
+    "cameras": "Cameras",
+    "settings": "Settings",
+    "segments": "Segments",
+    "playback": "Playback",
+    "account": "Account",
+    "notifications": "Notifications",
+    "logout": "Logout"
   },
   "HomePage": {
     "description": "Playback application based on local monitoring video",
