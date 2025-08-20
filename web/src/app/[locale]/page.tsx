@@ -1,10 +1,10 @@
 'use client'
 
+import { RainbowButton } from '@/components/magicui/rainbow-button'
 import { LayoutDashboard } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Link from 'next/link'
-import { IconContext } from 'react-icons'
 import { LuGithub } from 'react-icons/lu'
 
 export default function Home() {
@@ -33,19 +33,12 @@ export default function Home() {
           <li className="tracking-[-.01em]">{t('details02')}</li>
           <li className="tracking-[-.01em]"> {t('details03')}</li>
         </ol>
-
-        <div className="flex flex-col items-center gap-4 sm:flex-row">
-          <Link
-            className="bg-foreground text-background flex h-10 items-center justify-center gap-2 rounded-full border border-solid border-transparent px-4 text-sm font-medium transition-colors hover:bg-[#383838] sm:h-12 sm:w-auto sm:px-5 sm:text-base dark:hover:bg-[#ccc]"
-            href={`/${locale}/dashboard`}
-            rel="noopener noreferrer"
-          >
+        <Link href={`/${locale}/dashboard`} rel="noopener noreferrer">
+          <RainbowButton className="h-10 rounded-full">
             Dashboard
-            <IconContext.Provider value={{ size: '2em' }}>
-              <LayoutDashboard />
-            </IconContext.Provider>
-          </Link>
-        </div>
+            <LayoutDashboard />
+          </RainbowButton>
+        </Link>
       </main>
       <footer className="row-start-3 flex flex-wrap items-center justify-center gap-[24px]">
         <Link
