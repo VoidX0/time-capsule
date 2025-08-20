@@ -15,5 +15,20 @@
     "details02": "Automatically create video index",
     "details03": "Seamless drag playback timeline",
     "github": "Go to GitHub →"
+  },
+  "LoginPage": {
+    "title": "Welcome back",
+    "loginWith": "Login with",
+    "continueWith": "Or continue with",
+    "oidcLogin": "Login with OIDC",
+    "oidcFailed": "OIDC login failed: ",
+    "email": "Email",
+    "password": "Password",
+    "login": "Login",
+    "forgotPassword": "Forgot your password?",
+    "noAccount": "Don't have an account?",
+    "register": "Sign up",
+    "policyTip": "By clicking continue, you agree to our",
+    "policy": "Privacy Policy"
   }
 }

@@ -15,5 +15,20 @@
     "details02": "自动创建视频索引",
     "details03": "无缝拖动回放时间轴",
     "github": "前往 GitHub →"
+  },
+  "LoginPage": {
+    "title": "欢迎回来",
+    "loginWith": "使用以下方式登录",
+    "continueWith": "或继续使用",
+    "oidcLogin": "使用 OIDC 登录",
+    "oidcFailed": "OIDC 登录失败：",
+    "email": "邮箱",
+    "password": "密码",
+    "login": "登录",
+    "forgotPassword": "忘记密码？",
+    "noAccount": "还没有账号？",
+    "register": "注册",
+    "policyTip": "点击继续即表示您同意我们的",
+    "policy": "隐私政策"
   }
 }

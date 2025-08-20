@@ -2,25 +2,20 @@
 
 import { components } from '@/api/schema'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { openapi } from '@/lib/http'
 import { rsaEncrypt } from '@/lib/security'
 import { GalleryVerticalEnd } from 'lucide-react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function Page() {
+  const t = useTranslations('LoginPage')
   const locale = useLocale()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -63,7 +58,6 @@ export default function Page() {
     if (!email || !password) return
     const passwordEncrypted = rsaEncrypt(password)
     if (!passwordEncrypted) {
-      toast.error('Password encryption failed')
       return
     }
     const body: components['schemas']['SystemUser'] = {
@@ -90,7 +84,7 @@ export default function Page() {
       // 获取返回信息
       const { token, error } = event.data
       if (error) {
-        toast.error('OIDC login failed: ' + error)
+        toast.error(t('oidcFailed') + error)
         return
       }
       // 登录成功
@@ -98,7 +92,7 @@ export default function Page() {
         localStorage.setItem('token', token)
         redirect()
       } else {
-        toast.error('OIDC login failed: no token received')
+        toast.error(t('oidcFailed') + 'no token received')
       }
 
       // 移除事件监听，避免多次触发
@@ -124,9 +118,9 @@ export default function Page() {
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-xl">Welcome back</CardTitle>
+              <CardTitle className="text-xl">{t('title')}</CardTitle>
               {oidcAddress.length > 0 && (
-                <CardDescription>Login with</CardDescription>
+                <CardDescription>{t('loginWith')}</CardDescription>
               )}
             </CardHeader>
             <CardContent>
@@ -157,14 +151,14 @@ export default function Page() {
                           p-id="5608"
                         ></path>
                       </svg>
-                      Login with OIDC
+                      {t('oidcLogin')}
                     </Button>
                   </div>
                 )}
                 {oidcAddress.length > 0 && (
                   <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                     <span className="bg-card text-muted-foreground relative z-10 px-2">
-                      Or continue with
+                      {t('continueWith')}
                     </span>
                   </div>
                 )}
@@ -172,7 +166,7 @@ export default function Page() {
                 <form onSubmit={handleLogin}>
                   <div className="grid gap-6">
                     <div className="grid gap-3">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email">{t('email')}</Label>
                       <Input
                         id="email"
                         type="email"
@@ -184,12 +178,12 @@ export default function Page() {
                     </div>
                     <div className="grid gap-3">
                       <div className="flex items-center">
-                        <Label htmlFor="password">Password</Label>
+                        <Label htmlFor="password">{t('password')}</Label>
                         <Link
                           href="#"
                           className="ml-auto text-sm underline-offset-4 hover:underline"
                         >
-                          Forgot your password?
+                          {t('forgotPassword')}
                         </Link>
                       </div>
                       <Input
@@ -205,24 +199,22 @@ export default function Page() {
                       className="w-full"
                       disabled={!email || !password}
                     >
-                      Login
+                      {t('login')}
                     </Button>
                   </div>
                 </form>
                 {/*注册*/}
                 <div className="text-center text-sm">
-                  Don&apos;t have an account?{' '}
+                  {t('noAccount')}{' '}
                   <Link href="#" className="underline underline-offset-4">
-                    Sign up
+                    {t('register')}
                   </Link>
                 </div>
               </div>
             </CardContent>
           </Card>
           <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-            By clicking continue, you agree to our{' '}
-            <Link href="#">Terms of Service</Link> and{' '}
-            <Link href="#">Privacy Policy</Link>.
+            {t('policyTip')} <Link href="#">{t('policy')}</Link>.
           </div>
         </div>
       </div>
