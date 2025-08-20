@@ -1,13 +1,28 @@
 {
-  "Locales": {
-    "current": "中文",
-    "en": "English",
-    "zh": "中文"
-  },
   "Common": {
+    "en": "English",
+    "zh": "中文",
     "light": "浅色",
     "dark": "深色",
     "system": "跟随系统"
+  },
+  "MainLayout": {
+    "navSearch": "搜索",
+    "navDashboard": "仪表盘",
+    "cameras": "摄像头",
+    "settings": "设置",
+    "segments": "视频片段",
+    "playback": "录像回放",
+    "account": "账户",
+    "notifications": "通知",
+    "logout": "注销",
+    "cameraSearch": "摄像头搜索",
+    "cameraSearchPlaceholder": "按名称搜索摄像头",
+    "cameraSearchNoResults": "未找到摄像头",
+    "changeEmail": "更改邮箱",
+    "changeNickname": "更改昵称",
+    "changePassword": "更改密码",
+    "changeSave": "保存"
   },
   "HomePage": {
     "description": "基于本地监控视频的回放应用",
@@ -15,5 +30,20 @@
     "details02": "自动创建视频索引",
     "details03": "无缝拖动回放时间轴",
     "github": "前往 GitHub →"
+  },
+  "LoginPage": {
+    "title": "欢迎回来",
+    "loginWith": "使用以下方式登录",
+    "continueWith": "或继续使用",
+    "oidcLogin": "使用 OIDC 登录",
+    "oidcFailed": "OIDC 登录失败：",
+    "email": "邮箱",
+    "password": "密码",
+    "login": "登录",
+    "forgotPassword": "忘记密码？",
+    "noAccount": "还没有账号？",
+    "register": "注册",
+    "policyTip": "点击继续即表示您同意我们的",
+    "policy": "隐私政策。"
   }
 }

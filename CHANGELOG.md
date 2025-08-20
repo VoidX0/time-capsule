@@ -1,3 +1,10 @@
+## 0.2.0
+
+### features
+
+- 完成OIDC认证登录
+- 完成一些基础Layout的翻译
+
 ## 0.1.9
 
 ### features

@@ -7,7 +7,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { routing } from '@/i18n/routing'
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -15,10 +14,9 @@ import { MdOutlineTranslate } from 'react-icons/md'
 import { RiEnglishInput } from 'react-icons/ri'
 
 export default function LanguageToggle() {
-  const locales = routing.locales as unknown as string[]
   const locale = useLocale()
   const pathname = usePathname()
-  const t = useTranslations('Locales')
+  const t = useTranslations('Common')
 
   return (
     <DropdownMenu>
@@ -28,11 +26,12 @@ export default function LanguageToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {locales.map((lang) => (
-          <Link key={lang} href={pathname.replace(/^\/[^/]+/, `/${lang}`)}>
-            <DropdownMenuItem>{t(`${lang}`)}</DropdownMenuItem>
-          </Link>
-        ))}
+        <Link href={pathname.replace(/^\/[^/]+/, '/zh')}>
+          <DropdownMenuItem>{t('zh')}</DropdownMenuItem>
+        </Link>
+        <Link href={pathname.replace(/^\/[^/]+/, '/en')}>
+          <DropdownMenuItem>{t('en')}</DropdownMenuItem>
+        </Link>
       </DropdownMenuContent>
     </DropdownMenu>
   )

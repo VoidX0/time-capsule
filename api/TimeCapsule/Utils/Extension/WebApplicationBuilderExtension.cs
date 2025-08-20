@@ -81,6 +81,7 @@ public static class WebApplicationBuilderExtension
     {
         builder.Services.Configure<SystemOptions>(builder.Configuration.GetSection(nameof(SystemOptions)));
         builder.Services.Configure<TokenOptions>(builder.Configuration.GetSection(nameof(TokenOptions)));
+        builder.Services.Configure<OidcOptions>(builder.Configuration.GetSection(nameof(OidcOptions)));
         builder.Services.Configure<ConnectionOptions>(builder.Configuration.GetSection(nameof(ConnectionOptions)));
         builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(nameof(SmtpOptions)));
     }

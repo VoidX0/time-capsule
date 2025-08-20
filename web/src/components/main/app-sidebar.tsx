@@ -10,6 +10,7 @@ import * as React from 'react'
 import { useEffect, useState } from 'react'
 
 import { components } from '@/api/schema'
+import { CameraSearchDialog } from '@/components/main/camera-search-dialog'
 import LanguageToggle from '@/components/main/language-toggle'
 import { NavCameras } from '@/components/main/nav-cameras'
 import { NavMain } from '@/components/main/nav-main'
@@ -23,7 +24,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { openapi } from '@/lib/http'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
@@ -32,10 +33,12 @@ type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const t = useTranslations('MainLayout')
   const router = useRouter()
   const locale = useLocale()
   const [user, setUser] = useState<SystemUser | undefined>(undefined)
   const [cameras, setCameras] = useState<Camera[] | undefined>([])
+  const [searchOpen, setSearchOpen] = useState(false)
 
   /* 侧边栏初始化 */
   useEffect(() => {
@@ -68,53 +71,63 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const navMain = [
     {
-      title: 'Search',
-      url: '#',
+      title: t('navSearch'),
       icon: Search,
+      onClick: () => setSearchOpen(true), // 点击打开弹窗
     },
     {
-      title: 'Dashboard',
+      title: t('navDashboard'),
       url: `/${locale}/dashboard`,
       icon: LayoutDashboard,
     },
     {
-      title: 'Cameras',
+      title: t('cameras'),
       url: `/${locale}/cameras`,
       icon: CameraIcon,
     },
     {
-      title: 'Settings',
+      title: t('settings'),
       url: `/${locale}/settings`,
       icon: Settings,
     },
   ]
 
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <Image
-            src="/logo.png"
-            alt="app logo"
-            width={50}
-            height={50}
-            priority
-          />
-          <span className="truncate font-medium">Time Capsule</span>
-        </div>
-        <NavMain items={navMain} />
-      </SidebarHeader>
-      <SidebarContent>
-        <NavCameras cameras={cameras ?? []} />
-      </SidebarContent>
-      <SidebarFooter>
-        <div>
-          <ThemeToggle />
-          <LanguageToggle />
-        </div>
-        <NavUser user={user} />
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
+    <>
+      <Sidebar collapsible="icon" {...props}>
+        <SidebarHeader>
+          <div className="flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              alt="app logo"
+              width={50}
+              height={50}
+              priority
+            />
+            <span className="truncate font-medium">Time Capsule</span>
+          </div>
+          <NavMain items={navMain} />
+        </SidebarHeader>
+        <SidebarContent>
+          <NavCameras cameras={cameras ?? []} />
+        </SidebarContent>
+        <SidebarFooter>
+          <div>
+            <ThemeToggle />
+            <LanguageToggle />
+          </div>
+          <NavUser user={user} />
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+      {/* 搜索弹窗 */}
+      {cameras && (
+        <CameraSearchDialog
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          cameras={cameras}
+        />
+      )}
+    </>
   )
 }

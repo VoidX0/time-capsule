@@ -1,8 +1,12 @@
 ﻿using System.ComponentModel;
+using System.Security.Cryptography;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
+using RestSharp;
 using SqlSugar;
 using SqlSugar.IOC;
 using TimeCapsule.Core.Defined;
@@ -25,15 +29,18 @@ public class AuthenticationController : ControllerBase
 {
     private ISqlSugarClient Db { get; } = DbScoped.SugarScope;
     private readonly TokenOptions _tokenOptions;
+    private readonly OidcOptions _oidcOptions;
     private readonly SmtpApi _smtpApi;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="tokenOptions"></param>
-    public AuthenticationController(IOptions<TokenOptions> tokenOptions)
+    /// <param name="oidcOptions"></param>
+    public AuthenticationController(IOptions<TokenOptions> tokenOptions, IOptions<OidcOptions> oidcOptions)
     {
         _tokenOptions = tokenOptions.Value;
+        _oidcOptions = oidcOptions.Value;
         _smtpApi = new SmtpApi();
     }
 
@@ -560,6 +567,122 @@ public class AuthenticationController : ControllerBase
         var dbUser = await Db.Queryable<SystemUser>().InSingleAsync(user.Id);
         if (dbUser is null) return BadRequest("用户不存在");
         return Ok(await _tokenOptions.GenerateToken(dbUser, Db));
+    }
+
+    /// <summary>
+    /// 获取OIDC登录地址
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    [TypeFilter(typeof(AllowAnonymousFilter))]
+    public async Task<ActionResult<string>> OidcLoginAddress()
+    {
+        await Task.CompletedTask;
+        if (string.IsNullOrWhiteSpace(_oidcOptions.RedirectUri) ||
+            string.IsNullOrWhiteSpace(_oidcOptions.ClientId) ||
+            string.IsNullOrWhiteSpace(_oidcOptions.ClientSecret) ||
+            string.IsNullOrWhiteSpace(_oidcOptions.AuthorizationEndpoint) ||
+            string.IsNullOrWhiteSpace(_oidcOptions.TokenEndpoint) ||
+            string.IsNullOrWhiteSpace(_oidcOptions.UserInfoEndpoint))
+            return Ok("");
+        return Ok($"{_oidcOptions.RedirectUri}/Authentication/OidcLogin");
+    }
+
+    /// <summary>
+    /// OIDC登录
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    [TypeFilter(typeof(AllowAnonymousFilter))]
+    public async Task<IActionResult> OidcLogin()
+    {
+        await Task.CompletedTask;
+        // 生成验证信息
+        var state = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        var nonce = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        // 组装验证参数
+        var query = new Dictionary<string, string?>
+        {
+            ["client_id"] = _oidcOptions.ClientId,
+            ["response_type"] = "code", // 授权码模式
+            ["scope"] = "openid profile email", // 请求的权限范围
+            ["redirect_uri"] = $"{_oidcOptions.RedirectUri}/Authentication/OidcCallback", // 回调地址
+            ["state"] = state,
+            ["nonce"] = nonce
+        };
+        // 重定向到OIDC授权端点
+        var authorizeUrl = QueryHelpers.AddQueryString(_oidcOptions.AuthorizationEndpoint, query);
+        return Redirect(authorizeUrl);
+    }
+
+    /// <summary>
+    /// OIDC回调处理
+    /// </summary>
+    /// <param name="code">回调中的授权码</param>
+    /// <param name="state">回调中的状态参数</param>
+    /// <returns></returns>
+    [HttpGet]
+    [TypeFilter(typeof(AllowAnonymousFilter))]
+    public async Task<IActionResult> OidcCallback(string code, string state)
+    {
+        ContentResult GenerateResponse(string token, string error) => Content($@"
+        <html>
+        <body>
+            <script>
+                window.opener.postMessage({{ token: '{token}', error: '{error}' }}, '*');
+                window.close();
+            </script>
+        </body>
+        </html>", "text/html");
+
+
+        // 请求令牌
+        string accessToken;
+        var client = new RestClient(_oidcOptions.TokenEndpoint);
+        var request = new RestRequest()
+            .AddParameter("grant_type", "authorization_code")
+            .AddParameter("code", code)
+            .AddParameter("redirect_uri", $"{_oidcOptions.RedirectUri}/Authentication/OidcCallback")
+            .AddParameter("client_id", _oidcOptions.ClientId)
+            .AddParameter("client_secret", _oidcOptions.ClientSecret);
+        try
+        {
+            var response = await client.PostAsync(request);
+            if (!response.IsSuccessful || response.Content == null)
+                return GenerateResponse(string.Empty, "Error fetching access token");
+            var json = JsonDocument.Parse(response.Content);
+            accessToken = json.RootElement.GetProperty("access_token").GetString() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(accessToken)) throw new Exception("Access token is empty");
+        }
+        catch (Exception e)
+        {
+            return GenerateResponse(string.Empty, $"Error fetching access token: {e.Message}");
+        }
+
+        // 请求用户信息
+        string email;
+        client = new RestClient(_oidcOptions.UserInfoEndpoint);
+        request = new RestRequest()
+            .AddHeader("Authorization", $"Bearer {accessToken}");
+        try
+        {
+            var response = await client.GetAsync(request);
+            if (!response.IsSuccessful || response.Content == null)
+                return GenerateResponse(string.Empty, "Error fetching user info");
+            var json = JsonDocument.Parse(response.Content);
+            email = json.RootElement.GetProperty("email").GetString() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(email)) throw new Exception("Email is empty");
+        }
+        catch (Exception e)
+        {
+            return GenerateResponse(string.Empty, $"Error fetching user info: {e.Message}");
+        }
+
+        // 查找用户
+        var user = await Db.Queryable<SystemUser>().FirstAsync(x => x.Email == email);
+        if (user is null) return GenerateResponse(string.Empty, "User not found");
+        var token = await _tokenOptions.GenerateToken(user, Db);
+        return GenerateResponse(token, string.Empty);
     }
 
     #endregion
