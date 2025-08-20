@@ -43,7 +43,7 @@ export default function Home() {
       <footer className="row-start-3 flex flex-wrap items-center justify-center gap-[24px]">
         <Link
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://github.com/VoidX0/time-capsule"
+          href={process.env.NEXT_PUBLIC_REPOSITORY ?? '#'}
           target="_blank"
           rel="noopener noreferrer"
         >
