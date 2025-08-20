@@ -1,6 +1,6 @@
 'use client'
 
-import { BadgeCheck, Bell, ChevronsUpDown, LogOut } from 'lucide-react'
+import { BadgeCheck, Bell, ChevronsUpDown, CircleFadingArrowUp, LogOut } from 'lucide-react'
 
 import { components } from '@/api/schema'
 import { UserProfileDialog } from '@/components/main/user-profile-dialog'
@@ -91,6 +91,13 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
                 <DropdownMenuItem>
                   <Bell />
                   {t('notifications')}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem>
+                  <CircleFadingArrowUp />
+                  Ver {process.env.NEXT_PUBLIC_VERSION}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />

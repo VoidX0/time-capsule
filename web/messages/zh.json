@@ -13,16 +13,16 @@
     "settings": "设置",
     "segments": "视频片段",
     "playback": "录像回放",
+    "account": "账户",
+    "notifications": "通知",
+    "logout": "注销",
     "cameraSearch": "摄像头搜索",
     "cameraSearchPlaceholder": "按名称搜索摄像头",
     "cameraSearchNoResults": "未找到摄像头",
-    "account": "账户",
     "changeEmail": "更改邮箱",
     "changeNickname": "更改昵称",
     "changePassword": "更改密码",
-    "changeSave": "保存",
-    "notifications": "通知",
-    "logout": "注销"
+    "changeSave": "保存"
   },
   "HomePage": {
     "description": "基于本地监控视频的回放应用",

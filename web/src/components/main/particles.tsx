@@ -1,6 +1,6 @@
 'use client'
 
-import { type Container, type ISourceOptions } from '@tsparticles/engine'
+import { type ISourceOptions } from '@tsparticles/engine'
 import Particles, { initParticlesEngine } from '@tsparticles/react'
 import { useEffect, useMemo, useState } from 'react'
 // import { loadAll } from "@tsparticles/all"; // if you are going to use `loadAll`, install the "@tsparticles/all" package too.
@@ -28,9 +28,9 @@ export default function ParticlesApp() {
     })
   }, [])
 
-  const particlesLoaded = async (container?: Container): Promise<void> => {
-    // console.log(container)
-  }
+  // const particlesLoaded = async (container?: Container): Promise<void> => {
+  //   console.log(container)
+  // }
   /* NASA preset */
   const options: ISourceOptions = useMemo(
     () => ({
@@ -546,8 +546,8 @@ export default function ParticlesApp() {
     return (
       <Particles
         id="tsparticles"
-        particlesLoaded={particlesLoaded}
         options={options}
+        // particlesLoaded={particlesLoaded}
       />
     )
   }
