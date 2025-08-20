@@ -1,6 +1,5 @@
 {
   "Locales": {
-    "current": "中文",
     "en": "English",
     "zh": "中文"
   },
@@ -29,6 +28,6 @@
     "noAccount": "还没有账号？",
     "register": "注册",
     "policyTip": "点击继续即表示您同意我们的",
-    "policy": "隐私政策"
+    "policy": "隐私政策。"
   }
 }
