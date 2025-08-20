@@ -17,6 +17,10 @@
     "cameraSearchPlaceholder": "Search cameras by name",
     "cameraSearchNoResults": "No cameras found",
     "account": "Account",
+    "changeEmail": "Change Email",
+    "changeNickname": "Change Nickname",
+    "changePassword": "Change Password",
+    "changeSave": "Save",
     "notifications": "Notifications",
     "logout": "Logout"
   },

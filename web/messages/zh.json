@@ -17,6 +17,10 @@
     "cameraSearchPlaceholder": "按名称搜索摄像头",
     "cameraSearchNoResults": "未找到摄像头",
     "account": "账户",
+    "changeEmail": "更改邮箱",
+    "changeNickname": "更改昵称",
+    "changePassword": "更改密码",
+    "changeSave": "保存",
     "notifications": "通知",
     "logout": "注销"
   },

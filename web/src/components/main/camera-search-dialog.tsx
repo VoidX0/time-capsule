@@ -1,7 +1,12 @@
 'use client'
 
 import { components } from '@/api/schema'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
