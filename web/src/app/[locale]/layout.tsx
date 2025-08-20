@@ -1,3 +1,4 @@
+import ParticlesApp from '@/components/main/particles'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import { routing } from '@/i18n/routing'
@@ -48,6 +49,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <NextIntlClientProvider messages={messages}>
+            <ParticlesApp />
             {children}
             <Toaster position="top-right" richColors />
           </NextIntlClientProvider>
