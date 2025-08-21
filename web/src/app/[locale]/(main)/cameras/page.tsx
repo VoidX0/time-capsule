@@ -23,6 +23,7 @@ export default function Page() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [newName, setNewName] = useState('')
   const [newBasePath, setNewBasePath] = useState('')
+  const [newTemplate, setNewTemplate] = useState('')
 
   // 编辑相关
   const [editCam, setEditCam] = useState<Camera | undefined>(undefined)
@@ -57,18 +58,32 @@ export default function Page() {
     if (editCam) {
       // 修改
       await openapi.PUT('/Camera/Update', {
-        body: [{ ...editCam, Name: newName, BasePath: newBasePath }],
+        body: [
+          {
+            ...editCam,
+            Name: newName,
+            BasePath: newBasePath,
+            SegmentTemplate: newTemplate,
+          },
+        ],
       })
     } else {
       // 新增
       await openapi.POST('/Camera/Insert', {
-        body: [{ Name: newName, BasePath: newBasePath }],
+        body: [
+          {
+            Name: newName,
+            BasePath: newBasePath,
+            SegmentTemplate: newTemplate,
+          },
+        ],
       })
     }
     setDialogOpen(false)
     setEditCam(undefined)
     setNewName('')
     setNewBasePath('')
+    setNewTemplate('')
     fetchList().then()
   }
 
@@ -76,6 +91,7 @@ export default function Page() {
     setEditCam(cam)
     setNewName(cam.Name || '')
     setNewBasePath(cam.BasePath || '')
+    setNewTemplate(cam.SegmentTemplate || '')
     setDialogOpen(true)
   }
 
@@ -83,6 +99,7 @@ export default function Page() {
     setEditCam(undefined)
     setNewName('')
     setNewBasePath('')
+    setNewTemplate('*_{start:yyyyMMddHHmmss}_{end:yyyyMMddHHmmss}')
     setDialogOpen(true)
   }
 
@@ -115,9 +132,6 @@ export default function Page() {
           <CardContent className="space-y-2">
             <p>
               ID: <strong>{cam.Id}</strong>
-            </p>
-            <p>
-              路径: <strong>{cam.BasePath}</strong>
             </p>
             <div className="flex gap-2">
               <Button onClick={() => syncAndCache(cam)} variant="outline">
@@ -163,14 +177,22 @@ export default function Page() {
           </DialogHeader>
           <div className="space-y-4">
             <Input
+              className="font-mono"
               placeholder="名称"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
             />
             <Input
+              className="font-mono"
               placeholder="基础路径"
               value={newBasePath}
               onChange={(e) => setNewBasePath(e.target.value)}
+            />
+            <Input
+              className="font-mono"
+              placeholder="Segment解析模板"
+              value={newTemplate}
+              onChange={(e) => setNewTemplate(e.target.value)}
             />
             <Button onClick={handleSave} className="w-full">
               保存

@@ -17,6 +17,7 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
 import { openapi } from '@/lib/http'
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -33,6 +34,20 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
       localStorage.setItem('token', '')
     }
     router.replace('/')
+  }
+
+  /* GitHub Pages Changelog 链接 */
+  const githubPagesChangelog = (
+    repository: string,
+    version: string,
+  ): string => {
+    const repoMatch = repository.match(/^(https?:\/\/[^/]+)\/([^/]+)\/([^/]+)$/)
+    if (!repoMatch) {
+      return '#'
+    }
+    const owner = repoMatch[2]
+    const repo = repoMatch[3]
+    return `https://${owner}.github.io/${repo}/en/docs/contribute/changelog#${version}`
   }
 
   return (
@@ -95,10 +110,18 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <CircleFadingArrowUp />
-                  Ver {process.env.NEXT_PUBLIC_VERSION}
-                </DropdownMenuItem>
+                <Link
+                  href={githubPagesChangelog(
+                    process.env.NEXT_PUBLIC_REPOSITORY ?? 'https://github.com',
+                    process.env.NEXT_PUBLIC_VERSION ?? '0.0.1',
+                  )}
+                  target="_blank"
+                >
+                  <DropdownMenuItem>
+                    <CircleFadingArrowUp />
+                    Ver {process.env.NEXT_PUBLIC_VERSION}
+                  </DropdownMenuItem>
+                </Link>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout}>

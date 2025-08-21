@@ -13,4 +13,7 @@ public class Camera
 
     [SugarColumn(ColumnDescription = "基础路径")]
     public string BasePath { get; set; } = string.Empty;
+
+    [SugarColumn(ColumnDescription = "Segment解析模板", DefaultValue = " ")]
+    public string SegmentTemplate { get; set; } = string.Empty;
 }
