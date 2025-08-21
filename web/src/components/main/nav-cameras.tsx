@@ -1,21 +1,9 @@
 'use client'
 
-import {
-  Camera as CameraIcon,
-  Clapperboard,
-  MonitorCog,
-  MonitorPlay,
-  MoreHorizontal,
-} from 'lucide-react'
+import { Camera as CameraIcon, Clapperboard, MonitorPlay, MoreHorizontal } from 'lucide-react'
 
 import { components } from '@/api/schema'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -23,7 +11,7 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
+  useSidebar
 } from '@/components/ui/sidebar'
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
@@ -76,13 +64,6 @@ export function NavCameras({ cameras }: { cameras: Camera[] }) {
                   <DropdownMenuItem>
                     <MonitorPlay className="text-muted-foreground" />
                     <span>{t('playback')}</span>
-                  </DropdownMenuItem>
-                </Link>
-                <DropdownMenuSeparator />
-                <Link href={`/${locale}/${item.Id}/settings`}>
-                  <DropdownMenuItem>
-                    <MonitorCog className="text-muted-foreground" />
-                    <span>{t('settings')}</span>
                   </DropdownMenuItem>
                 </Link>
               </DropdownMenuContent>
