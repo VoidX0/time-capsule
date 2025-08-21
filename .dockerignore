@@ -45,3 +45,6 @@ web/.vercel
 # typescript
 web/*.tsbuildinfo
 web/next-env.d.ts
+
+# 文档
+docs/**
