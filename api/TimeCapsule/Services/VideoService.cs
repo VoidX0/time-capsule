@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
 using Serilog;
 using SqlSugar;
@@ -82,7 +83,8 @@ public class VideoService
                 Path = x,
                 Size = Math.Round(new FileInfo(Path.Combine(directory, x)).Length / 1024m / 1024m, 2),
             }).ToList();
-        for (var i = 0; i < newSegments.Count; i++) newSegments[i] = await DetectMetadata(newSegments[i], directory);
+        for (var i = 0; i < newSegments.Count; i++)
+            newSegments[i] = await DetectMetadata(camera, newSegments[i], directory);
         newSegments = newSegments.Where(x => x.DurationActual > TimeSpan.Zero)
             .OrderBy(x => x.StartTime)
             .ToList();
@@ -211,9 +213,10 @@ public class VideoService
     /// <summary>
     /// 检测视频片段的元数据
     /// </summary>
+    /// <param name="camera">摄像头</param>
     /// <param name="segment">视频片段</param>
     /// <param name="basePath">基础路径</param>
-    private static async Task<VideoSegment> DetectMetadata(VideoSegment segment, string basePath = "")
+    private static async Task<VideoSegment> DetectMetadata(Camera camera, VideoSegment segment, string basePath = "")
     {
         try
         {
@@ -223,7 +226,7 @@ public class VideoService
             var audioStream = mediaInfo.AudioStreams.FirstOrDefault();
             // 设置视频元数据
             segment.DurationActual = mediaInfo.Duration;
-            if (!ParseStartAndEndTime(segment))
+            if (!ParseStartAndEndTime(segment, camera.SegmentTemplate))
             {
                 // 文件名解析失败，尝试使用媒体信息中的创建时间
                 segment.StartTime = mediaInfo.CreationTime?.ToLocalTime() ?? throw new Exception("无法获取视频创建时间");
@@ -265,25 +268,68 @@ public class VideoService
     /// 使用文件名解析开始和结束时间
     /// </summary>
     /// <param name="segment">视频片段</param>
+    /// <param name="template">解析模板</param>
     /// <returns></returns>
-    private static bool ParseStartAndEndTime(VideoSegment segment)
+    public static bool ParseStartAndEndTime(VideoSegment segment, string template)
     {
         // 解析文件名中的时间戳
         var fileName = Path.GetFileNameWithoutExtension(segment.Path);
         if (string.IsNullOrEmpty(fileName)) return false;
 
-        // 假设文件名格式为 "00_20250804181104_20250804182349"
-        var parts = fileName.Split('_');
-        if (parts.Length < 3) return false;
+        // 将模板转换为正则表达式
+        var pattern = Regex.Escape(template);
 
-        // 解析开始和结束时间
-        if (!DateTimeOffset.TryParseExact(parts[1],
-                "yyyyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var startTime) ||
-            !DateTimeOffset.TryParseExact(parts[2],
-                "yyyyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var endTime)) return false;
-        segment.StartTime = startTime;
-        segment.EndTime = endTime;
-        segment.DurationTheoretical = endTime - startTime;
+        // 替换通配符
+        pattern = pattern.Replace(@"\*", ".*?"); // * -> 任意多个字符
+        pattern = pattern.Replace(@"\_", "_"); // _ -> 字符 '_' 本身
+
+        // 捕获组：{name:format}
+        var groupRegex = new Regex(@"\{(?<name>\w+):(?<format>[^}]+)\}");
+        var matches = groupRegex.Matches(template);
+
+        var formats = new Dictionary<string, string>();
+
+        foreach (Match m in matches)
+        {
+            var name = m.Groups["name"].Value;
+            var format = m.Groups["format"].Value;
+            formats[name] = format;
+
+            // 推断位数（简单做法：去掉非格式字符的长度）
+            var length = format.Length;
+            var replacement = $@"(?<{name}>\d{{{length}}})";
+            pattern = pattern.Replace(Regex.Escape(m.Value), replacement);
+        }
+
+        var regex = new Regex("^" + pattern + "$");
+        var match = regex.Match(fileName);
+        if (!match.Success) return false;
+
+        // 解析时间
+        foreach (var kv in formats)
+        {
+            var name = kv.Key;
+            var format = kv.Value;
+            if (!match.Groups[name].Success) continue;
+            if (DateTimeOffset.TryParseExact(
+                    match.Groups[name].Value,
+                    format,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out var dt))
+            {
+                if (name.Equals("start", StringComparison.OrdinalIgnoreCase))
+                    segment.StartTime = dt;
+                else if (name.Equals("end", StringComparison.OrdinalIgnoreCase))
+                    segment.EndTime = dt;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        segment.DurationTheoretical = segment.EndTime - segment.StartTime;
         return true;
     }
 
