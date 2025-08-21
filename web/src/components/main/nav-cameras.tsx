@@ -1,6 +1,6 @@
 'use client'
 
-import { Camera as CameraIcon, Clapperboard, MonitorPlay, MoreHorizontal } from 'lucide-react'
+import { Camera as CameraIcon, Clapperboard, MoreHorizontal } from 'lucide-react'
 
 import { components } from '@/api/schema'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -60,12 +60,12 @@ export function NavCameras({ cameras }: { cameras: Camera[] }) {
                     <span>{t('segments')}</span>
                   </DropdownMenuItem>
                 </Link>
-                <Link href={`/${locale}/${item.Id}/playback`}>
-                  <DropdownMenuItem>
-                    <MonitorPlay className="text-muted-foreground" />
-                    <span>{t('playback')}</span>
-                  </DropdownMenuItem>
-                </Link>
+                {/*<Link href={`/${locale}/${item.Id}/playback`}>*/}
+                {/*  <DropdownMenuItem>*/}
+                {/*    <MonitorPlay className="text-muted-foreground" />*/}
+                {/*    <span>{t('playback')}</span>*/}
+                {/*  </DropdownMenuItem>*/}
+                {/*</Link>*/}
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
