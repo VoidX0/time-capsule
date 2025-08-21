@@ -1,13 +1,58 @@
 ---
-title: Deploy
-description: Learn how to deploy
+title: 部署指南
+description: 了解如何部署本项目
 ---
 
+## 安装
+- 本项目使用[PostgreSQL](https://www.postgresql.org/)数据库，如果不使用Docker Compose部署，
+请手动安装PostgreSQL数据库，并修改`ConnectionOptions__DbConnection`配置项。
 
-import {Callout} from 'fumadocs-ui/components/callout';
+### DockerCompose部署(推荐)
 
-<Callout type="info">
-    <p>Documentation Under Construction</p>
-    <p>The documentation is under construction. Please visit the GitHub repository to follow the development
-        progress</p>
-</Callout>
+```yml
+services:
+  postgres:
+    image: postgres:latest
+    restart: always
+    container_name: postgres
+    environment:
+      TZ: "Asia/Shanghai"
+      POSTGRES_USER: "root" #创建管理员用户
+      POSTGRES_PASSWORD: "time_capsule" #创建管理员密码
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./storage/postgres/data:/var/lib/postgresql/data #数据
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  time-capsule:
+    image: ghcr.io/voidx0/time-capsule:latest
+    restart: always
+    container_name: time-capsule
+    environment:
+      TZ: "Asia/Shanghai"
+      SystemOptions__Instance: "docker-server"
+      ConnectionOptions__DbConnection: "HOST=postgres; PORT=5432; DATABASE=time_capsule; USER ID=root; PASSWORD=time_capsule;"
+    ports:
+      - "8080:8080" # api
+      - "3000:3000" # web
+    volumes:
+      - ./Monitor:/camera # 挂载监控视频目录
+      - ./cache:/cache #缓存目录
+      - ./storage:/app/storage #存储
+    depends_on:
+      postgres:
+        condition: service_healthy
+```
+
+### 源码部署
+
+1. 克隆项目代码并进入目录`git clone https://github.com/VoidX0/time-capsule.git && cd time-capsule`
+2. 安装后端依赖并构建`cd api && dotnet restore && dotnet build`
+3. 安装前端依赖并构建`cd web && pnpm install && pnpm build`
+4. 项目配置，具体配置项请参考配置项
+5. 自行启动或托管前端/后端服务
