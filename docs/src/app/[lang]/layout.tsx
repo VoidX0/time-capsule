@@ -2,6 +2,7 @@ import '../global.css';
 import {RootProvider} from 'fumadocs-ui/provider';
 import {Inter} from 'next/font/google';
 import type {Translations} from 'fumadocs-ui/i18n';
+import SearchDialog from "@/components/search";
 
 const inter = Inter({
     subsets: ['latin'],
@@ -51,6 +52,9 @@ export default async function RootLayout({
                 locales,
                 // translations for UI
                 translations: {cn}[lang],
+            }}
+            search={{
+                SearchDialog
             }}
         >
             {children}

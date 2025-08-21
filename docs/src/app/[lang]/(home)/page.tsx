@@ -1,4 +1,8 @@
 import Link from 'next/link';
+import {i18n} from "@/lib/i18n";
+
+export const generateStaticParams = () =>
+    i18n.languages.map((lang) => ({lang}));
 
 export default function HomePage() {
     return (
