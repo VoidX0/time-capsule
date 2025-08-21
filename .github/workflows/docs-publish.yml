@@ -11,6 +11,12 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+# 设置权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build-and-deploy:
     name: Build and Deploy Docs
@@ -21,11 +27,6 @@ jobs:
     strategy:
       matrix:
         node-version: [ 22 ]
-
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
 
     steps:
       - name: Checkout repository
@@ -52,12 +53,14 @@ jobs:
         run: pnpm build
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
+        with:
+          static_site_generator: next
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/out
+          path: ./docs/out
 
       - name: Deploy to GitHub Pages
         id: deployment
