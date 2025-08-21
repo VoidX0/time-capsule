@@ -6,7 +6,7 @@ const withMDX = createMDX();
 const config = {
     // 静态导出优化
     output: 'export', // 使用静态导出模式
-    // basePath: '/time-capsule', // 设置github pages的路径
+    basePath: '/time-capsule', // 设置github pages的路径
     images: {
         unoptimized: true, // 关闭图片优化
     },
