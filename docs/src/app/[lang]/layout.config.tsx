@@ -22,7 +22,7 @@ export function baseOptions(locale: string): BaseLayoutProps {
                                               type="rotate" values="0 12 12;360 12 12"/>
                         </path>
                     </svg>
-                    Fumadocs
+                    Time Capsule
                 </>
             ),
         },
