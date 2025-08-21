@@ -1613,6 +1613,8 @@ export interface components {
             Name?: string | null;
             /** @description 基础路径 */
             BasePath?: string | null;
+            /** @description Segment解析模板 */
+            SegmentTemplate?: string | null;
         };
         /**
          * Format: int32
