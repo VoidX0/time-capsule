@@ -1,11 +1,17 @@
 import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
+import packageJson from './package.json'
 
 // I18N 配置
 const withNextIntl = createNextIntlPlugin()
 
 const nextConfig: NextConfig = {
   output: 'standalone', // 开启独立打包模式
+  // 定义环境变量
+  env: {
+    NEXT_PUBLIC_VERSION: packageJson.version,
+    NEXT_PUBLIC_REPOSITORY: packageJson.repository.url,
+  },
   // api路由代理
   async rewrites() {
     return [

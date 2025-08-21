@@ -1,0 +1,67 @@
+name: Docs Publish CI
+on:
+  push:
+    branches:
+      - main # 推送到主分支时触发
+    paths:
+      - 'docs/**'
+
+# 设置并发控制，确保同一时间只有一个部署任务在运行
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+# 设置权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy Docs
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 22 ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+          cache-dependency-path: "docs/pnpm-lock.yaml"
+
+      - name: Install dependencies
+        working-directory: docs
+        run: pnpm install --frozen-lockfile
+
+      - name: Build production bundle
+        working-directory: docs
+        run: pnpm build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          static_site_generator: next
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/out
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
