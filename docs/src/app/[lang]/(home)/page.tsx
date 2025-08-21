@@ -1,5 +1,6 @@
 import {i18n} from "@/lib/i18n";
 import {Dots} from "@/components/loader/dots";
+import Link from "next/link";
 
 export const generateStaticParams = () =>
     i18n.languages.map((lang) => ({lang}));
@@ -18,7 +19,7 @@ export default async function HomePage({
                     ? 'Get started with our step-by-step guide, explore deployment options, or browse the reference.'
                     : '通过我们的分步指南快速上手，了解部署选项，或浏览参考文档。'}
             </p>
-            <a
+            <Link
                 href={`/${lang}/docs/started`}
                 className="text-fd-foreground font-semibold underline"
                 style={{
@@ -28,7 +29,7 @@ export default async function HomePage({
                 }}
             >
                 <Dots/>
-            </a>
+            </Link>
         </main>
     );
 }
