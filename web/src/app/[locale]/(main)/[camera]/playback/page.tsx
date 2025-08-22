@@ -96,8 +96,8 @@ export default function Page({
           <CalendarIcon />
           <p>{new Date(progress).toLocaleString()}</p>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-10 p-4">
-          {/*控制*/}
+        {/*控制*/}
+        <div className="flex flex-col items-center gap-2 p-4">
           <div className="flex items-center gap-2">
             {/*播放/暂停*/}
             <Button
@@ -127,6 +127,36 @@ export default function Page({
             >
               <Fullscreen />
             </Button>
+            {/*静音*/}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                if (playerRef.current?.videoElement == null) return
+                playerRef.current.videoElement.muted =
+                  !playerRef.current.videoElement.muted
+              }}
+            >
+              {playerRef.current?.videoElement?.muted ? (
+                <VolumeOff />
+              ) : (
+                <Volume2 />
+              )}
+            </Button>
+            {/*音量控制*/}
+            <Slider
+              className="w-40"
+              defaultValue={[0]}
+              max={100}
+              step={1}
+              disabled={playerRef.current?.videoElement?.muted} // 静音时禁用
+              onValueChange={(value) => {
+                if (!playerRef.current?.videoElement) return
+                playerRef.current.videoElement.volume = value[0]! / 100
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-2">
             {/* 倍速下拉选择 */}
             <Select
               value={playbackRate.toString()}
@@ -162,35 +192,6 @@ export default function Page({
                 />
               </PopoverContent>
             </Popover>
-            {/*静音*/}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                if (playerRef.current?.videoElement == null) return
-                playerRef.current.videoElement.muted =
-                  !playerRef.current.videoElement.muted
-              }}
-            >
-              {playerRef.current?.videoElement?.muted ? (
-                <VolumeOff />
-              ) : (
-                <Volume2 />
-              )}
-            </Button>
-            {/*音量控制*/}
-            {playerRef.current?.videoElement?.muted ? null : (
-              <Slider
-                className="w-48"
-                defaultValue={[0]}
-                max={100}
-                step={1}
-                onValueChange={(value) => {
-                  if (!playerRef.current?.videoElement) return
-                  playerRef.current.videoElement.volume = value[0]! / 100
-                }}
-              />
-            )}
           </div>
         </div>
       </div>

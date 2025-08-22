@@ -1,6 +1,12 @@
 'use client'
 
-import { BadgeCheck, Bell, ChevronsUpDown, CircleFadingArrowUp, LogOut } from 'lucide-react'
+import {
+  BadgeCheck,
+  Bell,
+  ChevronsUpDown,
+  CircleFadingArrowUp,
+  LogOut,
+} from 'lucide-react'
 
 import { components } from '@/api/schema'
 import { UserProfileDialog } from '@/components/main/user-profile-dialog'
@@ -12,9 +18,14 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from '@/components/ui/sidebar'
 import { openapi } from '@/lib/http'
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
