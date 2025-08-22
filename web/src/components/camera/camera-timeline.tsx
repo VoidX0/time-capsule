@@ -172,7 +172,6 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
     return (
       <div>
         {/* Slider */}
-        ;
         <Slider
           value={[currentTime]}
           min={viewport.min}
@@ -186,7 +185,7 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
             onTimeCommit?.(val[0]!)
           }}
         />
-        {/* 时间轴 */};
+        {/* 时间轴 */}
         <div
           ref={containerRef}
           className="relative mt-8 h-60 overflow-hidden select-none"
