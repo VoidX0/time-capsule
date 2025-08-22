@@ -340,9 +340,35 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
                   <p className="text-muted-foreground text-sm">
                     {item.Description}
                   </p>
-                  <Badge variant="secondary" className="mt-1 rounded-full">
-                    {item.Level}
-                  </Badge>
+                  {item.Level === 'verbose' && (
+                    <Badge variant="secondary" className="mt-1 rounded-full">
+                      {item.Level}
+                    </Badge>
+                  )}
+                  {item.Level === 'info' && (
+                    <Badge
+                      variant="secondary"
+                      className="mt-1 rounded-full text-blue-500"
+                    >
+                      {item.Level}
+                    </Badge>
+                  )}
+                  {item.Level === 'warning' && (
+                    <Badge
+                      variant="secondary"
+                      className="mt-1 rounded-full text-yellow-500"
+                    >
+                      {item.Level}
+                    </Badge>
+                  )}
+                  {item.Level === 'error' && (
+                    <Badge
+                      variant="secondary"
+                      className="mt-1 rounded-full text-red-500"
+                    >
+                      {item.Level}
+                    </Badge>
+                  )}
                 </div>
               ))}
             </div>
