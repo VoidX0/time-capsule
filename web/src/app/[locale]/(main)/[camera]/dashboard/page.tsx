@@ -1,14 +1,14 @@
 'use client'
 
-import {components} from '@/api/schema'
+import { components } from '@/api/schema'
 import CameraChart from '@/components/camera/camera-chart'
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
-import {openapi} from '@/lib/http'
-import {timeSpanToMilliseconds} from '@/lib/time-span'
-import {ArrowUpRight} from 'lucide-react'
-import {useLocale} from 'next-intl'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { openapi } from '@/lib/http'
+import { timeSpanToMilliseconds } from '@/lib/time-span'
+import { ArrowUpRight } from 'lucide-react'
+import { useLocale } from 'next-intl'
 import Link from 'next/link'
-import {useEffect, useState} from 'react'
+import { useEffect, useState } from 'react'
 
 type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
