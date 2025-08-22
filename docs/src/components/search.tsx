@@ -10,7 +10,7 @@ import {
   SearchDialogInput,
   SearchDialogList,
   SearchDialogOverlay,
-  type SharedProps,
+  type SharedProps
 } from 'fumadocs-ui/components/dialog/search'
 
 function initOrama() {
@@ -25,7 +25,7 @@ export default function DefaultSearchDialog(props: SharedProps) {
   const { search, setSearch, query } = useDocsSearch({
     type: 'static',
     initOrama,
-    locale: 'cn',
+    locale: 'zh',
   })
 
   return (
