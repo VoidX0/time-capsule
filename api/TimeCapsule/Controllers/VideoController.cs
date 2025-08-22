@@ -74,6 +74,7 @@ public class VideoController : ControllerBase
     /// <param name="durationSec">持续时间（秒）</param>
     /// <param name="segmentSec">分片时长（秒）</param>
     /// <param name="sid">会话ID（可选）</param>
+    /// <param name="sourceAddress">是否使用源地址（可选）</param>
     /// <returns></returns>
     [HttpGet]
     public async Task<ActionResult> CameraPlaylist(
@@ -81,7 +82,8 @@ public class VideoController : ControllerBase
         long start,
         int durationSec = 1800,
         int segmentSec = 10,
-        string? sid = null)
+        string? sid = null,
+        bool? sourceAddress = null)
     {
         segmentSec = Math.Clamp(segmentSec, 2, 15); // 建议 5~10 秒
         durationSec = Math.Clamp(durationSec, 60, 7200); // 一次最多 2 小时
@@ -118,8 +120,19 @@ public class VideoController : ControllerBase
 
         string FmtPdt(DateTimeOffset pdt) => pdt.ToString("yyyy-MM-ddTHH:mm:ss.fffzzz");
 
-        string BaseUrl(string action, long seq) =>
-            $"/api/Video/{action}?sid={session.Sid}&seq={seq}";
+        string BaseUrl(string action, long seq)
+        {
+            if (sourceAddress == true)
+            {
+                // 获取请求过来的源地址
+                var request = HttpContext.Request;
+                var baseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
+                return $"{baseUrl}/Video/{action}?sid={session.Sid}&seq={seq}";
+            }
+
+            // 使用代理地址
+            return $"/api/Video/{action}?sid={session.Sid}&seq={seq}";
+        }
     }
 
     /// <summary>
