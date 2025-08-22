@@ -46,7 +46,7 @@ public class CameraController : OrmController<Camera>
         });
         return Ok();
     }
-    
+
     /// <summary>
     /// 获取时间轴
     /// </summary>
@@ -111,21 +111,7 @@ public class CameraController : OrmController<Camera>
         // 删除对应的文件 (删除失败的文件，会在下次Sync时重新同步，所以不需要处理异常)
         foreach (var camera in entity)
         {
-            var video = new DirectoryInfo(Path.Combine(_systemOptions.CameraPath, camera.BasePath));
             var cache = new DirectoryInfo(Path.Combine(_systemOptions.CachePath, camera.Id.ToString()));
-            // 删除视频目录
-            if (video.Exists)
-            {
-                try
-                {
-                    video.Delete(true);
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-
             // 删除缓存目录
             if (cache.Exists)
             {
