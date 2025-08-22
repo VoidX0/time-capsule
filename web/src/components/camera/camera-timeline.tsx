@@ -2,11 +2,23 @@
 
 import { components, paths } from '@/api/schema'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
 import { openapi } from '@/lib/http'
 import { Calendar, CircleAlert, CircleDot, CircleX, Info } from 'lucide-react'
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react'
 
 type GetTimelineQuery =
   paths['/Camera/GetTimeline']['get']['parameters']['query']

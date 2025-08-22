@@ -6,10 +6,23 @@ import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Link from 'next/link'
 import { LuGithub } from 'react-icons/lu'
+import { MdOutlineDocumentScanner } from 'react-icons/md'
 
 export default function Home() {
   const locale = useLocale()
   const t = useTranslations('HomePage')
+
+  /* GitHub Pages 链接 */
+  const githubPages = (repository: string): string => {
+    const repoMatch = repository.match(/^(https?:\/\/[^/]+)\/([^/]+)\/([^/]+)$/)
+    if (!repoMatch) {
+      return '#'
+    }
+    const owner = repoMatch[2]
+    const repo = repoMatch[3]
+    return `https://${owner}.github.io/${repo}/${locale}.html`
+  }
+
   return (
     <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-sans sm:p-20">
       <main className="row-start-2 flex flex-col items-center gap-[32px] sm:items-start">
@@ -49,6 +62,19 @@ export default function Home() {
         >
           <LuGithub />
           {t('github')}
+        </Link>
+        <Link
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
+          href={
+            githubPages(
+              process.env.NEXT_PUBLIC_REPOSITORY ?? 'https://github.com',
+            ) ?? '#'
+          }
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <MdOutlineDocumentScanner />
+          {t('docs')}
         </Link>
       </footer>
     </div>
