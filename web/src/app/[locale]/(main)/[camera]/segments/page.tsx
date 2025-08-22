@@ -5,18 +5,8 @@ import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { ArrowUp, CalendarIcon, Trash2 } from 'lucide-react'
@@ -301,7 +291,7 @@ export default function Page({
                 {selectedSegment.VideoBitrate
                   ? selectedSegment.VideoBitrate.toFixed(2)
                   : 'N/A'}{' '}
-                Kbps
+                kbps
               </p>
               <p>
                 <strong>音频编码器:</strong>{' '}
@@ -325,7 +315,7 @@ export default function Page({
                 {selectedSegment.AudioBitrate
                   ? selectedSegment.AudioBitrate.toFixed(2)
                   : 'N/A'}{' '}
-                Kbps
+                kbps
               </p>
             </div>
           )}
