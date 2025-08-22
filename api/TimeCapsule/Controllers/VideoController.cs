@@ -149,13 +149,16 @@ public class VideoController : ControllerBase
             return NotFound();
         Response.Headers.Append("Content-Type", "video/mp2t");
         Response.Headers.Append("Cache-Control", "public, max-age=60");
-        var args =
-            $"-ss {map.StartOffset.ToString(CultureInfo.InvariantCulture)} " +
-            $"-t {map.Duration.ToString(CultureInfo.InvariantCulture)} " +
-            $"-i \"{map.FilePath}\" " +
-            "-c:v copy -c:a aac -ar 44100 -ac 2 " +
-            "-f mpegts " +
-            "-reset_timestamps 1";
-        return new StreamResult(args);
+        var args = new StringBuilder();
+        args.Append($"-ss {map.StartOffset.ToString(CultureInfo.InvariantCulture)} "); // 起始时间偏移
+        args.Append($"-t {map.Duration.ToString(CultureInfo.InvariantCulture)} "); // 持续时间
+        args.Append($"-i \"{map.FilePath}\" "); // 原视频
+        args.Append(
+            $"-f lavfi -t {map.Duration.ToString(CultureInfo.InvariantCulture)} -i anullsrc=channel_layout=stereo:sample_rate=44100 "); // 静音音轨
+        args.Append("-filter_complex \"[0:a][1:a]amix=inputs=2:dropout_transition=0[a]\" "); // 混合音轨避免音量过低，前端不显示音量控制
+        args.Append("-map 0:v -map \"[a]\" "); // 视频原样，音轨为混合后的音轨
+        args.Append("-c:v copy -c:a aac -ar 44100 -ac 2 "); // 视频保留，音频 AAC
+        args.Append("-f mpegts -reset_timestamps 1"); // 输出 TS，重置时间戳
+        return new StreamResult(args.ToString());
     }
 }
