@@ -7,7 +7,7 @@ import '../global.css'
 const inter = Inter({
   subsets: ['latin'],
 })
-const cn: Partial<Translations> = {
+const zh: Partial<Translations> = {
   search: '搜索',
   searchNoResult: '没有找到结果',
   toc: '目录',
@@ -29,7 +29,7 @@ const locales = [
   },
   {
     name: 'Chinese',
-    locale: 'cn',
+    locale: 'zh',
   },
 ]
 
@@ -51,7 +51,7 @@ export default async function RootLayout({
             // available languages
             locales,
             // translations for UI
-            translations: { cn }[lang],
+            translations: { zh }[lang],
           }}
           search={{
             SearchDialog,

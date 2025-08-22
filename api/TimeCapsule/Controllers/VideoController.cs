@@ -74,6 +74,7 @@ public class VideoController : ControllerBase
     /// <param name="durationSec">持续时间（秒）</param>
     /// <param name="segmentSec">分片时长（秒）</param>
     /// <param name="sid">会话ID（可选）</param>
+    /// <param name="sourceAddress">是否使用源地址（可选）</param>
     /// <returns></returns>
     [HttpGet]
     public async Task<ActionResult> CameraPlaylist(
@@ -81,7 +82,8 @@ public class VideoController : ControllerBase
         long start,
         int durationSec = 1800,
         int segmentSec = 10,
-        string? sid = null)
+        string? sid = null,
+        bool? sourceAddress = null)
     {
         segmentSec = Math.Clamp(segmentSec, 2, 15); // 建议 5~10 秒
         durationSec = Math.Clamp(durationSec, 60, 7200); // 一次最多 2 小时
@@ -118,8 +120,19 @@ public class VideoController : ControllerBase
 
         string FmtPdt(DateTimeOffset pdt) => pdt.ToString("yyyy-MM-ddTHH:mm:ss.fffzzz");
 
-        string BaseUrl(string action, long seq) =>
-            $"/api/Video/{action}?sid={session.Sid}&seq={seq}";
+        string BaseUrl(string action, long seq)
+        {
+            if (sourceAddress == true)
+            {
+                // 获取请求过来的源地址
+                var request = HttpContext.Request;
+                var baseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
+                return $"{baseUrl}/Video/{action}?sid={session.Sid}&seq={seq}";
+            }
+
+            // 使用代理地址
+            return $"/api/Video/{action}?sid={session.Sid}&seq={seq}";
+        }
     }
 
     /// <summary>
@@ -136,13 +149,16 @@ public class VideoController : ControllerBase
             return NotFound();
         Response.Headers.Append("Content-Type", "video/mp2t");
         Response.Headers.Append("Cache-Control", "public, max-age=60");
-        var args =
-            $"-ss {map.StartOffset.ToString(CultureInfo.InvariantCulture)} " +
-            $"-t {map.Duration.ToString(CultureInfo.InvariantCulture)} " +
-            $"-i \"{map.FilePath}\" " +
-            "-c:v copy -c:a aac -ar 44100 -ac 2 " +
-            "-f mpegts " +
-            "-reset_timestamps 1";
-        return new StreamResult(args);
+        var args = new StringBuilder();
+        args.Append($"-ss {map.StartOffset.ToString(CultureInfo.InvariantCulture)} "); // 起始时间偏移
+        args.Append($"-t {map.Duration.ToString(CultureInfo.InvariantCulture)} "); // 持续时间
+        args.Append($"-i \"{map.FilePath}\" "); // 原视频
+        args.Append(
+            $"-f lavfi -t {map.Duration.ToString(CultureInfo.InvariantCulture)} -i anullsrc=channel_layout=stereo:sample_rate=44100 "); // 静音音轨
+        args.Append("-filter_complex \"[0:a][1:a]amix=inputs=2:dropout_transition=0[a]\" "); // 混合音轨避免音量过低，前端不显示音量控制
+        args.Append("-map 0:v -map \"[a]\" "); // 视频原样，音轨为混合后的音轨
+        args.Append("-c:v copy -c:a aac -ar 44100 -ac 2 "); // 视频保留，音频 AAC
+        args.Append("-f mpegts -reset_timestamps 1"); // 输出 TS，重置时间戳
+        return new StreamResult(args.ToString());
     }
 }

@@ -29,7 +29,8 @@
     "details01": "使用本地视频文件夹 /camera",
     "details02": "自动创建视频索引",
     "details03": "无缝拖动回放时间轴",
-    "github": "前往 GitHub →"
+    "github": "前往 GitHub →",
+    "docs": "阅读文档 →"
   },
   "LoginPage": {
     "title": "欢迎回来",

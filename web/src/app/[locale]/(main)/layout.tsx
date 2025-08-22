@@ -1,11 +1,8 @@
 import { AppSidebar } from '@/components/main/app-sidebar'
+import AppSidebarProvider from '@/components/main/app-sidebar-provider'
 import MainBreadcrumb from '@/components/main/main-breadcrumb'
 import { Separator } from '@/components/ui/separator'
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar'
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 
 export default function MainLayout({
   children,
@@ -13,7 +10,7 @@ export default function MainLayout({
   children: React.ReactNode
 }>) {
   return (
-    <SidebarProvider>
+    <AppSidebarProvider>
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
@@ -28,6 +25,6 @@ export default function MainLayout({
         </header>
         {children}
       </SidebarInset>
-    </SidebarProvider>
+    </AppSidebarProvider>
   )
 }

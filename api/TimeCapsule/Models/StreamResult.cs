@@ -42,7 +42,7 @@ public class StreamResult : IActionResult
                     // 将数据写入响应流
                     await response.Body.WriteAsync(args.Data.AsMemory(0, args.Data.Length), cancellationToken);
                 }
-                catch (Exception e)
+                catch
                 {
                     // Logger.Debug(e, "ffmpeg conversion cancelled");
                 }

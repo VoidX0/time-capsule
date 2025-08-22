@@ -1,6 +1,12 @@
 'use client'
 
-import { BadgeCheck, Bell, ChevronsUpDown, CircleFadingArrowUp, LogOut } from 'lucide-react'
+import {
+  BadgeCheck,
+  Bell,
+  ChevronsUpDown,
+  CircleFadingArrowUp,
+  LogOut,
+} from 'lucide-react'
 
 import { components } from '@/api/schema'
 import { UserProfileDialog } from '@/components/main/user-profile-dialog'
@@ -12,17 +18,23 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from '@/components/ui/sidebar'
 import { openapi } from '@/lib/http'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 type SystemUser = components['schemas']['SystemUser']
 export function NavUser({ user }: { user: SystemUser | undefined }) {
+  const locale = useLocale()
   const t = useTranslations('MainLayout')
   const { isMobile } = useSidebar()
   const router = useRouter()
@@ -47,7 +59,7 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
     }
     const owner = repoMatch[2]
     const repo = repoMatch[3]
-    return `https://${owner}.github.io/${repo}/en/docs/contribute/changelog#${version}`
+    return `https://${owner}.github.io/${repo}/${locale}/docs/contribute/changelog#${version}`
   }
 
   return (

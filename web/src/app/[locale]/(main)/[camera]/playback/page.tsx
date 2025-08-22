@@ -1,27 +1,15 @@
 'use client'
 
 import { components } from '@/api/schema'
-import CameraPlayer, {
-  CameraPlayerHandle,
-} from '@/components/camera/camera-player'
-import CameraTimeline, {
-  CameraTimelineHandle,
-} from '@/components/camera/camera-timeline'
+import CameraPlayer, { CameraPlayerHandle } from '@/components/camera/camera-player'
+import CameraTimeline, { CameraTimelineHandle } from '@/components/camera/camera-timeline'
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
 import { openapi } from '@/lib/http'
-import {
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  CirclePause,
-  CirclePlay,
-  Fullscreen,
-  Volume2,
-  VolumeOff,
-} from 'lucide-react'
+import { Calendar as CalendarIcon, CirclePause, CirclePlay, Fullscreen, Volume2, VolumeOff } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 type QueryDto = components['schemas']['QueryDto']
@@ -34,14 +22,17 @@ export default function Page({
 }>) {
   const playerRef = useRef<CameraPlayerHandle>(null) // 播放器引用
   const timelineRef = useRef<CameraTimelineHandle>(null) // 时间轴引用
-  const [initialTime, setInitialTime] = useState<number>(0) // 初始时间为两天前
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
-  const [progress, setProgress] = useState(initialTime) // 播放进度
+  const [initialTime, setInitialTime] = useState(0) // 初始时间
+  const [progress, setProgress] = useState(0) // 播放进度
   const [playbackRate, setPlaybackRate] = useState(1) // 播放速率
+  const [calendarOpen, setCalendarOpen] = useState(false) // 日历弹窗状态
 
   /* 初始化时间 */
   useEffect(() => {
-    setInitialTime(Date.now() - 2 * 24 * 60 * 60 * 1000)
+    const ts = Date.now() - 2 * 24 * 60 * 60 * 1000
+    setInitialTime(ts) // 设置初始时间
+    setProgress(ts) // 设置进度为初始时间
   }, [])
 
   /* 加载摄像头信息 */
@@ -102,12 +93,13 @@ export default function Page({
       {/*播放器控制*/}
       <div className="bg-muted/50 rounded-xl">
         <div className="flex flex-wrap items-center justify-center gap-2 p-4">
-          <Calendar />
+          <CalendarIcon />
           <p>{new Date(progress).toLocaleString()}</p>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-10 p-4">
-          {/*基础控制*/}
+        {/*控制*/}
+        <div className="flex flex-col items-center gap-2 p-4">
           <div className="flex items-center gap-2">
+            {/*播放/暂停*/}
             <Button
               variant="outline"
               size="icon"
@@ -125,6 +117,7 @@ export default function Page({
                 <CirclePause />
               )}
             </Button>
+            {/*全屏*/}
             <Button
               variant="outline"
               size="icon"
@@ -134,6 +127,7 @@ export default function Page({
             >
               <Fullscreen />
             </Button>
+            {/*静音*/}
             <Button
               variant="outline"
               size="icon"
@@ -149,88 +143,55 @@ export default function Page({
                 <Volume2 />
               )}
             </Button>
-            {playerRef.current?.videoElement?.muted ? null : (
-              <Slider
-                className="w-48"
-                defaultValue={[0]}
-                max={100}
-                step={1}
-                onValueChange={(value) => {
-                  if (!playerRef.current?.videoElement) return
-                  playerRef.current.videoElement.volume = value[0]! / 100
-                }}
-              />
-            )}
+            {/*音量控制*/}
+            <Slider
+              className="w-40"
+              defaultValue={[0]}
+              max={100}
+              step={1}
+              disabled={playerRef.current?.videoElement?.muted} // 静音时禁用
+              onValueChange={(value) => {
+                if (!playerRef.current?.videoElement) return
+                playerRef.current.videoElement.volume = value[0]! / 100
+              }}
+            />
           </div>
-          {/*快进快退*/}
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() =>
-                playerRef.current?.seekTo(progress - 3 * 24 * 60 * 60 * 1000)
-              }
+            {/* 倍速下拉选择 */}
+            <Select
+              value={playbackRate.toString()}
+              onValueChange={(val) => setPlaybackRate(Number(val))}
             >
-              <ChevronsLeft />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() =>
-                playerRef.current?.seekTo(progress - 24 * 60 * 60 * 1000)
-              }
-            >
-              <ChevronLeft />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() =>
-                playerRef.current?.seekTo(progress + 24 * 60 * 60 * 1000)
-              }
-            >
-              <ChevronRight />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() =>
-                playerRef.current?.seekTo(progress + 3 * 24 * 60 * 60 * 1000)
-              }
-            >
-              <ChevronsRight />
-            </Button>
-          </div>
-          {/*倍速*/}
-          <div className="flex items-center gap-2">
-            <Button
-              size="icon"
-              variant={playbackRate === 1 ? 'outline' : 'ghost'}
-              onClick={() => setPlaybackRate(1)}
-            >
-              X1
-            </Button>
-            <Button
-              size="icon"
-              variant={playbackRate === 4 ? 'outline' : 'ghost'}
-              onClick={() => setPlaybackRate(4)}
-            >
-              X4
-            </Button>
-            <Button
-              size="icon"
-              variant={playbackRate === 8 ? 'outline' : 'ghost'}
-              onClick={() => setPlaybackRate(8)}
-            >
-              X8
-            </Button>
-            <Button
-              size="icon"
-              variant={playbackRate === 16 ? 'outline' : 'ghost'}
-              onClick={() => setPlaybackRate(16)}
-            >
-              X16
-            </Button>
+              <SelectTrigger className="w-20">
+                <SelectValue placeholder="Speed" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1X</SelectItem>
+                <SelectItem value="4">4X</SelectItem>
+                <SelectItem value="8">8X</SelectItem>
+                <SelectItem value="16">16X</SelectItem>
+              </SelectContent>
+            </Select>
+            {/* 日期选择 */}
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button size="icon" variant="outline">
+                  <CalendarIcon />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={new Date(progress)}
+                  onSelect={(date) => {
+                    if (!date) return
+                    const ts = date.getTime()
+                    playerRef.current?.seekTo(ts)
+                    setCalendarOpen(false)
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>

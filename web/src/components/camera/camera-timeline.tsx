@@ -10,12 +10,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { openapi } from '@/lib/http'
 import { Calendar, CircleAlert, CircleDot, CircleX, Info } from 'lucide-react'
 import {
@@ -45,8 +39,13 @@ interface CameraTimelineProps {
   onTimeCommit?: (ts: number) => void // 时间调整完成
 }
 
-/* 聚类方法：按时间排序 & 按 thresholdMs 归类 */
-function clusterTimeline(events: Timeline[], thresholdMs: number) {
+/* 聚类方法：按时间排序 & 按像素距离归类 */
+function clusterTimeline(
+  events: Timeline[],
+  containerWidth: number, // 容器宽度，用于按像素聚类
+  viewport: { min: number; max: number },
+  maxPointPx = 40, // 最大像素间隔，低于该值归为同一类
+) {
   const sorted = [...events].sort(
     (a, b) => new Date(a.Time!).getTime() - new Date(b.Time!).getTime(),
   )
@@ -59,10 +58,18 @@ function clusterTimeline(events: Timeline[], thresholdMs: number) {
     } else {
       const last = cluster[cluster.length - 1]
       if (!last) continue // 防止空聚类
-      if (
-        new Date(item.Time!).getTime() - new Date(last.Time!).getTime() <=
-        thresholdMs
-      ) {
+
+      // 计算当前事件与上一个事件在屏幕上的像素距离
+      const lastX =
+        ((new Date(last.Time!).getTime() - viewport.min) /
+          (viewport.max - viewport.min)) *
+        containerWidth
+      const currentX =
+        ((new Date(item.Time!).getTime() - viewport.min) /
+          (viewport.max - viewport.min)) *
+        containerWidth
+
+      if (currentX - lastX <= maxPointPx) {
         cluster.push(item)
       } else {
         clusters.push(cluster)
@@ -77,72 +84,81 @@ function clusterTimeline(events: Timeline[], thresholdMs: number) {
 
 const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
   ({ cameraId, initialTime, onTimeChange, onTimeCommit }, ref) => {
-    const scrollTimeout = useRef<NodeJS.Timeout | undefined>(undefined) // 滚动结束后的延时处理
-    const [timeline, setTimeline] = useState<Timeline[] | undefined>(undefined) // 摄像头时间线数据
+    const [timeline, setTimeline] = useState<Timeline[]>([]) // 摄像头时间线数据
     const [currentTime, setCurrentTime] = useState(initialTime) // 当前时间戳
-    const [minTime, setMinTime] = useState(initialTime - 2 * 60 * 60 * 1000) // 最小时间戳
-    const [maxTime, setMaxTime] = useState(initialTime + 22 * 60 * 60 * 1000) // 最大时间戳
+
+    // viewport 表示事件区的展示窗口
+    const [viewport, setViewport] = useState({
+      min: initialTime - 2 * 60 * 60 * 1000,
+      max: initialTime + 22 * 60 * 60 * 1000,
+    })
+
     const [selectedCluster, setSelectedCluster] = useState<
       Timeline[] | undefined
-    >(undefined)
+    >(undefined) // 选中的聚类事件
 
-    /* 获取摄像头时间线数据 */
+    // 拖动相关
+    const dragging = useRef(false) // 是否正在拖动
+    const lastX = useRef(0) // 上一次鼠标位置，用于计算拖动距离
+    const containerRef = useRef<HTMLDivElement>(null) // 时间轴容器引用
+
+    /* 获取时间线数据 */
     useEffect(() => {
       const getTimeline = async () => {
-        const query: GetTimelineQuery = { cameraId: cameraId }
+        const query: GetTimelineQuery = { cameraId }
         const { data } = await openapi.GET('/Camera/GetTimeline', {
-          params: { query: query },
+          params: { query },
         })
         return data
       }
       if (!cameraId) return
-      getTimeline().then((data) => setTimeline(data))
-    }, [cameraId, maxTime, minTime])
+      getTimeline().then((data) => setTimeline(data ?? []))
+    }, [cameraId])
 
-    /* 监控当前时间戳变化, 触发通知并调整时间范围 */
+    /* currentTime 变化时，调整 viewport */
     useEffect(() => {
-      const hours2 = 2 * 60 * 60 * 1000
-      if (currentTime - minTime < hours2) {
-        setMinTime(minTime - hours2)
-        setMaxTime(maxTime - hours2)
-      }
-      if (maxTime - currentTime < hours2) {
-        setMinTime(minTime + hours2)
-        setMaxTime(maxTime + hours2)
-      }
-    }, [currentTime, maxTime, minTime])
+      setViewport((v) => {
+        const viewportWidth = v.max - v.min
+        const buffer = viewportWidth * 0.3
+        let { min, max } = v
 
-    /* 滚轮滚动事件 */
-    useEffect(() => {
-      const handleWheel = (e: WheelEvent) => {
-        e.preventDefault()
-        if (e.shiftKey) {
-          const delta = e.deltaY > 0 ? 10 * 60 * 1000 : -10 * 60 * 1000
-          const newMinTime = minTime - delta
-          const newMaxTime = maxTime + delta
-          if (newMaxTime - newMinTime < 6 * 60 * 60 * 1000) return
-          if (newMaxTime - newMinTime > 30 * 24 * 60 * 60 * 1000) return
-          setMinTime(newMinTime)
-          setMaxTime(newMaxTime)
-        } else {
-          // 滚动开始，触发时间变更，清除定时器
-          onTimeChange?.(currentTime)
-          if (scrollTimeout.current) clearTimeout(scrollTimeout.current)
-          // 处理时间滚动
-          const delta = e.deltaY > 0 ? 10 * 60 * 1000 : -10 * 60 * 1000
-          setCurrentTime((prev) => prev + delta)
-          // 滚动结束，初始化定时器
-          scrollTimeout.current = setTimeout(
-            () => onTimeCommit?.(currentTime),
-            500,
-          )
+        if (currentTime > max - buffer) {
+          const shift = currentTime - (max - buffer)
+          min += shift
+          max += shift
+        } else if (currentTime < min + buffer) {
+          const shift = min + buffer - currentTime
+          min -= shift
+          max -= shift
         }
+
+        return { min, max }
+      })
+    }, [currentTime])
+
+    /* 事件区拖动 */
+    useEffect(() => {
+      const onMouseMove = (e: MouseEvent) => {
+        if (!dragging.current || !containerRef.current) return
+        const deltaPx = e.clientX - lastX.current
+        lastX.current = e.clientX
+        const width = containerRef.current.offsetWidth
+        const deltaMs = (deltaPx / width) * (viewport.max - viewport.min)
+        setViewport((v) => ({
+          min: v.min - deltaMs,
+          max: v.max - deltaMs,
+        }))
       }
-      window.addEventListener('wheel', handleWheel, { passive: false })
+      const onMouseUp = () => {
+        dragging.current = false
+      }
+      window.addEventListener('mousemove', onMouseMove)
+      window.addEventListener('mouseup', onMouseUp)
       return () => {
-        window.removeEventListener('wheel', handleWheel)
+        window.removeEventListener('mousemove', onMouseMove)
+        window.removeEventListener('mouseup', onMouseUp)
       }
-    }, [currentTime, maxTime, minTime, onTimeChange, onTimeCommit])
+    }, [viewport])
 
     /* 对外暴露接口 */
     useImperativeHandle(ref, () => ({
@@ -151,133 +167,162 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
       },
     }))
 
-    /* 过滤 + 聚类 */
+    const containerWidth = containerRef.current?.offsetWidth ?? 1
+
+    // 使用按像素聚类的方法
     const clusters = clusterTimeline(
       (timeline ?? []).filter(
         (item) =>
-          new Date(item.Time!).getTime() >= minTime &&
-          new Date(item.Time!).getTime() <= maxTime,
+          new Date(item.Time!).getTime() >= viewport.min &&
+          new Date(item.Time!).getTime() <= viewport.max,
       ),
-      60 * 60 * 1000, // 60分钟内的事件归为一类
+      containerWidth,
+      viewport,
+      40, // 最大像素间隔，可调
     )
 
     return (
-      <TooltipProvider>
+      <div>
         {/* Slider */}
-        <div className="w-full">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Slider
-                value={[currentTime]}
-                min={minTime}
-                max={maxTime}
-                step={1000}
-                onValueChange={(val) => {
-                  onTimeChange?.(currentTime)
-                  setCurrentTime(val[0]!)
-                }}
-                onValueCommit={(val) => onTimeCommit?.(val[0]!)}
-              />
-            </TooltipTrigger>
-            <TooltipContent>
-              <div className="flex flex-col items-center space-y-1">
-                <p>{new Date(currentTime).toLocaleString()}</p>
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-
+        <Slider
+          value={[currentTime]}
+          min={viewport.min}
+          max={viewport.max}
+          step={1000}
+          onValueChange={(val) => {
+            onTimeChange?.(val[0]!)
+            setCurrentTime(val[0]!)
+          }}
+          onValueCommit={(val) => {
+            onTimeCommit?.(val[0]!)
+          }}
+        />
         {/* 时间轴 */}
-        <div className="mt-8">
-          <div className="relative">
-            {/*时间线*/}
-            <div className="absolute top-4 right-0 left-0 border-t-2" />
-            {/* 时间轴上的聚类点 */}
-            {clusters.map((group, index) => {
-              const first = group[0]
-              if (!first) return null // 防止空聚类
-              // 30秒内的事件视为当前活动事件
-              const isActive =
-                Math.abs(currentTime - new Date(first.Time!).getTime()) <
-                30 * 1000
-              const positionPercent =
-                ((new Date(first.Time!).getTime() - minTime) /
-                  (maxTime - minTime)) *
-                100
+        <div
+          ref={containerRef}
+          className="relative mt-8 h-60 overflow-hidden select-none"
+          onMouseDown={(e) => {
+            dragging.current = true
+            lastX.current = e.clientX
+          }}
+          // 触摸事件处理
+          onTouchStart={(e) => {
+            dragging.current = true
+            lastX.current = e.touches[0]?.clientX ?? 0
+          }}
+          onTouchMove={(e) => {
+            if (!dragging.current || !containerRef.current) return
+            const deltaPx = (e.touches[0]?.clientX ?? 0) - lastX.current
+            lastX.current = e.touches[0]?.clientX ?? 0
+            const width = containerRef.current.offsetWidth
+            const deltaMs = (deltaPx / width) * (viewport.max - viewport.min)
+            setViewport((v) => ({
+              min: v.min - deltaMs,
+              max: v.max - deltaMs,
+            }))
+          }}
+          onTouchEnd={() => {
+            dragging.current = false
+          }}
+        >
+          {/* 中心线 */}
+          <div className="absolute top-4 right-0 left-0 border-t-2" />
 
-              return (
-                <div
-                  key={index}
-                  onClick={() => {
-                    if (group.length === 1) {
-                      // 单个事件，直接跳转
-                      onTimeChange?.(currentTime)
-                      setCurrentTime(new Date(first.Time!).getTime())
-                      onTimeCommit?.(new Date(first.Time!).getTime())
-                    } else {
-                      setSelectedCluster(group) // 多个事件，显示聚类详情
-                    }
-                  }}
-                  style={{
-                    position: 'absolute',
-                    left: `${positionPercent}%`, // 计算位置百分比
-                    transform: 'translateX(-50%)', // 居中对齐
-                  }}
-                  className="flex cursor-pointer flex-col items-center text-center"
-                >
-                  {/* 圆点/聚合 */}
-                  {group.length > 1 ? (
-                    <div className="absolute top-4 -translate-y-1/2 rounded-full px-2 py-0.5 text-xs">
-                      {group.length}
-                    </div>
-                  ) : (
-                    <div
-                      className={`absolute top-4 h-3 w-3 -translate-y-1/2 rounded-full border-2 transition-all ${
-                        isActive
-                          ? 'bg-primary border-primary scale-125'
-                          : 'bg-background border-primary'
-                      }`}
-                    />
-                  )}
+          {clusters.map((group, index) => {
+            const first = group[0]
+            if (!first) return null
 
-                  {/* 内容 */}
-                  <div className="mt-8 w-40 space-y-2">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="bg-accent flex h-9 w-9 items-center justify-center rounded-full">
-                        {first.Level === 'verbose' && (
-                          <CircleDot className="text-muted-foreground h-5 w-5" />
-                        )}
-                        {first.Level === 'info' && (
-                          <Info className="h-5 w-5 text-blue-500" />
-                        )}
-                        {first.Level === 'warning' && (
-                          <CircleAlert className="h-5 w-5 text-yellow-500" />
-                        )}
-                        {first.Level === 'error' && (
-                          <CircleX className="h-5 w-5 text-red-500" />
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="text-base font-semibold">{first.Title}</h3>
-                      <div className="mt-1 flex items-center justify-center gap-2 text-sm">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {new Date(first.Time!).toLocaleTimeString()}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-muted-foreground text-sm">
-                      {first.Description}
-                    </p>
+            // 计算事件在屏幕上的百分比位置
+            const positionPercent =
+              ((new Date(first.Time!).getTime() - viewport.min) /
+                (viewport.max - viewport.min)) *
+              100
+
+            const isActive =
+              Math.abs(currentTime - new Date(first.Time!).getTime()) <
+              30 * 1000
+
+            const pointWidth = 120 // 子元素 max-width，px
+            const containerWidth = containerRef.current?.offsetWidth ?? 1
+
+            // 根据百分比计算初步像素位置
+            let leftPx = (positionPercent / 100) * containerWidth
+
+            // 限制左边界
+            leftPx = Math.max(leftPx, pointWidth / 2)
+            // 限制右边界
+            leftPx = Math.min(leftPx, containerWidth - pointWidth / 2)
+
+            return (
+              <div
+                key={index}
+                onClick={() => {
+                  if (group.length === 1) {
+                    // 单个事件，直接跳转
+                    onTimeChange?.(new Date(first.Time!).getTime())
+                    setCurrentTime(new Date(first.Time!).getTime())
+                    onTimeCommit?.(new Date(first.Time!).getTime())
+                  } else {
+                    // 聚类事件，显示聚类详情
+                    setSelectedCluster(group)
+                  }
+                }}
+                style={{
+                  position: 'absolute',
+                  left: `${leftPx}px`, // 安全像素位置
+                  transform: 'translateX(-50%)', // 保持居中
+                }}
+                className="flex cursor-pointer flex-col items-center text-center"
+              >
+                {/* 聚类点 / 单点显示 */}
+                {group.length > 1 ? (
+                  <div className="bg-accent absolute top-4 -translate-y-1/2 rounded-full px-2 py-0.5 text-xs">
+                    {group.length}
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+                ) : (
+                  <div
+                    className={`absolute top-4 h-3 w-3 -translate-y-1/2 rounded-full border-2 transition-all ${
+                      isActive
+                        ? 'bg-primary border-primary scale-125'
+                        : 'bg-background border-primary'
+                    }`}
+                  />
+                )}
 
-        {/* 聚类详细信息弹窗 */}
+                {/* 内容 */}
+                <div className="mt-8 max-w-[120px] space-y-2 text-xs sm:max-w-[160px] sm:text-sm">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="bg-accent flex h-9 w-9 items-center justify-center rounded-full">
+                      {first.Level === 'verbose' && (
+                        <CircleDot className="text-muted-foreground h-5 w-5" />
+                      )}
+                      {first.Level === 'info' && (
+                        <Info className="h-5 w-5 text-blue-500" />
+                      )}
+                      {first.Level === 'warning' && (
+                        <CircleAlert className="h-5 w-5 text-yellow-500" />
+                      )}
+                      {first.Level === 'error' && (
+                        <CircleX className="h-5 w-5 text-red-500" />
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold">{first.Title}</h3>
+                    <div className="mt-1 flex items-center justify-center gap-2 text-sm">
+                      <Calendar className="h-4 w-4" />
+                      <span>{new Date(first.Time!).toLocaleTimeString()}</span>
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    {first.Description}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        {/* 聚类详情 */}
         <Dialog
           open={!!selectedCluster}
           onOpenChange={(open) => !open && setSelectedCluster(undefined)}
@@ -292,11 +337,9 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
                   key={idx}
                   className="hover:bg-muted/10 cursor-pointer rounded border-b p-2 pb-2 last:border-b-0"
                   onClick={() => {
-                    // 点击事件，跳转到对应时间
-                    onTimeChange?.(currentTime)
+                    onTimeChange?.(new Date(item.Time!).getTime())
                     setCurrentTime(new Date(item.Time!).getTime())
-                    onTimeCommit?.(currentTime)
-                    // 关闭弹窗
+                    onTimeCommit?.(new Date(item.Time!).getTime())
                     setSelectedCluster(undefined)
                   }}
                 >
@@ -309,9 +352,35 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
                   <p className="text-muted-foreground text-sm">
                     {item.Description}
                   </p>
-                  <Badge variant="secondary" className="mt-1 rounded-full">
-                    {item.Level}
-                  </Badge>
+                  {item.Level === 'verbose' && (
+                    <Badge variant="secondary" className="mt-1 rounded-full">
+                      {item.Level}
+                    </Badge>
+                  )}
+                  {item.Level === 'info' && (
+                    <Badge
+                      variant="secondary"
+                      className="mt-1 rounded-full text-blue-500"
+                    >
+                      {item.Level}
+                    </Badge>
+                  )}
+                  {item.Level === 'warning' && (
+                    <Badge
+                      variant="secondary"
+                      className="mt-1 rounded-full text-yellow-500"
+                    >
+                      {item.Level}
+                    </Badge>
+                  )}
+                  {item.Level === 'error' && (
+                    <Badge
+                      variant="secondary"
+                      className="mt-1 rounded-full text-red-500"
+                    >
+                      {item.Level}
+                    </Badge>
+                  )}
                 </div>
               ))}
             </div>
@@ -320,7 +389,7 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
             </DialogClose>
           </DialogContent>
         </Dialog>
-      </TooltipProvider>
+      </div>
     )
   },
 )

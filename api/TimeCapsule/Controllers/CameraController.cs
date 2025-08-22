@@ -46,7 +46,7 @@ public class CameraController : OrmController<Camera>
         });
         return Ok();
     }
-    
+
     /// <summary>
     /// 获取时间轴
     /// </summary>
@@ -75,16 +75,23 @@ public class CameraController : OrmController<Camera>
             // 第一个数据
             if (i == 0)
             {
-                timeline.Add(new Timeline(currentSegment.StartTime, "Online", "", "info"));
+                timeline.Add(new Timeline(currentSegment.StartTime, "Init", "", "info"));
                 continue;
             }
 
             // 后续数据
             var preSegment = segments[i - 1]; // 上一个数据
+            // 判断上一个视频的真实时长与预期时长  真实时长比预期时长少 代表摄像头可能掉线
+            var durationShort = preSegment.DurationTheoretical > preSegment.DurationActual &&
+                                preSegment.DurationTheoretical - preSegment.DurationActual >
+                                TimeSpan.FromMinutes(30);
+            // 中途掉线情况下，结束时间应当为开始时间 + 真实录制时长
+            var preSegmentEndTime =
+                durationShort ? preSegment.StartTime + preSegment.DurationActual : preSegment.EndTime;
             // 判断当前数据和上一个数据的时间差
-            if (currentSegment.StartTime - preSegment.EndTime < TimeSpan.FromSeconds(60)) continue;
+            if (currentSegment.StartTime - preSegmentEndTime < TimeSpan.FromSeconds(60)) continue;
             // 添加下线时间点
-            timeline.Add(new Timeline(preSegment.EndTime, "Offline", "", "warning"));
+            timeline.Add(new Timeline(preSegmentEndTime, "Offline", "", "warning"));
             // 添加当前数据的上线时间点
             timeline.Add(new Timeline(currentSegment.StartTime, "Online", "", "info"));
         }
@@ -111,21 +118,7 @@ public class CameraController : OrmController<Camera>
         // 删除对应的文件 (删除失败的文件，会在下次Sync时重新同步，所以不需要处理异常)
         foreach (var camera in entity)
         {
-            var video = new DirectoryInfo(Path.Combine(_systemOptions.CameraPath, camera.BasePath));
             var cache = new DirectoryInfo(Path.Combine(_systemOptions.CachePath, camera.Id.ToString()));
-            // 删除视频目录
-            if (video.Exists)
-            {
-                try
-                {
-                    video.Delete(true);
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-
             // 删除缓存目录
             if (cache.Exists)
             {
