@@ -189,15 +189,13 @@ export default function Page({
               <strong>平均码率:</strong>{' '}
               {segments.length > 0
                 ? (
-                    (segments.reduce(
+                    segments.reduce(
                       (sum, seg) => sum + (seg.AudioBitrate || 0),
                       0,
-                    ) /
-                      segments.length) *
-                    1000
+                    ) / segments.length
                   ).toFixed(2)
                 : 0}{' '}
-              bps
+              kbps
             </p>
           </CardContent>
         </Card>
