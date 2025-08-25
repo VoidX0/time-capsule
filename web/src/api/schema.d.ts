@@ -1226,6 +1226,8 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
+                    /** @description 摄像头ID */
+                    cameraId?: string;
                     /** @description 视频片段ID */
                     segmentId?: string;
                 };
@@ -1535,6 +1537,8 @@ export interface paths {
                     segmentSec?: number;
                     /** @description 会话ID（可选） */
                     sid?: string;
+                    /** @description 是否使用源地址（可选） */
+                    sourceAddress?: boolean;
                 };
                 header?: never;
                 path?: never;

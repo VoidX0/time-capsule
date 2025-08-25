@@ -1,16 +1,16 @@
 'use client'
 
-import {components} from '@/api/schema'
+import { components } from '@/api/schema'
 import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
-import {Badge} from '@/components/ui/badge'
-import {Button} from '@/components/ui/button'
-import {Calendar} from '@/components/ui/calendar'
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,} from '@/components/ui/dialog'
-import {Popover, PopoverContent, PopoverTrigger,} from '@/components/ui/popover'
-import {openapi} from '@/lib/http'
-import {timeSpanToMilliseconds} from '@/lib/time-span'
-import {ArrowUp, CalendarIcon, Trash2} from 'lucide-react'
-import {useEffect, useState} from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { openapi } from '@/lib/http'
+import { timeSpanToMilliseconds } from '@/lib/time-span'
+import { ArrowUp, CalendarIcon, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
@@ -202,7 +202,7 @@ export default function Page({
                       className="block"
                       animationStyle="from-center"
                       videoSrc={`/api/Video/SegmentStream?segmentId=${segment.Id}`}
-                      thumbnailSrc={`/api/Segment/GetThumbnail?segmentId=${segment.Id}`}
+                      thumbnailSrc={`/api/Segment/GetThumbnail?cameraId=${cameraInfo.Id}&segmentId=${segment.Id}`}
                       thumbnailAlt={`${new Date(segment.StartTime!).toLocaleString()} - ${new Date(segment.EndTime!).toLocaleString()}`}
                     />
                   </div>
