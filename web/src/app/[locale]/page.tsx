@@ -20,7 +20,7 @@ export default function Home() {
     }
     const owner = repoMatch[2]
     const repo = repoMatch[3]
-    return `https://${owner}.github.io/${repo}/${locale}.html`
+    return `https://${owner}.github.io/${repo}/${locale}/`
   }
 
   return (
