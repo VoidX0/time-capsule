@@ -4,8 +4,9 @@ description: 了解如何部署本项目
 ---
 
 ## 安装
-- 本项目使用[PostgreSQL](https://www.postgresql.org/)数据库，如果不使用[Docker Compose部署](#dockercompose部署推荐)，
-请手动安装PostgreSQL数据库，并修改[`ConnectionOptions__DbConnection`](./config.mdx#connectionoptions配置)配置项。
+- 🗄️ 本项目使用[PostgreSQL](https://www.postgresql.org/)数据库，如果不使用[Docker Compose部署](#dockercompose部署推荐)，
+请手动安装PostgreSQL数据库，并修改[`ConnectionOptions__DbConnection`](./config/#connectionoptions配置)配置项。
+- ⚙️ 所有配置项请参考[配置项](./config/)
 
 ### DockerCompose部署(推荐)
 
@@ -51,8 +52,8 @@ services:
 
 ### 源码部署
 
-1. 克隆项目代码并进入目录`git clone https://github.com/VoidX0/time-capsule.git && cd time-capsule`
-2. 安装后端依赖并构建`cd api && dotnet restore && dotnet build`
-3. 安装前端依赖并构建`cd web && pnpm install && pnpm build`
-4. 项目配置，具体配置项请参考[配置项](./config.mdx)
-5. 自行启动或托管前端/后端服务
+1. 📥克隆项目代码并进入目录`git clone https://github.com/VoidX0/time-capsule.git && cd time-capsule`
+2. ⚙️安装后端依赖并构建`cd api && dotnet restore && dotnet build`
+3. 📦安装前端依赖并构建`cd web && pnpm install && pnpm build`
+4. 📝项目配置，具体配置项请参考[配置项](./config/)
+5. 🚀自行启动或托管前端/后端服务

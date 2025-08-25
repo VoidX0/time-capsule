@@ -2,23 +2,11 @@
 
 import { components, paths } from '@/api/schema'
 import { Badge } from '@/components/ui/badge'
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
 import { openapi } from '@/lib/http'
-import { Calendar, CircleAlert, CircleDot, CircleX, Info } from 'lucide-react'
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react'
+import { CircleAlert, CircleDot, CircleX, Info } from 'lucide-react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 type GetTimelineQuery =
   paths['/Camera/GetTimeline']['get']['parameters']['query']
@@ -309,8 +297,7 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
                   </div>
                   <div>
                     <h3 className="text-base font-semibold">{first.Title}</h3>
-                    <div className="mt-1 flex items-center justify-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4" />
+                    <div className="mt-1 flex rotate-45 items-center justify-center gap-2 text-sm">
                       <span>{new Date(first.Time!).toLocaleTimeString()}</span>
                     </div>
                   </div>

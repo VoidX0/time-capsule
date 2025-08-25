@@ -72,7 +72,6 @@ public class HlsService : IHlsService
         }
         else
         {
-            
             session = new HlsSession
             {
                 Sid = string.IsNullOrEmpty(sid) ? Guid.NewGuid().ToString("N") : sid!,
@@ -90,7 +89,8 @@ public class HlsService : IHlsService
 
         var segments = await _db.Queryable<VideoSegment>()
             .Where(x => x.CameraId == cameraIdActual)
-            .Where(x => x.EndTime > start && x.StartTime < end) // 有交集
+            // 取交集 以开始时间+实际时长为准
+            .Where(x => (x.StartTime + x.DurationActual) > start && x.StartTime < end)
             .OrderBy(x => x.StartTime)
             .SplitTable()
             .ToListAsync();
@@ -109,8 +109,9 @@ public class HlsService : IHlsService
                 seg.Path);
 
             // 在该源文件内的可用播放窗口
+            var segEnd = seg.StartTime + seg.DurationActual; // 实际结束时间
             var clipStart = cursor > seg.StartTime ? cursor : seg.StartTime;
-            var clipEnd = end < seg.EndTime ? end : seg.EndTime;
+            var clipEnd = end < segEnd ? end : segEnd;
 
             if (clipEnd <= clipStart) continue;
 
