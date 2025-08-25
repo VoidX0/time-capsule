@@ -29,21 +29,16 @@ public class SegmentController : OrmController<VideoSegment>
     /// <summary>
     /// 获取缩略图
     /// </summary>
+    /// <param name="cameraId">摄像头ID</param>
     /// <param name="segmentId">视频片段ID</param>
     /// <returns></returns>
     [HttpGet]
     [TypeFilter(typeof(AllowAnonymousFilter))]
-    public async Task<ActionResult> GetThumbnail(string segmentId)
+    public async Task<ActionResult> GetThumbnail(string cameraId, string segmentId)
     {
-        var segmentIdActual = long.TryParse(segmentId.Replace(" ", ""), out var sid) ? sid : 0;
-        // 查询视频片段
-        var segment = await Db.Queryable<VideoSegment>()
-            .Where(x => x.Id == segmentIdActual)
-            .SplitTable()
-            .FirstAsync();
-        if (segment == null) return BadRequest("视频片段不存在");
+        await Task.CompletedTask;
         // 检查文件
-        var video = Path.Combine(_systemOptions.CachePath, segment.CameraId.ToString(), $"{segment.Id}.jpg");
+        var video = Path.Combine(_systemOptions.CachePath, cameraId, $"{segmentId}.jpg");
         if (!new FileInfo(video).Exists) return BadRequest("缩略图不存在");
         // 设置响应头
         Response.Headers.Append("Content-Type", "image/jpeg");
