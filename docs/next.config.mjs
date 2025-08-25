@@ -11,6 +11,8 @@ const config = {
     images: {
         unoptimized: true, // 关闭图片优化
     },
+    trailingSlash: true, //Change links `/me` -> `/me/` and emit `/me.html` -> `/me/index.html`
+    skipTrailingSlashRedirect: true, //Prevent automatic `/me` -> `/me/`, instead preserve `href`
     // 严格模式
     reactStrictMode: true,
     // Twoslash
