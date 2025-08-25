@@ -1,0 +1,25 @@
+---
+title: 权限管理
+description: 用户权限认证与管理
+---
+
+
+import {Callout} from "fumadocs-ui/components/callout";
+
+## 角色
+- 在`设置-角色`页面可以创建和管理不同的角色
+- 角色可以分配不同的权限，以控制用户对系统功能的访问
+
+## 用户
+- 在`设置-用户`页面可以创建和管理用户账户
+- 用户可以分配一个或多个角色，从而继承相应的权限
+- 用户也可以单独分配权限
+
+## 权限
+- 用户最终的权限是其所分配角色权限与单独分配权限的合集
+- 通过合理分配角色和权限，可以实现灵活的权限管理
+
+## OIDC
+<Callout type="info">使用OIDC登录的用户必须在系统中预先创建</Callout>
+- 支持通过OIDC（OpenID Connect）进行用户认证
+- 配置详见[OIDC配置项](../deploy/config#oidcoptions配置)
