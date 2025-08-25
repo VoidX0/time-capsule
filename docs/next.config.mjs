@@ -7,7 +7,7 @@ const config = {
     // 静态导出优化
     output: 'export', // 使用静态导出模式
     // 生产环境设置 basePath
-    // ...(process.env.NODE_ENV === 'development' ? {} : {basePath: '/time-capsule'}),
+    ...(process.env.NODE_ENV === 'development' ? {} : {basePath: '/time-capsule'}),
     images: {
         unoptimized: true, // 关闭图片优化
     },
