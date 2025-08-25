@@ -11,6 +11,7 @@ import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { ArrowUp, CalendarIcon, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { DateRange } from 'react-day-picker'
 
 type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
@@ -26,11 +27,33 @@ export default function Page({
   const [segmentsByDate, setSegmentsByDate] = useState<
     Record<string, Segment[]>
   >({}) // 按日期分组的视频切片
+  const now = Date.now()
+  const weeksAgo = now - 7 * 24 * 60 * 60 * 1000
+  const nowDate = new Date(now)
+  const weeksAgoDate = new Date(weeksAgo)
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(
+      weeksAgoDate.getFullYear(),
+      weeksAgoDate.getMonth(),
+      weeksAgoDate.getDate(),
+      0,
+      0,
+      0,
+    ),
+    to: new Date(
+      nowDate.getFullYear(),
+      nowDate.getMonth(),
+      nowDate.getDate(),
+      23,
+      59,
+      59,
+    ),
+  })
   const [popover, setPopover] = useState(false) // 控制 Popover 开关
   const [detailOpen, setDetailOpen] = useState(false) // 控制详情弹窗开关
   const [selectedSegment, setSelectedSegment] = useState<Segment | null>(null) // 当前选中的Segment
 
-  /* 加载摄像头与Segment列表 */
+  /* 加载摄像头 */
   useEffect(() => {
     const getCameraInfo = async (cameraId: string) => {
       const body: QueryDto = {
@@ -45,6 +68,22 @@ export default function Page({
       setCameraInfo(data![0])
     }
 
+    params.then((param) => {
+      const cameraId = param.camera
+      if (!cameraId) return
+      getCameraInfo(cameraId).then()
+    })
+  }, [params])
+
+  /* 加载Segments */
+  useEffect(() => {
+    const formatDate = (date: Date) => {
+      const y = date.getFullYear()
+      const m = String(date.getMonth() + 1).padStart(2, '0')
+      const d = String(date.getDate()).padStart(2, '0')
+      return `${y}-${m}-${d}`
+    }
+
     const getSegments = async (cameraId: string) => {
       const body: QueryDto = {
         PageNumber: 1,
@@ -55,11 +94,28 @@ export default function Page({
             FieldValue: cameraId,
             CSharpTypeName: 'long',
           },
+          {
+            FieldName: 'StartTime',
+            FieldValue: `${formatDate(date?.from ?? new Date())} 00:00:00`,
+            ConditionalType: 3,
+            CSharpTypeName: 'DateTimeOffset',
+          },
+          {
+            FieldName: 'EndTime',
+            FieldValue: `${formatDate(date?.to ?? new Date())} 23:59:59`,
+            ConditionalType: 5,
+            CSharpTypeName: 'DateTimeOffset',
+          },
         ],
         Order: [{ FieldName: 'StartTime', OrderByType: 1 }],
       }
       const { data } = await openapi.POST('/Segment/Query', { body })
-      if ((data?.length ?? -1) <= 0) return
+      if ((data?.length ?? -1) <= 0) {
+        // 清空
+        setSegments([])
+        setSegmentsByDate({})
+        return
+      }
       setSegments(data!)
       // 按日期分组视频切片
       const grouped: Record<string, Segment[]> = {}
@@ -71,14 +127,9 @@ export default function Page({
       })
       setSegmentsByDate(grouped)
     }
-
-    params.then((param) => {
-      const cameraId = param.camera
-      if (!cameraId) return
-      getCameraInfo(cameraId).then()
-      getSegments(cameraId).then()
-    })
-  }, [params])
+    if (cameraInfo === undefined) return
+    getSegments(cameraInfo?.Id?.toString() ?? '').then()
+  }, [cameraInfo, date?.from, date?.to])
 
   /* 删除Segments */
   const deleteSegments = async (segmentsToDelete: Segment[]) => {
@@ -117,6 +168,10 @@ export default function Page({
   return (
     <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl p-8">
       <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.Name || ''}</h1>
+      <h2 className="mb-4 text-lg font-semibold">
+        {date?.from?.toLocaleDateString() || ''} -{' '}
+        {date?.to?.toLocaleDateString() || ''}
+      </h2>
       <div className="grid grid-cols-1 gap-4">
         {/*按天分组的视频片段*/}
         {Object.entries(segmentsByDate).map(([date, segments]) => (
@@ -324,19 +379,6 @@ export default function Page({
 
       {/* 浮动按钮 - 日期选择 */}
       {(() => {
-        const handleSelectDate = (selectedDate: Date | undefined) => {
-          if (!selectedDate) return
-          const y = selectedDate.getFullYear()
-          const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
-          const d = String(selectedDate.getDate()).padStart(2, '0')
-          const dateKey = `${y}-${m}-${d}`
-          const target = document.getElementById(`date-${dateKey}`)
-          if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          }
-          setPopover(false)
-        }
-
         return (
           <Popover open={popover} onOpenChange={setPopover}>
             <PopoverTrigger asChild>
@@ -348,7 +390,14 @@ export default function Page({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
-              <Calendar mode="single" onSelect={handleSelectDate} />
+              <Calendar
+                autoFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={setDate}
+                numberOfMonths={2}
+              />
             </PopoverContent>
           </Popover>
         )
