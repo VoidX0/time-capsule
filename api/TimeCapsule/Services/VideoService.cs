@@ -152,7 +152,7 @@ public class VideoService
         var successCount = results.Count(x => x.IsSuccess);
         var errorCount = results.Count(x => !x.IsSuccess);
         var message = $"缓存重建完成，共计{cameras.Count}个摄像头，成功{successCount}个，失败{errorCount}个";
-        return OperateResult.Success();
+        return OperateResult.Success(message);
     }
 
     /// <summary>
