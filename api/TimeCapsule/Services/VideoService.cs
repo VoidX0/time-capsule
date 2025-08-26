@@ -23,11 +23,6 @@ public class VideoService
     private SystemOptions SystemOptions { get; }
 
     /// <summary>
-    /// 数据库
-    /// </summary>
-    private ISqlSugarClient Db { get; } = DbScoped.SugarScope;
-
-    /// <summary>
     /// 日志记录器
     /// </summary>
     private ILogger Logger => Log.ForContext<VideoService>();
@@ -47,8 +42,13 @@ public class VideoService
     /// <returns></returns>
     public async Task<OperateResult> Sync()
     {
-        var cameras = await Db.Queryable<Camera>().ToListAsync();
-        var tasks = cameras.Select(x => Task.Run(async () => await Sync(x))).ToList();
+        var db = DbScoped.SugarScope;
+        var cameras = await db.Queryable<Camera>().ToListAsync();
+        var tasks = cameras.Select(async x =>
+        {
+            using var cameraDb = new SqlSugarClient(DbScoped.SugarScope.CurrentConnectionConfig);
+            return await Sync(x, cameraDb);
+        }).ToList();
         var results = await Task.WhenAll(tasks);
         // 组装返回信息
         var successCount = results.Count(x => x.IsSuccess);
@@ -61,11 +61,12 @@ public class VideoService
     /// 同步指定摄像头的元数据
     /// </summary>
     /// <param name="camera">摄像头</param>
+    /// <param name="db">数据库连接</param>
     /// <returns></returns>
-    public async Task<OperateResult> Sync(Camera camera)
+    public async Task<OperateResult> Sync(Camera camera, ISqlSugarClient db)
     {
         // 数据库中所有视频段
-        var dbSegments = await Db.Queryable<VideoSegment>()
+        var dbSegments = await db.Queryable<VideoSegment>()
             .Where(x => x.CameraId == camera.Id)
             .SplitTable()
             .ToListAsync();
@@ -93,12 +94,12 @@ public class VideoService
             .Where(x => videos.All(video => video != x.Path))
             .ToList();
         // 更新数据库
-        var result = await Db.AsTenant().UseTranAsync(async () =>
+        var result = await db.AsTenant().UseTranAsync(async () =>
         {
             if (newSegments.Count != 0)
-                await Db.Insertable(newSegments).SplitTable().ExecuteReturnSnowflakeIdListAsync();
+                await db.Insertable(newSegments).SplitTable().ExecuteReturnSnowflakeIdListAsync();
             if (removeSegments.Count != 0)
-                await Db.Deleteable(removeSegments).SplitTable().ExecuteCommandAsync();
+                await db.Deleteable(removeSegments).SplitTable().ExecuteCommandAsync();
         });
         if (result.IsSuccess)
         {
@@ -120,9 +121,10 @@ public class VideoService
     /// <returns></returns>
     public async Task<OperateResult> Cache()
     {
+        var db = DbScoped.SugarScope;
         // 创建缓存目录
         if (!Directory.Exists(SystemOptions.CachePath)) Directory.CreateDirectory(SystemOptions.CachePath);
-        var cameras = await Db.Queryable<Camera>().ToListAsync();
+        var cameras = await db.Queryable<Camera>().ToListAsync();
         // 移除已经不存在的摄像头的缓存
         var dirs = Directory.GetDirectories(SystemOptions.CachePath);
         foreach (var dir in dirs)
@@ -140,27 +142,32 @@ public class VideoService
         }
 
         // 重建缓存
-        var tasks = cameras.Select(x => Task.Run(async () => await Cache(x))).ToList();
+        var tasks = cameras.Select(async x =>
+        {
+            using var cameraDb = new SqlSugarClient(DbScoped.SugarScope.CurrentConnectionConfig);
+            return await Cache(x, cameraDb);
+        }).ToList();
         var results = await Task.WhenAll(tasks);
         // 组装返回信息
         var successCount = results.Count(x => x.IsSuccess);
         var errorCount = results.Count(x => !x.IsSuccess);
         var message = $"缓存重建完成，共计{cameras.Count}个摄像头，成功{successCount}个，失败{errorCount}个";
-        return OperateResult.Success(message);
+        return OperateResult.Success();
     }
 
     /// <summary>
     /// 重建摄像头缓存
     /// </summary>
     /// <param name="camera">摄像头</param>
+    /// <param name="db">数据库连接</param>
     /// <returns></returns>
-    public async Task<OperateResult> Cache(Camera camera)
+    public async Task<OperateResult> Cache(Camera camera, ISqlSugarClient db)
     {
         // 创建摄像头缓存目录
         var path = Path.Combine(SystemOptions.CachePath, camera.Id.ToString());
         if (!Directory.Exists(path)) Directory.CreateDirectory(path);
         // 数据库中所有视频段
-        var dbSegments = await Db.Queryable<VideoSegment>()
+        var dbSegments = await db.Queryable<VideoSegment>()
             .Where(x => x.CameraId == camera.Id)
             .SplitTable()
             .ToListAsync();

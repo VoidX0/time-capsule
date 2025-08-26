@@ -41,8 +41,8 @@ public class CameraController : OrmController<Camera>
         if (camera == null) return NotFound("Camera not found");
         _ = Task.Run(async () =>
         {
-            await _videoService.Sync(camera);
-            await _videoService.Cache(camera);
+            await _videoService.Sync(camera, Db);
+            await _videoService.Cache(camera, Db);
         });
         return Ok();
     }
