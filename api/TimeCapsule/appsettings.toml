@@ -15,6 +15,7 @@ ApiHangfire = true # 启用Hangfire Dashboard
 DefaultUser = "root" # 默认用户名
 DefaultPassword = "time_capsule" # 默认密码
 CronSyncAndCache = "0 0 15 * * *" # 视频元数据同步/重建缓存的定时任务
+CronFrameDetect = "0 0 9 * * *" # 检测画面目标的定时任务
 
 # Token配置
 [TokenOptions]

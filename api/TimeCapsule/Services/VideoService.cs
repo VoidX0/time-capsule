@@ -1,7 +1,10 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
+using Compunet.YoloSharp;
+using Compunet.YoloSharp.Plotting;
 using Microsoft.Extensions.Options;
 using Serilog;
+using SixLabors.ImageSharp;
 using SqlSugar;
 using SqlSugar.IOC;
 using TimeCapsule.Core.Models.Common;
@@ -23,11 +26,6 @@ public class VideoService
     private SystemOptions SystemOptions { get; }
 
     /// <summary>
-    /// 数据库
-    /// </summary>
-    private ISqlSugarClient Db { get; } = DbScoped.SugarScope;
-
-    /// <summary>
     /// 日志记录器
     /// </summary>
     private ILogger Logger => Log.ForContext<VideoService>();
@@ -47,8 +45,13 @@ public class VideoService
     /// <returns></returns>
     public async Task<OperateResult> Sync()
     {
-        var cameras = await Db.Queryable<Camera>().ToListAsync();
-        var tasks = cameras.Select(x => Task.Run(async () => await Sync(x))).ToList();
+        var db = DbScoped.SugarScope;
+        var cameras = await db.Queryable<Camera>().ToListAsync();
+        var tasks = cameras.Select(async x =>
+        {
+            using var cameraDb = new SqlSugarClient(DbScoped.SugarScope.CurrentConnectionConfig);
+            return await Sync(x, cameraDb);
+        }).ToList();
         var results = await Task.WhenAll(tasks);
         // 组装返回信息
         var successCount = results.Count(x => x.IsSuccess);
@@ -61,11 +64,12 @@ public class VideoService
     /// 同步指定摄像头的元数据
     /// </summary>
     /// <param name="camera">摄像头</param>
+    /// <param name="db">数据库连接</param>
     /// <returns></returns>
-    public async Task<OperateResult> Sync(Camera camera)
+    public async Task<OperateResult> Sync(Camera camera, ISqlSugarClient db)
     {
         // 数据库中所有视频段
-        var dbSegments = await Db.Queryable<VideoSegment>()
+        var dbSegments = await db.Queryable<VideoSegment>()
             .Where(x => x.CameraId == camera.Id)
             .SplitTable()
             .ToListAsync();
@@ -93,12 +97,12 @@ public class VideoService
             .Where(x => videos.All(video => video != x.Path))
             .ToList();
         // 更新数据库
-        var result = await Db.AsTenant().UseTranAsync(async () =>
+        var result = await db.AsTenant().UseTranAsync(async () =>
         {
             if (newSegments.Count != 0)
-                await Db.Insertable(newSegments).SplitTable().ExecuteReturnSnowflakeIdListAsync();
+                await db.Insertable(newSegments).SplitTable().ExecuteReturnSnowflakeIdListAsync();
             if (removeSegments.Count != 0)
-                await Db.Deleteable(removeSegments).SplitTable().ExecuteCommandAsync();
+                await db.Deleteable(removeSegments).SplitTable().ExecuteCommandAsync();
         });
         if (result.IsSuccess)
         {
@@ -120,9 +124,10 @@ public class VideoService
     /// <returns></returns>
     public async Task<OperateResult> Cache()
     {
+        var db = DbScoped.SugarScope;
         // 创建缓存目录
         if (!Directory.Exists(SystemOptions.CachePath)) Directory.CreateDirectory(SystemOptions.CachePath);
-        var cameras = await Db.Queryable<Camera>().ToListAsync();
+        var cameras = await db.Queryable<Camera>().ToListAsync();
         // 移除已经不存在的摄像头的缓存
         var dirs = Directory.GetDirectories(SystemOptions.CachePath);
         foreach (var dir in dirs)
@@ -140,7 +145,11 @@ public class VideoService
         }
 
         // 重建缓存
-        var tasks = cameras.Select(x => Task.Run(async () => await Cache(x))).ToList();
+        var tasks = cameras.Select(async x =>
+        {
+            using var cameraDb = new SqlSugarClient(DbScoped.SugarScope.CurrentConnectionConfig);
+            return await Cache(x, cameraDb);
+        }).ToList();
         var results = await Task.WhenAll(tasks);
         // 组装返回信息
         var successCount = results.Count(x => x.IsSuccess);
@@ -153,14 +162,15 @@ public class VideoService
     /// 重建摄像头缓存
     /// </summary>
     /// <param name="camera">摄像头</param>
+    /// <param name="db">数据库连接</param>
     /// <returns></returns>
-    public async Task<OperateResult> Cache(Camera camera)
+    public async Task<OperateResult> Cache(Camera camera, ISqlSugarClient db)
     {
         // 创建摄像头缓存目录
         var path = Path.Combine(SystemOptions.CachePath, camera.Id.ToString());
         if (!Directory.Exists(path)) Directory.CreateDirectory(path);
         // 数据库中所有视频段
-        var dbSegments = await Db.Queryable<VideoSegment>()
+        var dbSegments = await db.Queryable<VideoSegment>()
             .Where(x => x.CameraId == camera.Id)
             .SplitTable()
             .ToListAsync();
@@ -188,6 +198,100 @@ public class VideoService
         Logger.Information("摄像头 {CameraName} ({CameraId}) 的缓存重建完成，共计 {SegmentCount} 个视频段",
             camera.Name, camera.Id, dbSegments.Count);
         return OperateResult.Success($"摄像头 {camera.Name} 的缓存重建完成");
+    }
+
+    /// <summary>
+    /// 对所有摄像头进行画面检测
+    /// </summary>
+    /// <returns></returns>
+    public async Task<OperateResult> FrameDetect()
+    {
+        var db = DbScoped.SugarScope;
+        var cameras = await db.Queryable<Camera>().Where(x => x.EnableDetection).ToListAsync();
+        var tasks = cameras.Select(async x =>
+        {
+            using var cameraDb = new SqlSugarClient(DbScoped.SugarScope.CurrentConnectionConfig);
+            return await FrameDetect(x, cameraDb);
+        }).ToList();
+        var results = await Task.WhenAll(tasks);
+        // 组装返回信息
+        var successCount = results.Count(x => x.IsSuccess);
+        var errorCount = results.Count(x => !x.IsSuccess);
+        var message = $"画面检测完成，共计{cameras.Count}个摄像头，成功{successCount}个，失败{errorCount}个";
+        return OperateResult.Success(message);
+    }
+
+    /// <summary>
+    /// 对指定摄像头进行画面检测
+    /// </summary>
+    /// <param name="camera">摄像头</param>
+    /// <param name="db">数据库连接</param>
+    /// <returns></returns>
+    public async Task<OperateResult> FrameDetect(Camera camera, ISqlSugarClient db)
+    {
+        // 创建摄像头检测结果目录
+        var path = Path.Combine(SystemOptions.StoragePath, "detection", camera.Id.ToString());
+        if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+        // 数据库中所有视频段
+        var dbSegments = await db.Queryable<VideoSegment>()
+            .Where(x => x.CameraId == camera.Id)
+            .SplitTable()
+            .ToListAsync();
+        // 数据库中所有帧检测结果
+        var dbDetections = await db.Queryable<FrameDetection>()
+            .Where(x => dbSegments.Select(s => s.Id).Contains(x.SegmentId))
+            .SplitTable()
+            .ToListAsync();
+        // 删除已经不存在的视频段的检测结果
+        var removeDetections = new List<FrameDetection>();
+        var existingDirs = Directory.GetDirectories(path).Select(Path.GetFileName).Distinct().ToList();
+        foreach (var dir in existingDirs)
+        {
+            if (string.IsNullOrWhiteSpace(dir)) continue;
+            var id = long.TryParse(Path.GetFileNameWithoutExtension(dir), out var parsedId) ? parsedId : 0;
+            if (dbSegments.Any(x => x.Id == id)) continue;
+            try
+            {
+                Directory.Delete(Path.Combine(path, dir!), true);
+                removeDetections.AddRange(dbDetections.Where(x => x.SegmentId == id));
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        if (removeDetections.Count != 0)
+        {
+            db.AsTenant().UseTran(async () => await db.Deleteable(removeDetections).SplitTable().ExecuteCommandAsync());
+        }
+
+        // 对尚未检测的视频段进行画面检测
+        var updatedSegments = dbSegments.Where(x => !x.Detected).ToList();
+        var addedDetections = new List<FrameDetection>();
+        // 加载Yolo模型
+        var wwwroot = App.Application?.Environment.WebRootPath ?? "";
+        using var predictor = new YoloPredictor(Path.Combine(wwwroot, "models", "yolo11n.onnx"));
+        foreach (var segment in updatedSegments)
+        {
+            var videoPath = Path.Combine(SystemOptions.CameraPath, camera.BasePath);
+            var detectionDir = Path.Combine(path, segment.Id.ToString());
+            addedDetections.AddRange(await DetectSegment(camera, segment, predictor, videoPath, detectionDir));
+            segment.Detected = true;
+        }
+
+        var result = await db.AsTenant().UseTranAsync(async () =>
+        {
+            await db.Updateable(updatedSegments).SplitTable().ExecuteCommandAsync();
+            await db.Insertable(addedDetections).SplitTable().ExecuteReturnSnowflakeIdListAsync();
+        });
+        if (result.IsSuccess)
+            Logger.Information("摄像头 {CameraName} ({CameraId}) 的画面检测完成，共计 {SegmentCount} 个视频段，新增 {DetectionCount} 个检测结果",
+                camera.Name, camera.Id, updatedSegments.Count, addedDetections.Count);
+        else
+            Logger.Warning(result.ErrorException, "摄像头 {CameraName} ({CameraId}) 的画面检测失败: {ErrorMessage}",
+                camera.Name, camera.Id, result.ErrorMessage);
+        return result.IsSuccess ? OperateResult.Success() : OperateResult.Fail(result.ErrorMessage);
     }
 
     /// <summary>
@@ -361,5 +465,91 @@ public class VideoService
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// 对视频片段进行画面检测
+    /// </summary>
+    /// <param name="camera">摄像头</param>
+    /// <param name="segment">视频片段</param>
+    /// <param name="yoloPredictor">Yolo预测器</param>
+    /// <param name="videoPath">视频存储路径</param>
+    /// <param name="detectionPath">检测结果存储路径</param>
+    /// <returns></returns>
+    private static async Task<List<FrameDetection>> DetectSegment(Camera camera, VideoSegment segment,
+        YoloPredictor yoloPredictor,
+        string videoPath, string detectionPath)
+    {
+        var tmpPath = Path.Combine($"{detectionPath}_tmp");
+        if (!Directory.Exists(tmpPath)) Directory.CreateDirectory(tmpPath);
+        // 每隔n秒截取一帧保存到临时目录
+        var intervalSeconds = Math.Max(camera.DetectionInterval, 10); // 检测间隔
+        var minConfidence = Math.Min(Math.Max(camera.DetectionConfidence, 0.1M), 1.0M); // 最低置信度
+        try
+        {
+            var args = $"-i \"{Path.Combine(videoPath, segment.Path)}\" " +
+                       $"-vf \"fps=1/{intervalSeconds}\" \"{Path.Combine(tmpPath, "%d.jpg")}\"";
+            await FFmpeg.Conversions.New()
+                .AddParameter(args)
+                .Start();
+        }
+        catch
+        {
+            // ignored
+        }
+
+        // 遍历临时目录中的所有图片，进行目标检测
+        var detections = new List<FrameDetection>();
+        var files = Directory.GetFiles(tmpPath, "*.jpg");
+        foreach (var file in files)
+        {
+            try
+            {
+                using var image = await Image.LoadAsync(file);
+                var results = await yoloPredictor.DetectAsync(file, new YoloConfiguration
+                {
+                    Confidence = (float)minConfidence,
+                });
+                if (results.Count == 0) continue; // 如果没有检测到目标，则跳过
+                // 计算帧时间
+                var fileName = Path.GetFileNameWithoutExtension(file);
+                if (!int.TryParse(fileName, out var frameNumber)) continue;
+                var frameTime = segment.StartTime.AddSeconds((frameNumber - 1) * intervalSeconds);
+                // 保存检测图片
+                if (!Directory.Exists(detectionPath)) Directory.CreateDirectory(detectionPath);
+                using var plotted = await results.PlotImageAsync(image);
+                await plotted.SaveAsync(Path.Combine(detectionPath, $"{fileName}.jpg"));
+                // 添加检测记录
+                detections.AddRange(results.Select(x => new FrameDetection
+                {
+                    SegmentId = segment.Id,
+                    FramePath = $"{fileName}.jpg",
+                    FrameTime = frameTime,
+                    TargetId = x.Name.Id,
+                    TargetName = x.Name.Name,
+                    TargetConfidence = Math.Round((decimal)x.Confidence, 4),
+                    TargetLocationX = x.Bounds.Location.X,
+                    TargetLocationY = x.Bounds.Location.Y,
+                    TargetSizeWidth = x.Bounds.Size.Width,
+                    TargetSizeHeight = x.Bounds.Size.Height
+                }));
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        // 删除临时目录
+        try
+        {
+            Directory.Delete(tmpPath, true);
+        }
+        catch
+        {
+            // ignored
+        }
+
+        return detections;
     }
 }

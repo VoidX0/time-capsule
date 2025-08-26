@@ -3,6 +3,7 @@
 import { components } from '@/api/schema'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { openapi } from '@/lib/http'
@@ -24,6 +25,9 @@ export default function Page() {
   const [newName, setNewName] = useState('')
   const [newBasePath, setNewBasePath] = useState('')
   const [newTemplate, setNewTemplate] = useState('')
+  const [newEnableDetection, setNewEnableDetection] = useState(false)
+  const [newDetectInterval, setNewDetectInterval] = useState(30)
+  const [newDetectionConfidence, setNewDetectionConfidence] = useState(0.3)
 
   // 编辑相关
   const [editCam, setEditCam] = useState<Camera | undefined>(undefined)
@@ -64,6 +68,9 @@ export default function Page() {
             Name: newName,
             BasePath: newBasePath,
             SegmentTemplate: newTemplate,
+            EnableDetection: newEnableDetection,
+            DetectInterval: newDetectInterval,
+            DetectionConfidence: newDetectionConfidence,
           },
         ],
       })
@@ -75,6 +82,9 @@ export default function Page() {
             Name: newName,
             BasePath: newBasePath,
             SegmentTemplate: newTemplate,
+            EnableDetection: newEnableDetection,
+            DetectInterval: newDetectInterval,
+            DetectionConfidence: newDetectionConfidence,
           },
         ],
       })
@@ -84,6 +94,9 @@ export default function Page() {
     setNewName('')
     setNewBasePath('')
     setNewTemplate('')
+    setNewEnableDetection(false)
+    setNewDetectInterval(30)
+    setNewDetectionConfidence(0.3)
     fetchList().then()
   }
 
@@ -92,6 +105,9 @@ export default function Page() {
     setNewName(cam.Name || '')
     setNewBasePath(cam.BasePath || '')
     setNewTemplate(cam.SegmentTemplate || '')
+    setNewEnableDetection(cam.EnableDetection || false)
+    setNewDetectInterval(cam.DetectionInterval || 30)
+    setNewDetectionConfidence(cam.DetectionConfidence || 0.3)
     setDialogOpen(true)
   }
 
@@ -100,6 +116,9 @@ export default function Page() {
     setNewName('')
     setNewBasePath('')
     setNewTemplate('*_{start:yyyyMMddHHmmss}_{end:yyyyMMddHHmmss}')
+    setNewEnableDetection(false)
+    setNewDetectInterval(30)
+    setNewDetectionConfidence(0.3)
     setDialogOpen(true)
   }
 
@@ -176,24 +195,84 @@ export default function Page() {
             <DialogTitle>{editCam ? '编辑摄像头' : '新增摄像头'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Input
-              className="font-mono"
-              placeholder="名称"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-            />
-            <Input
-              className="font-mono"
-              placeholder="基础路径"
-              value={newBasePath}
-              onChange={(e) => setNewBasePath(e.target.value)}
-            />
-            <Input
-              className="font-mono"
-              placeholder="Segment解析模板"
-              value={newTemplate}
-              onChange={(e) => setNewTemplate(e.target.value)}
-            />
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-600">
+                名称
+              </label>
+              <Input
+                className="font-mono"
+                placeholder="名称"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-600">
+                基础路径
+              </label>
+              <Input
+                className="font-mono"
+                placeholder="基础路径"
+                value={newBasePath}
+                onChange={(e) => setNewBasePath(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-600">
+                Segment 解析模板
+              </label>
+              <Input
+                className="font-mono"
+                placeholder="Segment解析模板"
+                value={newTemplate}
+                onChange={(e) => setNewTemplate(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-600">
+                启用目标检测
+              </label>
+              <Checkbox
+                checked={newEnableDetection}
+                onCheckedChange={(checked) => setNewEnableDetection(!!checked)}
+              />
+            </div>
+            {newEnableDetection && (
+              <>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-600">
+                    检测间隔（秒）
+                  </label>
+                  <Input
+                    type="number"
+                    className="font-mono"
+                    placeholder="检测间隔（秒）"
+                    value={newDetectInterval}
+                    onChange={(e) =>
+                      setNewDetectInterval(Number(e.target.value))
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-600">
+                    检测置信度（0-1）
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="1"
+                    className="font-mono"
+                    placeholder="检测置信度（0-1）"
+                    value={newDetectionConfidence}
+                    onChange={(e) =>
+                      setNewDetectionConfidence(Number(e.target.value))
+                    }
+                  />
+                </div>
+              </>
+            )}
             <Button onClick={handleSave} className="w-full">
               保存
             </Button>

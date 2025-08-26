@@ -71,6 +71,8 @@ public class SegmentController : OrmController<VideoSegment>
             var video = new FileInfo(Path.Combine(_systemOptions.CameraPath, camera.BasePath, segment.Path));
             var thumbnail = new FileInfo(Path.Combine(_systemOptions.CachePath, segment.CameraId.ToString(),
                 $"{segment.Id}.jpg"));
+            var detect = new DirectoryInfo(Path.Combine(_systemOptions.StoragePath, "detection", camera.Id.ToString(),
+                segment.Id.ToString()));
             // 删除视频文件
             if (video.Exists)
             {
@@ -96,9 +98,31 @@ public class SegmentController : OrmController<VideoSegment>
                     // ignore
                 }
             }
+
+            // 删除检测目录
+            if (detect.Exists)
+            {
+                try
+                {
+                    detect.Delete(true);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
         }
 
-        return delete;
+        // 删除对应的数据库数据
+        var segmentIds = entity.Select(x => x.Id).ToList();
+        var detections = await Db.Queryable<FrameDetection>().Where(x => segmentIds.Contains(x.SegmentId))
+            .SplitTable()
+            .ToListAsync();
+        var result = await Db.AsTenant().UseTranAsync(async () =>
+        {
+            await Db.Deleteable(detections).SplitTable().ExecuteCommandAsync();
+        });
+        return !result.IsSuccess ? BadRequest(result.ErrorMessage) : delete;
     }
 
     #endregion

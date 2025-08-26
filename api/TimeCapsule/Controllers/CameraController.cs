@@ -41,8 +41,8 @@ public class CameraController : OrmController<Camera>
         if (camera == null) return NotFound("Camera not found");
         _ = Task.Run(async () =>
         {
-            await _videoService.Sync(camera);
-            await _videoService.Cache(camera);
+            await _videoService.Sync(camera, Db);
+            await _videoService.Cache(camera, Db);
         });
         return Ok();
     }
@@ -118,6 +118,21 @@ public class CameraController : OrmController<Camera>
         // 删除对应的文件 (删除失败的文件，会在下次Sync时重新同步，所以不需要处理异常)
         foreach (var camera in entity)
         {
+            var detect =
+                new DirectoryInfo(Path.Combine(_systemOptions.StoragePath, "detection", camera.Id.ToString()));
+            // 删除检测目录
+            if (detect.Exists)
+            {
+                try
+                {
+                    detect.Delete(true);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+
             var cache = new DirectoryInfo(Path.Combine(_systemOptions.CachePath, camera.Id.ToString()));
             // 删除缓存目录
             if (cache.Exists)
@@ -133,7 +148,20 @@ public class CameraController : OrmController<Camera>
             }
         }
 
-        return delete;
+        // 删除对应的数据库数据
+        var cameraIds = entity.Select(x => x.Id).ToList();
+        var segments = await Db.Queryable<VideoSegment>().Where(x => cameraIds.Contains(x.CameraId)).SplitTable()
+            .ToListAsync();
+        var segmentIds = segments.Select(x => x.Id).ToList();
+        var detections = await Db.Queryable<FrameDetection>().Where(x => segmentIds.Contains(x.SegmentId))
+            .SplitTable()
+            .ToListAsync();
+        var result = await Db.AsTenant().UseTranAsync(async () =>
+        {
+            await Db.Deleteable(segments).SplitTable().ExecuteCommandAsync();
+            await Db.Deleteable(detections).SplitTable().ExecuteCommandAsync();
+        });
+        return !result.IsSuccess ? BadRequest(result.ErrorMessage) : delete;
     }
 
     #endregion
