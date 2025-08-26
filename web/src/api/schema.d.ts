@@ -1619,6 +1619,18 @@ export interface components {
             BasePath?: string | null;
             /** @description Segment解析模板 */
             SegmentTemplate?: string | null;
+            /** @description 启用目标检测 */
+            EnableDetection?: boolean;
+            /**
+             * Format: int32
+             * @description 目标检测间隔时间(秒)
+             */
+            DetectionInterval?: number;
+            /**
+             * Format: double
+             * @description 目标检测最低置信度
+             */
+            DetectionConfidence?: number;
         };
         /**
          * Format: int32
@@ -1835,6 +1847,8 @@ export interface components {
              * @description 音频比特率(Kbps)
              */
             AudioBitrate?: number;
+            /** @description 已进行检测 */
+            Detected?: boolean;
         };
     };
     responses: never;
