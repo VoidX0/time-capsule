@@ -207,7 +207,7 @@ public class VideoService
     public async Task<OperateResult> FrameDetect()
     {
         var db = DbScoped.SugarScope;
-        var cameras = await db.Queryable<Camera>().ToListAsync();
+        var cameras = await db.Queryable<Camera>().Where(x => x.EnableDetection).ToListAsync();
         var tasks = cameras.Select(async x =>
         {
             using var cameraDb = new SqlSugarClient(DbScoped.SugarScope.CurrentConnectionConfig);
@@ -276,7 +276,7 @@ public class VideoService
         {
             var videoPath = Path.Combine(SystemOptions.CameraPath, camera.BasePath);
             var detectionDir = Path.Combine(path, segment.Id.ToString());
-            addedDetections.AddRange(await DetectSegment(segment, predictor, videoPath, detectionDir));
+            addedDetections.AddRange(await DetectSegment(camera, segment, predictor, videoPath, detectionDir));
             segment.Detected = true;
         }
 
@@ -470,19 +470,21 @@ public class VideoService
     /// <summary>
     /// 对视频片段进行画面检测
     /// </summary>
+    /// <param name="camera">摄像头</param>
     /// <param name="segment">视频片段</param>
     /// <param name="yoloPredictor">Yolo预测器</param>
     /// <param name="videoPath">视频存储路径</param>
     /// <param name="detectionPath">检测结果存储路径</param>
     /// <returns></returns>
-    private static async Task<List<FrameDetection>> DetectSegment(VideoSegment segment, YoloPredictor yoloPredictor,
+    private static async Task<List<FrameDetection>> DetectSegment(Camera camera, VideoSegment segment,
+        YoloPredictor yoloPredictor,
         string videoPath, string detectionPath)
     {
         var tmpPath = Path.Combine($"{detectionPath}_tmp");
         if (!Directory.Exists(tmpPath)) Directory.CreateDirectory(tmpPath);
         // 每隔n秒截取一帧保存到临时目录
-        const int intervalSeconds = 30;
-        const float minConfidence = 0.3f; // 最小置信度
+        var intervalSeconds = Math.Max(camera.DetectionInterval, 10); // 检测间隔
+        var minConfidence = Math.Min(Math.Max(camera.DetectionConfidence, 0.1M), 1.0M); // 最低置信度
         try
         {
             var args = $"-i \"{Path.Combine(videoPath, segment.Path)}\" " +
@@ -506,7 +508,7 @@ public class VideoService
                 using var image = await Image.LoadAsync(file);
                 var results = await yoloPredictor.DetectAsync(file, new YoloConfiguration
                 {
-                    Confidence = minConfidence
+                    Confidence = (float)minConfidence,
                 });
                 if (results.Count == 0) continue; // 如果没有检测到目标，则跳过
                 // 计算帧时间
