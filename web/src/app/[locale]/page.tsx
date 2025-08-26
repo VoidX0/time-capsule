@@ -45,6 +45,7 @@ export default function Home() {
           <li className="tracking-[-.01em]">{t('details01')}</li>
           <li className="tracking-[-.01em]">{t('details02')}</li>
           <li className="tracking-[-.01em]"> {t('details03')}</li>
+          <li className="tracking-[-.01em]"> {t('details04')}</li>
         </ol>
         <Link href={`/${locale}/dashboard`} rel="noopener noreferrer">
           <RainbowButton className="h-10 rounded-full">
