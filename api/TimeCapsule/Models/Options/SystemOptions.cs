@@ -73,4 +73,9 @@ public class SystemOptions
     /// 定时任务：同步视频元数据/重建缓存的Cron表达式
     /// </summary>
     public string CronSyncAndCache { get; set; } = "0 0 */1 * * *";
+    
+    /// <summary>
+    /// 定时任务：检测画面目标的Cron表达式
+    /// </summary>
+    public string CronFrameDetect { get; set; } = "0 0 */1 * * *";
 }

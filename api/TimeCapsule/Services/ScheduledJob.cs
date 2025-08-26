@@ -55,6 +55,12 @@ public class ScheduledJob
             SystemOptions.CronSyncAndCache,
             options: new RecurringJobOptions { TimeZone = TimeZoneInfo.Local }
         );
+        recurringJob.AddOrUpdate(
+            "FrameDetect",
+            () => FrameDetect(),
+            SystemOptions.CronFrameDetect,
+            options: new RecurringJobOptions { TimeZone = TimeZoneInfo.Local }
+        );
     }
 
     /// <summary>
@@ -119,5 +125,16 @@ public class ScheduledJob
         var cache = await _service.Cache();
         watch.Stop();
         Logger.Information("{Sync}; {Cache}; 耗时: {Time}ms", sync.Message, cache.Message, watch.ElapsedMilliseconds);
+    }
+
+    /// <summary>
+    /// 画面目标检测
+    /// </summary>
+    public async Task FrameDetect()
+    {
+        var watch = Stopwatch.StartNew();
+        var result = await _service.FrameDetect();
+        watch.Stop();
+        Logger.Information("{Message}; 耗时: {Time}ms", result.Message, watch.ElapsedMilliseconds);
     }
 }
