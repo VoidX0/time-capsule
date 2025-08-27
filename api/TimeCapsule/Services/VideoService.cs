@@ -522,6 +522,7 @@ public class VideoService
                 // 添加检测记录
                 detections.AddRange(results.Select(x => new FrameDetection
                 {
+                    CameraId = camera.Id,
                     SegmentId = segment.Id,
                     FramePath = $"{fileName}.jpg",
                     FrameTime = frameTime,

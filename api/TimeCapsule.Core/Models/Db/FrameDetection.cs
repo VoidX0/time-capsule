@@ -10,6 +10,9 @@ public class FrameDetection
     [SugarColumn(ColumnDescription = "ID", IsPrimaryKey = true)]
     public long Id { get; set; }
 
+    [SugarColumn(ColumnDescription = "摄像头ID", DefaultValue = "0")]
+    public long CameraId { get; set; }
+
     [SugarColumn(ColumnDescription = "视频片段ID")]
     public long SegmentId { get; set; }
 
@@ -18,7 +21,7 @@ public class FrameDetection
 
     [SugarColumn(ColumnDescription = "帧时间")]
     public DateTimeOffset FrameTime { get; set; }
-    
+
     [SugarColumn(ColumnDescription = "目标ID")]
     public int TargetId { get; set; }
 
