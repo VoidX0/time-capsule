@@ -38,7 +38,7 @@ public class CameraController : OrmController<Camera>
     {
         var id = long.TryParse(cameraId, out var parsedId) ? parsedId : 0;
         var camera = await Db.Queryable<Camera>().In(id).FirstAsync();
-        if (camera == null) return NotFound("Camera not found");
+        if (camera == null) return BadRequest("Camera not found");
         _ = Task.Run(async () =>
         {
             await _videoService.Sync(camera, Db);
@@ -101,6 +101,50 @@ public class CameraController : OrmController<Camera>
 
         return Ok(timeline.Concat(Timeline.PointMarks(firstSegment.StartTime, lastSegment.EndTime))
             .OrderBy(x => x.Time).ToList());
+    }
+
+    /// <summary>
+    /// 清除检测结果
+    /// </summary>
+    /// <param name="cameraId">摄像头ID</param>
+    /// <returns></returns>
+    [HttpDelete]
+    public async Task<ActionResult> ClearDetections(string cameraId)
+    {
+        var id = long.TryParse(cameraId, out var parsedId) ? parsedId : 0;
+        var camera = await Db.Queryable<Camera>().InSingleAsync(id);
+        if (camera == null) return BadRequest("Camera not found");
+        // 删除对应数据
+        var segments = await Db.Queryable<VideoSegment>().Where(x => x.CameraId == camera.Id).SplitTable()
+            .ToListAsync();
+        var segmentIds = segments.Select(x => x.Id).ToList();
+        var detections = await Db.Queryable<FrameDetection>().Where(x => segmentIds.Contains(x.SegmentId))
+            .SplitTable()
+            .ToListAsync();
+        var result = await Db.AsTenant().UseTranAsync(async () =>
+        {
+            foreach (var segment in segments) segment.Detected = false;
+            await Db.Updateable(segments).SplitTable().ExecuteCommandAsync();
+            await Db.Deleteable(detections).SplitTable().ExecuteCommandAsync();
+        });
+        if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
+        // 删除对应文件
+        foreach (var detection in detections)
+        {
+            var dir = new DirectoryInfo(Path.Combine(_systemOptions.StoragePath, "detection",
+                camera.Id.ToString(), detection.SegmentId.ToString()));
+            if (!dir.Exists) continue;
+            try
+            {
+                dir.Delete(true);
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        return Ok();
     }
 
     #region ORM
