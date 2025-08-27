@@ -87,8 +87,28 @@ public class VideoService
                 Path = x,
                 Size = Math.Round(new FileInfo(Path.Combine(directory, x)).Length / 1024m / 1024m, 2),
             }).ToList();
-        for (var i = 0; i < newSegments.Count; i++)
-            newSegments[i] = await DetectMetadata(camera, newSegments[i], directory);
+        // 对新增的视频进行分组
+        var segmentGroups = newSegments
+            .Select((s, i) => new { Segment = s, Index = i })
+            .GroupBy(x => x.Index % SystemOptions.MaxTaskPerCamera) // 按余数分组
+            .Select(g => g.Select(x => x.Segment).ToList())
+            .ToList();
+        var allTasks = new List<Task<List<VideoSegment>>>();
+        foreach (var group in segmentGroups)
+        {
+            allTasks.Add(Task.Run(async () =>
+            {
+                var groupSegments = new List<VideoSegment>();
+                foreach (var segment in group)
+                    groupSegments.Add(await DetectMetadata(camera, segment, directory));
+                return groupSegments;
+            }));
+        }
+        // 等待所有并发任务完成
+        var results = await Task.WhenAll(allTasks);
+        // 合并结果
+        newSegments = results.SelectMany(r => r).ToList();
+        // 过滤掉时长为0的视频
         newSegments = newSegments.Where(x => x.DurationActual > TimeSpan.Zero)
             .OrderBy(x => x.StartTime)
             .ToList();
@@ -348,6 +368,7 @@ public class VideoService
     {
         try
         {
+            Console.WriteLine($"开始检测视频 {segment.Path} 的元数据...");
             // 获取媒体信息
             var mediaInfo = await FFmpeg.GetMediaInfo(Path.Combine(basePath, segment.Path));
             var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
