@@ -104,6 +104,7 @@ public class VideoService
                 return groupSegments;
             }));
         }
+
         // 等待所有并发任务完成
         var results = await Task.WhenAll(allTasks);
         // 合并结果
@@ -158,7 +159,7 @@ public class VideoService
             {
                 Directory.Delete(dir, true);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Logger.Warning(e, "删除摄像头缓存目录 {CacheDir} 失败", dir);
             }
@@ -206,16 +207,31 @@ public class VideoService
             {
                 File.Delete(Path.Combine(path, thumbnail));
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Logger.Warning(e, "删除摄像头 {CameraName} ({CameraId}) 的无效缩略图 {Thumbnail} 失败",
                     camera.Name, camera.Id, thumbnail);
             }
         }
 
-        // 生成缩略图
-        foreach (var segment in dbSegments)
-            await GenerateThumbnail(segment, Path.Combine(SystemOptions.CameraPath, camera.BasePath), path);
+        // 对需要生成缩略图的视频段进行分组
+        var segmentGroups = dbSegments
+            .Select((s, i) => new { Segment = s, Index = i })
+            .GroupBy(x => x.Index % SystemOptions.MaxTaskPerCamera) // 按余数分组
+            .Select(g => g.Select(x => x.Segment).ToList())
+            .ToList();
+        var allTasks = new List<Task>();
+        foreach (var group in segmentGroups)
+        {
+            allTasks.Add(Task.Run(async () =>
+            {
+                foreach (var segment in group)
+                    await GenerateThumbnail(segment, Path.Combine(SystemOptions.CameraPath, camera.BasePath), path);
+            }));
+        }
+
+        // 等待所有并发任务完成
+        await Task.WhenAll(allTasks);
         Logger.Information("摄像头 {CameraName} ({CameraId}) 的缓存重建完成，共计 {SegmentCount} 个视频段",
             camera.Name, camera.Id, dbSegments.Count);
         return OperateResult.Success($"摄像头 {camera.Name} 的缓存重建完成");
@@ -276,7 +292,7 @@ public class VideoService
                 Directory.Delete(Path.Combine(path, dir!), true);
                 removeDetections.AddRange(dbDetections.Where(x => x.SegmentId == id));
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Logger.Warning(e, "删除摄像头 {CameraName} ({CameraId}) 的无效检测结果目录 {DetectionDir} 失败",
                     camera.Name, camera.Id, dir);
@@ -368,7 +384,6 @@ public class VideoService
     {
         try
         {
-            Console.WriteLine($"开始检测视频 {segment.Path} 的元数据...");
             // 获取媒体信息
             var mediaInfo = await FFmpeg.GetMediaInfo(Path.Combine(basePath, segment.Path));
             var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
