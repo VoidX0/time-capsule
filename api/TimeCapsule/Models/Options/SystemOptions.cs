@@ -70,6 +70,11 @@ public class SystemOptions
     public string DefaultPassword { get; set; } = string.Empty;
 
     /// <summary>
+    /// 每个摄像头并行处理的任务数
+    /// </summary>
+    public int MaxTaskPerCamera { get; set; } = 1;
+
+    /// <summary>
     /// 定时任务：同步视频元数据/重建缓存的Cron表达式
     /// </summary>
     public string CronSyncAndCache { get; set; } = "0 0 */1 * * *";

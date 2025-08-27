@@ -80,6 +80,11 @@ import {TypeTable} from 'fumadocs-ui/components/type-table';
             type: 'string',
             default: 'time_capsule',
         },
+        MaxTaskPerCamera: {
+            description: '每个摄像头并行处理的任务数',
+            type: 'number',
+            default: '5',
+        },
         CronSyncAndCache: {
             description: '视频元数据同步/重建缓存的定时任务',
             type: 'string',
