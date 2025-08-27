@@ -268,18 +268,40 @@ public class VideoService
 
         // 对尚未检测的视频段进行画面检测
         var updatedSegments = dbSegments.Where(x => !x.Detected).ToList();
-        var addedDetections = new List<FrameDetection>();
-        // 加载Yolo模型
+        // 参数
         var wwwroot = App.Application?.Environment.WebRootPath ?? "";
-        using var predictor = new YoloPredictor(Path.Combine(wwwroot, "models", "yolo11n.onnx"));
-        foreach (var segment in updatedSegments)
+        var yoloOption = new YoloPredictorOptions { UseCuda = false };
+        // 对所有任务进行分组
+        var segmentGroups = updatedSegments
+            .Select((s, i) => new { Segment = s, Index = i })
+            .GroupBy(x => x.Index % SystemOptions.MaxTaskPerCamera) // 按余数分组
+            .Select(g => g.Select(x => x.Segment).ToList())
+            .ToList();
+        var allTasks = new List<Task<List<FrameDetection>>>();
+        foreach (var group in segmentGroups)
         {
-            var videoPath = Path.Combine(SystemOptions.CameraPath, camera.BasePath);
-            var detectionDir = Path.Combine(path, segment.Id.ToString());
-            addedDetections.AddRange(await DetectSegment(camera, segment, predictor, videoPath, detectionDir));
-            segment.Detected = true;
+            allTasks.Add(Task.Run(async () =>
+            {
+                var groupDetections = new List<FrameDetection>();
+                // 每个任务内部用一个 predictor
+                using var predictor = new YoloPredictor(Path.Combine(wwwroot, "models", "yolo11n.onnx"), yoloOption);
+                foreach (var segment in group)
+                {
+                    var videoPath = Path.Combine(SystemOptions.CameraPath, camera.BasePath);
+                    var detectionDir = Path.Combine(path, segment.Id.ToString());
+                    groupDetections.AddRange(await DetectSegment(camera, segment, predictor, videoPath, detectionDir));
+                    segment.Detected = true; // 标记为已检测
+                }
+
+                return groupDetections;
+            }));
         }
 
+        // 等待所有并发任务完成
+        var results = await Task.WhenAll(allTasks);
+        // 合并结果
+        var addedDetections = results.SelectMany(r => r).ToList();
+        // 更新数据库
         var result = await db.AsTenant().UseTranAsync(async () =>
         {
             await db.Updateable(updatedSegments).SplitTable().ExecuteCommandAsync();
