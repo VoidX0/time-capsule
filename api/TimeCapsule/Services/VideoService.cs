@@ -138,9 +138,9 @@ public class VideoService
             {
                 Directory.Delete(dir, true);
             }
-            catch
+            catch(Exception e)
             {
-                // ignored
+                Logger.Warning(e, "删除摄像头缓存目录 {CacheDir} 失败", dir);
             }
         }
 
@@ -186,9 +186,10 @@ public class VideoService
             {
                 File.Delete(Path.Combine(path, thumbnail));
             }
-            catch
+            catch(Exception e)
             {
-                // 忽略删除失败的异常
+                Logger.Warning(e, "删除摄像头 {CameraName} ({CameraId}) 的无效缩略图 {Thumbnail} 失败",
+                    camera.Name, camera.Id, thumbnail);
             }
         }
 
@@ -255,9 +256,10 @@ public class VideoService
                 Directory.Delete(Path.Combine(path, dir!), true);
                 removeDetections.AddRange(dbDetections.Where(x => x.SegmentId == id));
             }
-            catch
+            catch(Exception e)
             {
-                // ignored
+                Logger.Warning(e, "删除摄像头 {CameraName} ({CameraId}) 的无效检测结果目录 {DetectionDir} 失败",
+                    camera.Name, camera.Id, dir);
             }
         }
 
