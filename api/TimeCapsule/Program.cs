@@ -30,6 +30,7 @@ builder.Services.AddSingleton<ScheduledJob>(); // 定时任务
 var app = builder.Build();
 App.Application = app; // 全局App
 await app.FfmpegInit(); // ffmpeg初始化
+await app.OpenCvInit(); // OpenCv初始化
 app.ApiLogs(); // 启用API日志
 app.ApiReference(); // 启用API参考
 app.ApiHangfire(); // 启用Hangfire仪表盘
