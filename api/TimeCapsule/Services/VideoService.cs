@@ -301,7 +301,7 @@ public class VideoService
     public async Task<OperateResult> FrameDetect(Camera camera, ISqlSugarClient db)
     {
         // 创建摄像头检测结果目录
-        var path = Path.Combine(SystemOptions.StoragePath, camera.Id.ToString());
+        var path = Path.Combine(SystemOptions.DetectionPath, camera.Id.ToString());
         if (!Directory.Exists(path)) Directory.CreateDirectory(path);
         // 数据库中所有视频段
         var dbSegments = await db.Queryable<VideoSegment>()
@@ -608,6 +608,8 @@ public class VideoService
             if (!capture.Read(mat) || mat.Empty()) break; // 读取视频帧，直到结束
             // 处理当前帧
             var frameTime = segment.StartTime.AddSeconds(frameIndex / fps);
+            Console.WriteLine(
+                $"Processing Camera {camera.Name} Segment {segment.Id} Frame {frameIndex} / {capture.FrameCount}");
             // 判断是检测还是跟踪
             if (frameIndex % detectInterval == 0) // 检测
             {
