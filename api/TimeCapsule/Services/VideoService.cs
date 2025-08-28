@@ -358,7 +358,7 @@ public class VideoService
             .GroupBy(x => x.Index % SystemOptions.MaxTaskPerCamera) // 按余数分组
             .Select(g => g.Select(x => x.Segment).ToList())
             .ToList();
-        var allTasks = new List<Task<List<FrameDetection>>>();
+        var allTasks = new List<Task>();
         foreach (var group in segmentGroups)
         {
             allTasks.Add(Task.Run(async () =>
@@ -372,26 +372,28 @@ public class VideoService
                     groupDetections.AddRange(await DetectSegment(camera, segment, predictor, videoPath, path));
                 }
 
-                return groupDetections;
+                // 保存
+                var result = await db.AsTenant().UseTranAsync(async () =>
+                {
+                    await db.Insertable(groupDetections).SplitTable().ExecuteReturnSnowflakeIdListAsync();
+                });
+                if (result.IsSuccess)
+                {
+                    Logger.Information("摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测完成，检测到 {DetectionCount} 个目标",
+                        camera.Name, camera.Id, group.First().Id, groupDetections.Count);
+                }
+                else
+                {
+                    Logger.Warning(result.ErrorException,
+                        "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测失败: {ErrorMessage}",
+                        camera.Name, camera.Id, group.First().Id, result.ErrorMessage);
+                }
             }));
         }
 
         // 等待所有并发任务完成
-        var results = await Task.WhenAll(allTasks);
-        // 合并结果
-        var addedDetections = results.SelectMany(r => r).ToList();
-        // 更新数据库
-        var result = await db.AsTenant().UseTranAsync(async () =>
-        {
-            await db.Insertable(addedDetections).SplitTable().ExecuteReturnSnowflakeIdListAsync();
-        });
-        if (result.IsSuccess)
-            Logger.Information("摄像头 {CameraName} ({CameraId}) 的画面检测完成，共计 {SegmentCount} 个视频段，新增 {DetectionCount} 个检测结果",
-                camera.Name, camera.Id, updatedSegments.Count, addedDetections.Count);
-        else
-            Logger.Warning(result.ErrorException, "摄像头 {CameraName} ({CameraId}) 的画面检测失败: {ErrorMessage}",
-                camera.Name, camera.Id, result.ErrorMessage);
-        return result.IsSuccess ? OperateResult.Success() : OperateResult.Fail(result.ErrorMessage);
+        await Task.WhenAll(allTasks);
+        return OperateResult.Success($"摄像头 {camera.Name} 的画面检测完成");
     }
 
     /// <summary>
@@ -597,7 +599,6 @@ public class VideoService
         const HersheyFonts fontFace = HersheyFonts.HersheySimplex; // 字体
         var fontScale = frameHeight / 1080.0; // 字体缩放比例
         var thickness = frameWidth / 1080; // 线条粗细
-        const double alpha = 0.1; // 半透明填充透明度
         // 输出临时视频
         var writer = new VideoWriter(
             Path.Combine(detectionPath, $"{segment.Id}.avi"),
@@ -643,11 +644,6 @@ public class VideoService
                     });
                     // 标记检测结果
                     var color = GetColorById(result.Name.Id);
-                    // 半透明填充
-                    var overlay = mat.Clone();
-                    Cv2.Rectangle(overlay, rect, color, thickness: -1);
-                    Cv2.AddWeighted(overlay, alpha, mat, 1 - alpha, 0, mat);
-                    // 边框与文字
                     Cv2.Rectangle(mat, rect, color, thickness);
                     Cv2.PutText(mat, $"{result.Name.Name}({Math.Round(result.Confidence * 100)}%)",
                         new Point(rect.X, rect.Y - 5), fontFace, fontScale, color, thickness);
@@ -677,11 +673,6 @@ public class VideoService
                     t.BoundingBox = rect;
                     // 标记跟踪结果
                     var color = GetColorById(t.LabelId);
-                    // 半透明填充
-                    var overlay = mat.Clone();
-                    Cv2.Rectangle(overlay, rect, color, thickness: -1);
-                    Cv2.AddWeighted(overlay, alpha, mat, 1 - alpha, 0, mat);
-                    // 边框与文字
                     Cv2.Rectangle(mat, rect, color, thickness);
                     Cv2.PutText(mat, $"{t.Label}({Math.Round(t.Confidence * 100)}%)", new Point(rect.X, rect.Y - 5),
                         fontFace, fontScale, color, thickness);
