@@ -130,6 +130,14 @@ export default function Page() {
     else toast.success('同步和缓存请求成功，请稍等片刻，后台正在处理')
   }
 
+  const clearDetection = async (cam: Camera) => {
+    const { error } = await openapi.DELETE('/Camera/ClearDetections', {
+      params: { query: { cameraId: cam.Id?.toString() } },
+    })
+    if (error) toast.error(`清除检测结果失败: ${error}`)
+    else toast.success('清除检测结果成功')
+  }
+
   return (
     <div className="max-w-8xl mx-auto grid grid-cols-1 gap-6 p-8 sm:grid-cols-2 lg:grid-cols-3">
       <Button
@@ -236,17 +244,25 @@ export default function Page() {
                 checked={newEnableDetection}
                 onCheckedChange={(checked) => setNewEnableDetection(!!checked)}
               />
+              {editCam && (
+                <Button
+                  variant="destructive"
+                  onClick={() => clearDetection(editCam!)}
+                >
+                  清除检测结果
+                </Button>
+              )}
             </div>
             {newEnableDetection && (
               <>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-600">
-                    检测间隔（秒）
+                    检测间隔帧数
                   </label>
                   <Input
                     type="number"
                     className="font-mono"
-                    placeholder="检测间隔（秒）"
+                    placeholder="检测间隔帧数"
                     value={newDetectInterval}
                     onChange={(e) =>
                       setNewDetectInterval(Number(e.target.value))
