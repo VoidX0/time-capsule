@@ -20,8 +20,8 @@ public class Camera
     [SugarColumn(ColumnDescription = "启用目标检测", DefaultValue = "false")]
     public bool EnableDetection { get; set; } = false;
 
-    [SugarColumn(ColumnDescription = "目标检测间隔时间(秒)", DefaultValue = "30")]
-    public int DetectionInterval { get; set; } = 30;
+    [SugarColumn(ColumnDescription = "目标检测间隔帧", DefaultValue = "25")]
+    public int DetectionInterval { get; set; } = 25;
 
     [SugarColumn(ColumnDescription = "目标检测最低置信度", DefaultValue = "0.3")]
     public decimal DetectionConfidence { get; set; } = 0.3M;

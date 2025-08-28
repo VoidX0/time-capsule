@@ -115,28 +115,22 @@ public class CameraController : OrmController<Camera>
         var camera = await Db.Queryable<Camera>().InSingleAsync(id);
         if (camera == null) return BadRequest("Camera not found");
         // 删除对应数据
-        var segments = await Db.Queryable<VideoSegment>().Where(x => x.CameraId == camera.Id).SplitTable()
-            .ToListAsync();
-        var segmentIds = segments.Select(x => x.Id).ToList();
-        var detections = await Db.Queryable<FrameDetection>().Where(x => segmentIds.Contains(x.SegmentId))
-            .SplitTable()
+        var detections = await Db.Queryable<FrameDetection>().Where(x => x.CameraId == camera.Id).SplitTable()
             .ToListAsync();
         var result = await Db.AsTenant().UseTranAsync(async () =>
         {
-            foreach (var segment in segments) segment.Detected = false;
-            await Db.Updateable(segments).SplitTable().ExecuteCommandAsync();
             await Db.Deleteable(detections).SplitTable().ExecuteCommandAsync();
         });
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
         // 删除对应文件
         foreach (var detection in detections)
         {
-            var dir = new DirectoryInfo(Path.Combine(_systemOptions.StoragePath, "detection",
-                camera.Id.ToString(), detection.SegmentId.ToString()));
-            if (!dir.Exists) continue;
+            var file = new FileInfo(Path.Combine(_systemOptions.DetectionPath, detection.CameraId.ToString(),
+                $"{detection.SegmentId}.mp4"));
+            if (!file.Exists) continue;
             try
             {
-                dir.Delete(true);
+                file.Delete();
             }
             catch
             {
@@ -162,8 +156,7 @@ public class CameraController : OrmController<Camera>
         // 删除对应的文件 (删除失败的文件，会在下次Sync时重新同步，所以不需要处理异常)
         foreach (var camera in entity)
         {
-            var detect =
-                new DirectoryInfo(Path.Combine(_systemOptions.StoragePath, "detection", camera.Id.ToString()));
+            var detect = new DirectoryInfo(Path.Combine(_systemOptions.DetectionPath, camera.Id.ToString()));
             // 删除检测目录
             if (detect.Exists)
             {
@@ -196,9 +189,7 @@ public class CameraController : OrmController<Camera>
         var cameraIds = entity.Select(x => x.Id).ToList();
         var segments = await Db.Queryable<VideoSegment>().Where(x => cameraIds.Contains(x.CameraId)).SplitTable()
             .ToListAsync();
-        var segmentIds = segments.Select(x => x.Id).ToList();
-        var detections = await Db.Queryable<FrameDetection>().Where(x => segmentIds.Contains(x.SegmentId))
-            .SplitTable()
+        var detections = await Db.Queryable<FrameDetection>().Where(x => cameraIds.Contains(x.CameraId)).SplitTable()
             .ToListAsync();
         var result = await Db.AsTenant().UseTranAsync(async () =>
         {

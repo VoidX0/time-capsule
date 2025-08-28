@@ -9,6 +9,7 @@ Instance = "" # 实例名称
 StoragePath = "/app/storage" # 持久化存储路径
 CameraPath = "/camera" # 摄像头基础路径
 CachePath = "/cache" # 缓存基础路径
+DetectionPath = "/detection" # 检测结果存储目录
 ApiLogs = true # 启用API日志
 ApiReference = true # 启用API参考
 ApiHangfire = true # 启用Hangfire Dashboard
