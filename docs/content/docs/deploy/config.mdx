@@ -3,6 +3,8 @@ title: 配置项
 description: 部署时的配置项说明
 ---
 
+
+
 import {TypeTable} from 'fumadocs-ui/components/type-table';
 
 ## 配置说明
@@ -55,6 +57,11 @@ import {TypeTable} from 'fumadocs-ui/components/type-table';
             type: 'string',
             default: '/cache',
         },
+        DetectionPath: {
+            description: '检测结果存储目录',
+            type: 'string',
+            default: '/detection',
+        },
         ApiLogs: {
             description: '是否启用API日志UI',
             type: 'boolean',
@@ -90,7 +97,7 @@ import {TypeTable} from 'fumadocs-ui/components/type-table';
             type: 'string',
             default: '0 0 15 * * *',
         },
-        CronFrameDetect:{
+        CronFrameDetect: {
             description: '检测画面目标的定时任务',
             type: 'string',
             default: '0 0 9 * * *',
