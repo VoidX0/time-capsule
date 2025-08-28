@@ -323,7 +323,7 @@ public class VideoService
             // 删除不存在的视频段的检测结果
             try
             {
-                Directory.Delete(Path.Combine(path, detectResult), true);
+                File.Delete(Path.Combine(path, detectResult));
             }
             catch (Exception e)
             {
@@ -341,7 +341,7 @@ public class VideoService
         }
 
         // 对尚未检测的视频段进行画面检测
-        var dirIds = detectResults
+        var dirIds = (await GetFiles(path, [".mp4"]))
             .Select(x => long.TryParse(Path.GetFileNameWithoutExtension(x), out var parsedId) ? parsedId : 0)
             .Where(x => x != 0)
             .ToList();
