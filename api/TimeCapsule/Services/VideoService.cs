@@ -597,7 +597,7 @@ public class VideoService
         const HersheyFonts fontFace = HersheyFonts.HersheySimplex; // 字体
         var fontScale = frameHeight / 1080.0; // 字体缩放比例
         var thickness = frameWidth / 1080; // 线条粗细
-        const double alpha = 0.2; // 半透明填充透明度
+        const double alpha = 0.1; // 半透明填充透明度
         // 输出临时视频
         var writer = new VideoWriter(
             Path.Combine(detectionPath, $"{segment.Id}.avi"),
