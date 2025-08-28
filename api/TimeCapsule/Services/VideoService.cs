@@ -593,6 +593,11 @@ public class VideoService
         var frameWidth = capture.FrameWidth;
         var frameHeight = capture.FrameHeight;
         var fps = capture.Fps;
+        // 绘图参数
+        const HersheyFonts fontFace = HersheyFonts.HersheySimplex; // 字体
+        var fontScale = frameHeight / 1080.0; // 字体缩放比例
+        var thickness = frameWidth / 1080; // 线条粗细
+        const double alpha = 0.2; // 半透明填充透明度
         // 输出临时视频
         var writer = new VideoWriter(
             Path.Combine(detectionPath, $"{segment.Id}.avi"),
@@ -630,14 +635,22 @@ public class VideoService
                     trackers.Add(new TrackerItem
                     {
                         TrackId = trackIdCounter++,
+                        LabelId = result.Name.Id,
                         Label = result.Name.Name,
+                        Confidence = Math.Round(result.Confidence, 4),
                         Tracker = tracker,
                         BoundingBox = rect
                     });
                     // 标记检测结果
-                    Cv2.Rectangle(mat, rect, OpenCvSharp.Scalar.Green, 2);
-                    Cv2.PutText(mat, result.Name.Name, new Point(rect.X, rect.Y - 5),
-                        HersheyFonts.HersheySimplex, 0.6, OpenCvSharp.Scalar.Green, 2);
+                    var color = GetColorById(result.Name.Id);
+                    // 半透明填充
+                    var overlay = mat.Clone();
+                    Cv2.Rectangle(overlay, rect, color, thickness: -1);
+                    Cv2.AddWeighted(overlay, alpha, mat, 1 - alpha, 0, mat);
+                    // 边框与文字
+                    Cv2.Rectangle(mat, rect, color, thickness);
+                    Cv2.PutText(mat, $"{result.Name.Name}({Math.Round(result.Confidence * 100)}%)",
+                        new Point(rect.X, rect.Y - 5), fontFace, fontScale, color, thickness);
                     // 保存检测结果
                     detections.Add(new FrameDetection
                     {
@@ -663,9 +676,15 @@ public class VideoService
                     if (!t.Tracker.Update(mat, ref rect)) continue;
                     t.BoundingBox = rect;
                     // 标记跟踪结果
-                    Cv2.Rectangle(mat, rect, OpenCvSharp.Scalar.Red, 2);
-                    Cv2.PutText(mat, t.Label, new Point(rect.X, rect.Y - 5),
-                        HersheyFonts.HersheySimplex, 0.6, OpenCvSharp.Scalar.Red, 2);
+                    var color = GetColorById(t.LabelId);
+                    // 半透明填充
+                    var overlay = mat.Clone();
+                    Cv2.Rectangle(overlay, rect, color, thickness: -1);
+                    Cv2.AddWeighted(overlay, alpha, mat, 1 - alpha, 0, mat);
+                    // 边框与文字
+                    Cv2.Rectangle(mat, rect, color, thickness);
+                    Cv2.PutText(mat, $"{t.Label}({Math.Round(t.Confidence * 100)}%)", new Point(rect.X, rect.Y - 5),
+                        fontFace, fontScale, color, thickness);
                 }
             }
 
@@ -698,5 +717,34 @@ public class VideoService
         }
 
         return detections;
+    }
+
+    /// <summary>
+    /// 固定颜色板
+    /// </summary>
+    private static readonly OpenCvSharp.Scalar[] ColorPalette =
+    [
+        new(243, 139, 168), // Pink (BGR: 243,139,168)
+        new(255, 184, 108), // Yellow
+        new(137, 220, 235), // Teal
+        new(255, 140, 184), // Maroon / Rose
+        new(190, 204, 255), // Blue
+        new(255, 203, 107), // Peach / Orange
+        new(210, 150, 255), // Lavender / Purple
+        new(162, 196, 255), // Sky
+        new(255, 255, 255), // White
+        new(143, 188, 187) // Mint / Cyan
+    ];
+
+    /// <summary>
+    /// 根据目标Id返回固定颜色
+    /// </summary>
+    /// <param name="id">目标ID</param>
+    /// <returns>OpenCvSharp.Scalar颜色</returns>
+    private static OpenCvSharp.Scalar GetColorById(int id)
+    {
+        if (ColorPalette.Length == 0) return new OpenCvSharp.Scalar(0, 255, 0); // 默认绿色
+        var index = id % ColorPalette.Length;
+        return ColorPalette[index];
     }
 }

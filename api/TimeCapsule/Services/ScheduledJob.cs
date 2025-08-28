@@ -135,6 +135,6 @@ public class ScheduledJob
         var watch = Stopwatch.StartNew();
         var result = await _service.FrameDetect();
         watch.Stop();
-        Logger.Information("{Message}; 耗时: {Time}ms", result.Message, watch.ElapsedMilliseconds);
+        Logger.Information("{Message}; 耗时: {Time}min", result.Message, watch.Elapsed.TotalMinutes);
     }
 }
