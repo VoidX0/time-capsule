@@ -1,19 +1,17 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using Compunet.YoloSharp;
+using Compunet.YoloSharp.Plotting;
 using Microsoft.Extensions.Options;
-using OpenCvSharp;
-using OpenCvSharp.Tracking;
 using Serilog;
+using SixLabors.ImageSharp;
 using SqlSugar;
 using SqlSugar.IOC;
 using TimeCapsule.Core.Models.Common;
 using TimeCapsule.Core.Models.Db;
-using TimeCapsule.Models;
 using TimeCapsule.Models.Options;
 using Xabe.FFmpeg;
 using ILogger = Serilog.ILogger;
-using Point = OpenCvSharp.Point;
 
 namespace TimeCapsule.Services;
 
@@ -372,22 +370,22 @@ public class VideoService
                     groupDetections.AddRange(await DetectSegment(camera, segment, predictor, videoPath, path));
                 }
 
-                // 保存
-                var result = await db.AsTenant().UseTranAsync(async () =>
-                {
-                    await db.Insertable(groupDetections).SplitTable().ExecuteReturnSnowflakeIdListAsync();
-                });
-                if (result.IsSuccess)
-                {
-                    Logger.Information("摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测完成，检测到 {DetectionCount} 个目标",
-                        camera.Name, camera.Id, group.First().Id, groupDetections.Count);
-                }
-                else
-                {
-                    Logger.Warning(result.ErrorException,
-                        "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测失败: {ErrorMessage}",
-                        camera.Name, camera.Id, group.First().Id, result.ErrorMessage);
-                }
+                // // 保存
+                // var result = await db.AsTenant().UseTranAsync(async () =>
+                // {
+                //     await db.Insertable(groupDetections).SplitTable().ExecuteReturnSnowflakeIdListAsync();
+                // });
+                // if (result.IsSuccess)
+                // {
+                //     Logger.Information("摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测完成，检测到 {DetectionCount} 个目标",
+                //         camera.Name, camera.Id, group.First().Id, groupDetections.Count);
+                // }
+                // else
+                // {
+                //     Logger.Warning(result.ErrorException,
+                //         "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测失败: {ErrorMessage}",
+                //         camera.Name, camera.Id, group.First().Id, result.ErrorMessage);
+                // }
             }));
         }
 
@@ -578,129 +576,91 @@ public class VideoService
     /// <param name="videoPath">视频存储路径</param>
     /// <param name="detectionPath">检测结果存储路径</param>
     /// <returns></returns>
-    private static async Task<List<FrameDetection>> DetectSegment(Camera camera, VideoSegment segment,
+    private async Task<List<FrameDetection>> DetectSegment(Camera camera, VideoSegment segment,
         YoloPredictor yoloPredictor,
         string videoPath, string detectionPath)
     {
-        var detections = new List<FrameDetection>();
-        // 检测参数
-        var minConfidence = Math.Min(Math.Max(camera.DetectionConfidence, 0.1M), 1.0M); // 置信度阈值
-        var detectInterval = Math.Min(Math.Max(camera.DetectionInterval, 1), 100); // 检测间隔帧数
-        var frameIndex = 0;
-        var trackIdCounter = 1;
-        // 捕获视频
-        var capture = new VideoCapture(Path.Combine(videoPath, segment.Path));
-        if (!capture.IsOpened()) return detections;
-        // 视频原始参数
-        var frameWidth = capture.FrameWidth;
-        var frameHeight = capture.FrameHeight;
-        var fps = capture.Fps;
-        // 绘图参数
-        const HersheyFonts fontFace = HersheyFonts.HersheySimplex; // 字体
-        var fontScale = frameHeight / 1080.0; // 字体缩放比例
-        var thickness = frameWidth / 1080; // 线条粗细
-        // 输出临时视频
-        var writer = new VideoWriter(
-            Path.Combine(detectionPath, $"{segment.Id}.avi"),
-            FourCC.MJPG, fps,
-            new Size(frameWidth, frameHeight)
-        );
-        // 跟踪器列表
-        var trackers = new List<TrackerItem>();
-        // 帧处理循环
-        var mat = new Mat();
-        while (true)
+        // 初始化缓存目录
+        var cachePath = Path.Combine(SystemOptions.CachePath, $"segment_{segment.Id}");
+        if (Directory.Exists(cachePath)) Directory.Delete(cachePath, true);
+        var tmpImagePath = Path.Combine(cachePath, "tmp");
+        var targetImagePath = Path.Combine(cachePath, "target");
+        if (!Directory.Exists(tmpImagePath)) Directory.CreateDirectory(tmpImagePath);
+        if (!Directory.Exists(targetImagePath)) Directory.CreateDirectory(targetImagePath);
+        // 切片到临时目录
+        try
         {
-            if (!capture.Read(mat) || mat.Empty()) break; // 读取视频帧，直到结束
-            // 处理当前帧
-            var frameTime = segment.StartTime.AddSeconds(frameIndex / fps);
-            // 判断是检测还是跟踪
+            await FFmpeg.Conversions.New()
+                .AddParameter($"-i \"{Path.Combine(videoPath, segment.Path)}\"")
+                .AddParameter($"-vf fps={segment.VideoFps}")
+                .SetOutput(Path.Combine(tmpImagePath, "%010d.jpg"))
+                .Start();
+        }
+        catch
+        {
+            // ignored
+        }
+
+        // 遍历临时目录中的所有图片，进行目标检测
+        var detections = new List<FrameDetection>();
+        var minConfidence = Math.Min(Math.Max(camera.DetectionConfidence, 0.1M), 1.0M); // 最低置信度
+        var detectInterval = Math.Min(Math.Max(camera.DetectionInterval, 1), 100); // 检测间隔帧数
+        var files = Directory.GetFiles(tmpImagePath, "*.jpg")
+            .ToList().OrderBy(Path.GetFileNameWithoutExtension);
+        foreach (var file in files)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            if (!int.TryParse(fileName, out var frameIndex)) continue;
+            frameIndex -= 1; // 文件名从1开始，索引从0开始
             if (frameIndex % detectInterval == 0) // 检测
             {
-                // 将当前帧传入yolo进行检测
-                var img = mat.ImEncode(".jpg");
-                using var ms = new MemoryStream(img);
-                var results = await yoloPredictor.DetectAsync(ms, new YoloConfiguration
+                using var image = await Image.LoadAsync(file);
+                var results = await yoloPredictor.DetectAsync(file, new YoloConfiguration
                 {
-                    Confidence = (float)minConfidence
+                    Confidence = (float)minConfidence,
                 });
-                trackers.Clear(); // 清空之前的跟踪器
-                // 为每个检测结果创建一个新的跟踪器
-                foreach (var result in results)
+                // 计算帧时间
+                var frameTime = segment.StartTime.AddSeconds(frameIndex / (double)segment.VideoFps);
+                // 保存检测图片
+                using var plotted = await results.PlotImageAsync(image);
+                await plotted.SaveAsync(Path.Combine(targetImagePath, $"{frameIndex + 1:0000000000}.jpg"));
+                // 添加检测记录
+                detections.AddRange(results.Select(x => new FrameDetection
                 {
-                    var rect = new Rect(result.Bounds.Location.X, result.Bounds.Location.Y,
-                        result.Bounds.Size.Width, result.Bounds.Size.Height);
-                    var tracker = TrackerKCF.Create(); // 使用KCF跟踪算法
-                    tracker.Init(mat, rect); // 初始化跟踪器
-                    // 添加到跟踪器列表
-                    trackers.Add(new TrackerItem
-                    {
-                        TrackId = trackIdCounter++,
-                        LabelId = result.Name.Id,
-                        Label = result.Name.Name,
-                        Confidence = Math.Round(result.Confidence, 4),
-                        Tracker = tracker,
-                        BoundingBox = rect
-                    });
-                    // 标记检测结果
-                    var color = GetColorById(result.Name.Id);
-                    Cv2.Rectangle(mat, rect, color, thickness);
-                    Cv2.PutText(mat, $"{result.Name.Name}({Math.Round(result.Confidence * 100)}%)",
-                        new Point(rect.X, rect.Y - 5), fontFace, fontScale, color, thickness);
-                    // 保存检测结果
-                    detections.Add(new FrameDetection
-                    {
-                        CameraId = camera.Id,
-                        SegmentId = segment.Id,
-                        FrameTime = frameTime,
-                        TargetId = result.Name.Id,
-                        TargetName = result.Name.Name,
-                        TargetConfidence = Math.Round((decimal)result.Confidence, 4),
-                        TargetLocationX = rect.X,
-                        TargetLocationY = rect.Y,
-                        TargetSizeWidth = rect.Width,
-                        TargetSizeHeight = rect.Height
-                    });
-                }
+                    CameraId = camera.Id,
+                    SegmentId = segment.Id,
+                    FrameTime = frameTime,
+                    TargetId = x.Name.Id,
+                    TargetName = x.Name.Name,
+                    TargetConfidence = Math.Round((decimal)x.Confidence, 4),
+                    TargetLocationX = x.Bounds.Location.X,
+                    TargetLocationY = x.Bounds.Location.Y,
+                    TargetSizeWidth = x.Bounds.Size.Width,
+                    TargetSizeHeight = x.Bounds.Size.Height
+                }));
             }
             else // 跟踪
             {
-                foreach (var t in trackers)
-                {
-                    // 更新跟踪器
-                    Rect rect = default;
-                    if (!t.Tracker.Update(mat, ref rect)) continue;
-                    t.BoundingBox = rect;
-                    // 标记跟踪结果
-                    var color = GetColorById(t.LabelId);
-                    Cv2.Rectangle(mat, rect, color, thickness);
-                    Cv2.PutText(mat, $"{t.Label}({Math.Round(t.Confidence * 100)}%)", new Point(rect.X, rect.Y - 5),
-                        fontFace, fontScale, color, thickness);
-                }
+                // 移动图片到目标目录
+                File.Move(file, Path.Combine(targetImagePath, $"{frameIndex + 1:0000000000}.jpg"));
             }
-
-            writer.Write(mat); // 写入输出视频
-            frameIndex++; // 帧索引递增
         }
 
-        // 释放资源
-        capture.Release();
-        writer.Release();
-        mat.Dispose();
-
-        // 临时视频转码为H265
+        // 检测转码为H265
         try
         {
-            var input = Path.Combine(detectionPath, $"{segment.Id}.avi");
             var output = Path.Combine(detectionPath, $"{segment.Id}.mp4");
             var conversion = FFmpeg.Conversions.New()
-                .AddParameter($"-i \"{input}\"")
+                .AddParameter($"-i \"{Path.Combine(targetImagePath, "%010d.jpg")}\"")
+                .AddParameter($"-framerate {segment.VideoFps}")
+                .AddParameter("-pix_fmt yuv420p")
                 .AddParameter("-c:v libx265") // 使用 H.265 编码器
                 .AddParameter("-crf 28") // 控制压缩率（越小质量越高，文件越大；默认 28，推荐 23~28）
                 .AddParameter("-preset medium") // 编码速度与压缩效率权衡 (ultrafast, superfast, fast, medium, slow, slower)
                 .SetOutput(output);
             await conversion.Start();
-            File.Delete(input);
+            // 删除Cache目录
+            Directory.Delete(cachePath, true);
         }
         catch
         {
@@ -708,34 +668,5 @@ public class VideoService
         }
 
         return detections;
-    }
-
-    /// <summary>
-    /// 固定颜色板
-    /// </summary>
-    private static readonly OpenCvSharp.Scalar[] ColorPalette =
-    [
-        new(243, 139, 168), // Pink (BGR: 243,139,168)
-        new(255, 184, 108), // Yellow
-        new(137, 220, 235), // Teal
-        new(255, 140, 184), // Maroon / Rose
-        new(190, 204, 255), // Blue
-        new(255, 203, 107), // Peach / Orange
-        new(210, 150, 255), // Lavender / Purple
-        new(162, 196, 255), // Sky
-        new(255, 255, 255), // White
-        new(143, 188, 187) // Mint / Cyan
-    ];
-
-    /// <summary>
-    /// 根据目标Id返回固定颜色
-    /// </summary>
-    /// <param name="id">目标ID</param>
-    /// <returns>OpenCvSharp.Scalar颜色</returns>
-    private static OpenCvSharp.Scalar GetColorById(int id)
-    {
-        if (ColorPalette.Length == 0) return new OpenCvSharp.Scalar(0, 255, 0); // 默认绿色
-        var index = id % ColorPalette.Length;
-        return ColorPalette[index];
     }
 }
