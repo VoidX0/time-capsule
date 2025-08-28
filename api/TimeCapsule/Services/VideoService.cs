@@ -608,8 +608,6 @@ public class VideoService
             if (!capture.Read(mat) || mat.Empty()) break; // 读取视频帧，直到结束
             // 处理当前帧
             var frameTime = segment.StartTime.AddSeconds(frameIndex / fps);
-            Console.WriteLine(
-                $"Processing Camera {camera.Name} Segment {segment.Id} Frame {frameIndex} / {capture.FrameCount}");
             // 判断是检测还是跟踪
             if (frameIndex % detectInterval == 0) // 检测
             {
