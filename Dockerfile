@@ -156,7 +156,7 @@ WORKDIR /app
 EXPOSE 8080 3000
 LABEL org.opencontainers.image.source=https://github.com/VoidX0/time-capsule
 # 安装工具
-RUN apt-get update && apt-get install -y wget ca-certificates fonts-dejavu-core fonts-dejavu-extra
+RUN apt-get update && apt-get install -y wget ca-certificates
 # 安装前端环境
 RUN wget -qO- https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs && \
