@@ -30,7 +30,6 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 type SystemUser = components['schemas']['SystemUser']
-type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
