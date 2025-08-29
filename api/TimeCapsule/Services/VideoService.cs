@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Compunet.YoloSharp;
 using Compunet.YoloSharp.Data;
@@ -367,30 +368,28 @@ public class VideoService
         {
             allTasks.Add(Task.Run(async () =>
             {
-                var groupDetections = new List<FrameDetection>();
                 // 每个任务内部用一个 predictor
                 using var predictor = new YoloPredictor(Path.Combine(wwwroot, "models", "yolo11n.onnx"), yoloOption);
                 foreach (var segment in group)
                 {
                     var videoPath = Path.Combine(SystemOptions.CameraPath, camera.BasePath);
-                    groupDetections.AddRange(await DetectSegment(camera, segment, predictor, videoPath, path));
-                }
-
-                // 保存
-                var result = await db.AsTenant().UseTranAsync(async () =>
-                {
-                    await db.Insertable(groupDetections).SplitTable().ExecuteReturnSnowflakeIdListAsync();
-                });
-                if (result.IsSuccess)
-                {
-                    Logger.Information("摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测完成，检测到 {DetectionCount} 个目标",
-                        camera.Name, camera.Id, group.First().Id, groupDetections.Count);
-                }
-                else
-                {
-                    Logger.Warning(result.ErrorException,
-                        "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测失败: {ErrorMessage}",
-                        camera.Name, camera.Id, group.First().Id, result.ErrorMessage);
+                    var detections = await DetectSegment(camera, segment, predictor, videoPath, path);
+                    // 保存检测结果
+                    var result = await db.AsTenant().UseTranAsync(async () =>
+                    {
+                        await db.Insertable(detections).SplitTable().ExecuteReturnSnowflakeIdListAsync();
+                    });
+                    if (result.IsSuccess)
+                    {
+                        Logger.Information("摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 检测结果保存完成",
+                            camera.Name, camera.Id, segment.Id);
+                    }
+                    else
+                    {
+                        Logger.Warning(result.ErrorException,
+                            "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 检测结果保存失败: {ErrorMessage}",
+                            camera.Name, camera.Id, segment.Id, result.ErrorMessage);
+                    }
                 }
             }));
         }
@@ -599,6 +598,7 @@ public class VideoService
         var detectInterval = Math.Min(Math.Max(camera.DetectionInterval, 1), 100); // 检测间隔帧数
         var imageWidth = Math.Min(Math.Max(camera.DetectionWidth, 320), 3840); // 检测图片宽度
         // 切片到临时目录
+        var watch = Stopwatch.StartNew();
         try
         {
             await FFmpeg.Conversions.New()
@@ -608,8 +608,11 @@ public class VideoService
                 .SetOutput(Path.Combine(tmpImagePath, "%010d.jpg"))
                 .Start();
         }
-        catch
+        catch (Exception e)
         {
+            watch.Stop();
+            Logger.Warning(e, "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 切片失败",
+                camera.Name, camera.Id, segment.Id);
             // 切片失败
             Directory.Delete(cachePath, true); // 删除缓存目录
             return detections;
@@ -713,11 +716,20 @@ public class VideoService
             // 删除Cache目录
             Directory.Delete(cachePath, true);
         }
-        catch
+        catch (Exception e)
         {
-            // ignore
+            watch.Stop();
+            Logger.Warning(e, "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 检测结果转码失败",
+                camera.Name, camera.Id, segment.Id);
+            // 转码失败
+            Directory.Delete(cachePath, true); // 删除缓存目录
+            return [];
         }
 
+        watch.Stop();
+        Logger.Information(
+            "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测完成，检测到 {DetectionCount} 个目标，耗时 {Elapsed}s",
+            camera.Name, camera.Id, segment.Id, detections.Count, watch.Elapsed.TotalSeconds.ToString("F2"));
         return detections;
     }
 }
