@@ -123,19 +123,15 @@ public class CameraController : OrmController<Camera>
         });
         if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
         // 删除对应文件
-        foreach (var detection in detections)
+        var dir = new DirectoryInfo(Path.Combine(_systemOptions.DetectionPath, camera.Id.ToString()));
+        if (!dir.Exists) return Ok();
+        try
         {
-            var file = new FileInfo(Path.Combine(_systemOptions.DetectionPath, detection.CameraId.ToString(),
-                $"{detection.SegmentId}.mp4"));
-            if (!file.Exists) continue;
-            try
-            {
-                file.Delete();
-            }
-            catch
-            {
-                // ignore
-            }
+            dir.Delete(true);
+        }
+        catch
+        {
+            // ignore
         }
 
         return Ok();

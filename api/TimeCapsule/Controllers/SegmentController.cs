@@ -71,8 +71,8 @@ public class SegmentController : OrmController<VideoSegment>
             var video = new FileInfo(Path.Combine(_systemOptions.CameraPath, camera.BasePath, segment.Path));
             var thumbnail = new FileInfo(Path.Combine(_systemOptions.CachePath, segment.CameraId.ToString(),
                 $"{segment.Id}.jpg"));
-            var detect = new FileInfo(Path.Combine(_systemOptions.DetectionPath, segment.CameraId.ToString(),
-                $"{segment.Id}.mp4"));
+            var detect = new DirectoryInfo(Path.Combine(_systemOptions.DetectionPath, segment.CameraId.ToString(),
+                segment.Id.ToString()));
             // 删除视频文件
             if (video.Exists)
             {
@@ -104,7 +104,7 @@ public class SegmentController : OrmController<VideoSegment>
             {
                 try
                 {
-                    detect.Delete();
+                    detect.Delete(true);
                 }
                 catch
                 {
