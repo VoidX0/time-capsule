@@ -5,11 +5,13 @@ import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { formatDate, rangeWeek } from '@/lib/date-time'
 import { openapi } from '@/lib/http'
-import { ArrowUp, CalendarIcon } from 'lucide-react'
+import { ArrowUp, CalendarIcon, Filter } from 'lucide-react'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { DateRange } from 'react-day-picker'
 
@@ -30,7 +32,8 @@ export default function Page({
   const [categories, setCategories] = useState<string[]>([]) // 目标类别列表
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]) // 当前选中的类别列表
   const [date, setDate] = useState<DateRange | undefined>(rangeWeek())
-  const [popover, setPopover] = useState(false) // 控制 Popover 开关
+  const [filterOpen, setFilterOpen] = useState(false) // 类别筛选开关
+  const [datePopover, setDatePopover] = useState(false) // 日期选择弹窗开关
   const [detailOpen, setDetailOpen] = useState(false) // 控制详情弹窗开关
   const [selectedDetection, setSelectedDetection] = useState<
     Detection[] | null
@@ -108,11 +111,17 @@ export default function Page({
         return
       }
       setDetections(data!)
-      // 提取类别
+      // 提取类别（按 TargetId 排序，再去重）
       const cats = Array.from(
-        new Set(data!.map((detection) => detection.TargetName || 'Unknown')),
-      ).sort()
+        new Map(
+          data!
+            .slice()
+            .sort((a, b) => (a.TargetId ?? 0) - (b.TargetId ?? 0)) // 按 TargetId 排序
+            .map((d) => [d.TargetName || 'Unknown', d.TargetId ?? 0]), // 保留 TargetId 做顺序参考
+        ).keys(),
+      )
       setCategories(cats)
+      setSelectedCategory([]) // 重置已选类别
     }
     if (cameraInfo === undefined) return
     getDetections(cameraInfo?.Id?.toString() ?? '').then()
@@ -137,8 +146,8 @@ export default function Page({
         {date?.to?.toLocaleDateString() || ''}
       </h2>
       <div className="grid grid-cols-1 gap-4">
-        {/*按天分组的检测结果*/}
-        {Object.entries(detectionsGroups).map(([date, group]) => (
+        {/* 按日期分组 */}
+        {Object.entries(detectionsGroups).map(([date, detectionsByKey]) => (
           <div
             key={date}
             id={`date-${date}`}
@@ -146,65 +155,31 @@ export default function Page({
           >
             <div className="flex items-center justify-start gap-4">
               <h2 className="text-xl font-semibold">{date}</h2>
-              <Badge>{Object.keys(group).length} frames</Badge>
+              <Badge>{Object.keys(detectionsByKey).length} items</Badge>
             </div>
-            {/*/!* 按SegmentID + FramePath分组的检测结果 *!/*/}
-            {/*{Object.entries(group)*/}
-            {/*  .sort(([a], [b]) => a.localeCompare(b, 'en', { numeric: true }))*/}
-            {/*  .map(([frameKey, detections]) => (*/}
-            {/*    <div*/}
-            {/*      key={frameKey}*/}
-            {/*      className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4"*/}
-            {/*    >*/}
-            {/*      <Image*/}
-            {/*        className="my-2 rounded-lg"*/}
-            {/*        src={`/api/Detection/GetImage?cameraId=${cameraInfo.Id}&segmentId=${detections[0]!.SegmentId}&framePath=${encodeURIComponent(detections[0]!.FramePath)}`}*/}
-            {/*        alt={`${detections[0]!.FramePath}`}*/}
-            {/*        width={1920}*/}
-            {/*        height={1080}*/}
-            {/*        loading="lazy"*/}
-            {/*      />*/}
-            {/*    </div>*/}
-            {/*  ))}*/}
 
-            {/*{group.map((detection) => {*/}
-            {/*  // 包裹Detection卡片，右键 / 长按 触发详情*/}
-            {/*  let touchTimer: NodeJS.Timeout | undefined = undefined*/}
-            {/*  // 右键触发详情*/}
-            {/*  const handleContextMenu = (e: React.MouseEvent) => {*/}
-            {/*    e.preventDefault()*/}
-            {/*    setSelectedDetection(detection)*/}
-            {/*    setDetailOpen(true)*/}
-            {/*  }*/}
-            {/*  // 长按触发详情*/}
-            {/*  const handleTouchStart = () => {*/}
-            {/*    touchTimer = setTimeout(() => {*/}
-            {/*      setSelectedDetection(detection)*/}
-            {/*      setDetailOpen(true)*/}
-            {/*    }, 500) // 长按 500ms*/}
-            {/*  }*/}
-            {/*  // 触摸结束清除定时器*/}
-            {/*  const handleTouchEnd = () => {*/}
-            {/*    if (touchTimer) clearTimeout(touchTimer)*/}
-            {/*  }*/}
-
-            {/*  return (*/}
-            {/*    <div*/}
-            {/*      key={detection.Id}*/}
-            {/*      onContextMenu={handleContextMenu}*/}
-            {/*      onTouchStart={handleTouchStart}*/}
-            {/*      onTouchEnd={handleTouchEnd}*/}
-            {/*    >*/}
-            {/*      <Image*/}
-            {/*        src={`/api/Detection/GetImage?cameraId=${cameraInfo.Id}&segmentId=${detection.SegmentId}&framePath=${detection.FramePath}`}*/}
-            {/*        alt={`${detection.TargetName}`}*/}
-            {/*        width={1920}*/}
-            {/*        height={1080}*/}
-            {/*        loading="lazy"*/}
-            {/*      />*/}
-            {/*    </div>*/}
-            {/*  )*/}
-            {/*})}*/}
+            {/* 同一张图片内的 detections */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+              {Object.entries(detectionsByKey).map(([groupKey, detections]) => {
+                if (!detections.length) return null
+                const firstDetection = detections[0] // 只显示第一张
+                return (
+                  <div key={groupKey} className="overflow-hidden rounded-lg">
+                    <Image
+                      src={`/api/Detection/GetImage?cameraId=${cameraInfo.Id}&segmentId=${detections[0]!.SegmentId}&framePath=${encodeURIComponent(detections[0]!.FramePath!)}`}
+                      alt={`Detection ${firstDetection!.Id}`}
+                      width={1920}
+                      height={1080}
+                      className="aspect-video w-full cursor-pointer object-cover hover:scale-105"
+                      onClick={() => {
+                        setSelectedDetection(detections)
+                        setDetailOpen(true)
+                      }}
+                    />
+                  </div>
+                )
+              })}
+            </div>
           </div>
         ))}
       </div>
@@ -212,63 +187,105 @@ export default function Page({
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detection Info</DialogTitle>
+            <DialogTitle>Detections Info</DialogTitle>
           </DialogHeader>
-          {/*{selectedDetection && (*/}
-          {/*  <div className="space-y-2">*/}
-          {/*    /!*详情信息*!/*/}
-          {/*    <p>*/}
-          {/*      <strong>ID:</strong> {selectedDetection.Id}*/}
-          {/*    </p>*/}
-          {/*    <p>*/}
-          {/*      <strong>摄像头ID:</strong> {selectedDetection.CameraId}*/}
-          {/*    </p>*/}
-          {/*    <p>*/}
-          {/*      <strong>视频片段ID:</strong> {selectedDetection.SegmentId}*/}
-          {/*    </p>*/}
-          {/*    <p>*/}
-          {/*      <strong>检测时间:</strong>{' '}*/}
-          {/*      {new Date(selectedDetection.FrameTime!).toLocaleString()}*/}
-          {/*    </p>*/}
-          {/*    <p>*/}
-          {/*      <strong>目标ID:</strong>{' '}*/}
-          {/*      {selectedDetection.TargetId !== undefined*/}
-          {/*        ? selectedDetection.TargetId*/}
-          {/*        : 'N/A'}*/}
-          {/*    </p>*/}
-          {/*    <p>*/}
-          {/*      <strong>目标名称:</strong>{' '}*/}
-          {/*      {selectedDetection.TargetName || 'N/A'}*/}
-          {/*    </p>*/}
-          {/*    <p>*/}
-          {/*      <strong>目标置信度:</strong>{' '}*/}
-          {/*      {selectedDetection.TargetConfidence !== undefined*/}
-          {/*        ? selectedDetection.TargetConfidence.toFixed(4)*/}
-          {/*        : 'N/A'}*/}
-          {/*    </p>*/}
-          {/*    <p>*/}
-          {/*      <strong>目标坐标:</strong>{' '}*/}
-          {/*      {selectedDetection.TargetLocationX !== undefined &&*/}
-          {/*      selectedDetection.TargetLocationY !== undefined*/}
-          {/*        ? `(${selectedDetection.TargetLocationX}, ${selectedDetection.TargetLocationY})`*/}
-          {/*        : 'N/A'}*/}
-          {/*    </p>*/}
-          {/*    <p>*/}
-          {/*      <strong>目标尺寸:</strong>{' '}*/}
-          {/*      {selectedDetection.TargetSizeWidth !== undefined &&*/}
-          {/*      selectedDetection.TargetSizeHeight !== undefined*/}
-          {/*        ? `${selectedDetection.TargetSizeWidth} x ${selectedDetection.TargetSizeHeight}`*/}
-          {/*        : 'N/A'}*/}
-          {/*    </p>*/}
-          {/*  </div>*/}
-          {/*)}*/}
+          {selectedDetection && (
+            <div className="space-y-2">
+              <div className="space-y-1 text-sm">
+                <p>
+                  <strong>摄像头ID:</strong> {selectedDetection[0]?.CameraId}
+                </p>
+                <p>
+                  <strong>视频片段ID:</strong> {selectedDetection[0]?.SegmentId}
+                </p>
+                <p>
+                  <strong>检测时间:</strong>{' '}
+                  {new Date(selectedDetection[0]!.FrameTime!).toLocaleString()}
+                </p>
+              </div>
+              {selectedDetection.map((detection) => (
+                <div
+                  key={detection.Id}
+                  className="rounded-lg border p-4 shadow"
+                >
+                  <div className="space-y-1 text-sm">
+                    <p>
+                      <strong>类别:</strong> {detection.TargetName || 'N/A'}
+                    </p>
+                    <p>
+                      <strong>置信度:</strong>{' '}
+                      {`${((detection.TargetConfidence ?? 0) * 100).toFixed(2)}%`}
+                    </p>
+                    <p>
+                      <strong>坐标:</strong>{' '}
+                      {detection.TargetLocationX !== undefined &&
+                      detection.TargetLocationY !== undefined
+                        ? `${detection.TargetLocationX}, ${detection.TargetLocationY}`
+                        : 'N/A'}
+                    </p>
+                    <p>
+                      <strong>尺寸:</strong>{' '}
+                      {detection.TargetSizeWidth !== undefined &&
+                      detection.TargetSizeHeight !== undefined
+                        ? `${detection.TargetSizeWidth} x ${detection.TargetSizeHeight}`
+                        : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/*浮动按钮 - 类别筛选*/}
+      <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
+        <DialogTrigger asChild>
+          <Button
+            size="icon"
+            className="fixed right-28 bottom-4 rounded-full shadow-lg"
+          >
+            <Filter className="h-5 w-5" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>筛选类别</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[50vh] space-y-2 overflow-y-auto">
+            {categories.map((cat) => (
+              <label
+                key={cat}
+                className="flex cursor-pointer items-center space-x-2"
+              >
+                <Checkbox
+                  checked={selectedCategory.includes(cat)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedCategory((prev) => [...prev, cat])
+                    } else {
+                      setSelectedCategory((prev) =>
+                        prev.filter((c) => c !== cat),
+                      )
+                    }
+                  }}
+                />
+                <span>{cat}</span>
+              </label>
+            ))}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button variant="secondary" onClick={() => setSelectedCategory([])}>
+              重置
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* 浮动按钮 - 日期选择 */}
       {(() => {
         return (
-          <Popover open={popover} onOpenChange={setPopover}>
+          <Popover open={datePopover} onOpenChange={setDatePopover}>
             <PopoverTrigger asChild>
               <Button
                 size="icon"
