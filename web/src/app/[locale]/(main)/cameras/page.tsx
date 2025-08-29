@@ -1,6 +1,7 @@
 'use client'
 
 import { components } from '@/api/schema'
+import { getCameras } from '@/app/[locale]/(main)/[camera]/camera'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -34,14 +35,8 @@ export default function Page() {
 
   // 获取相关
   const fetchList = async () => {
-    const { data } = await openapi.POST('/Camera/Query', {
-      body: {
-        PageNumber: 1,
-        PageSize: 1000,
-        Order: [{ FieldName: 'Id', OrderByType: 0 }],
-      } as QueryDto,
-    })
-    setCameras(data || [])
+    const cameras = await getCameras()
+    setCameras(cameras || [])
   }
 
   useEffect(() => {

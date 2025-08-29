@@ -10,6 +10,7 @@ import * as React from 'react'
 import { useEffect, useState } from 'react'
 
 import { components } from '@/api/schema'
+import { getCameras } from '@/app/[locale]/(main)/[camera]/camera'
 import { CameraSearchDialog } from '@/components/main/camera-search-dialog'
 import LanguageToggle from '@/components/main/language-toggle'
 import { NavCameras } from '@/components/main/nav-cameras'
@@ -59,11 +60,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       )
       setUser(userData)
       // 摄像头
-      const body: QueryDto = { PageNumber: 1, PageSize: 100 }
-      const { data: camerasData } = await openapi.POST('/Camera/Query', {
-        body,
-      })
-      setCameras(camerasData)
+      const cameras = await getCameras()
+      setCameras(cameras)
     }
 
     init().then()

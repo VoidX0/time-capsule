@@ -1,12 +1,23 @@
 'use client'
 
 import { components } from '@/api/schema'
+import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
 import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { ArrowUp, CalendarIcon, Trash2 } from 'lucide-react'
@@ -55,23 +66,10 @@ export default function Page({
 
   /* 加载摄像头 */
   useEffect(() => {
-    const getCameraInfo = async (cameraId: string) => {
-      const body: QueryDto = {
-        PageNumber: 1,
-        PageSize: 1,
-        Condition: [
-          { FieldName: 'Id', FieldValue: cameraId, CSharpTypeName: 'long' },
-        ],
-      }
-      const { data } = await openapi.POST('/Camera/Query', { body })
-      if ((data?.length ?? -1) <= 0) return
-      setCameraInfo(data![0])
-    }
-
     params.then((param) => {
       const cameraId = param.camera
       if (!cameraId) return
-      getCameraInfo(cameraId).then()
+      getCameraById(cameraId).then((camera) => setCameraInfo(camera))
     })
   }, [params])
 

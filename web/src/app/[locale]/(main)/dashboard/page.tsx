@@ -1,13 +1,9 @@
 'use client'
 
 import { components } from '@/api/schema'
+import { getCameras } from '@/app/[locale]/(main)/[camera]/camera'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { useLocale } from 'next-intl'
@@ -41,14 +37,9 @@ export default function Page() {
   useEffect(() => {
     const fetchAll = async () => {
       // 获取全部摄像头
-      const { data: cameras } = await openapi.POST('/Camera/Query', {
-        body: { PageNumber: 1, PageSize: 1000 } as QueryDto,
-      })
-      if (!cameras?.length) return
-
+      const cameras = await getCameras()
       const summariesArr: CameraSummary[] = []
-
-      for (const cam of cameras) {
+      for (const cam of cameras ?? []) {
         // 查询该摄像头的切片
         const { data: segs } = await openapi.POST('/Segment/Query', {
           body: {

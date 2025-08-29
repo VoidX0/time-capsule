@@ -1,6 +1,7 @@
 'use client'
 
 import { components } from '@/api/schema'
+import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
 import CameraChart from '@/components/camera/camera-chart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { openapi } from '@/lib/http'
@@ -25,18 +26,6 @@ export default function Page({
   const [detectionCount, setDetectionCount] = useState(0) // 检测到的目标数量
 
   useEffect(() => {
-    const getCameraInfo = async (cameraId: string) => {
-      const body: QueryDto = {
-        PageNumber: 1,
-        PageSize: 1,
-        Condition: [
-          { FieldName: 'Id', FieldValue: cameraId, CSharpTypeName: 'long' },
-        ],
-      }
-      const { data } = await openapi.POST('/Camera/Query', { body })
-      if (data?.length) setCameraInfo(data[0])
-    }
-
     const getSegments = async (cameraId: string) => {
       const body: QueryDto = {
         PageNumber: 1,
@@ -74,7 +63,7 @@ export default function Page({
     params.then((p) => {
       const cameraId = p.camera
       if (!cameraId) return
-      getCameraInfo(cameraId).then()
+      getCameraById(cameraId).then((camera) => setCameraInfo(camera))
       getSegments(cameraId).then()
       getDetectionCount(cameraId).then()
     })
