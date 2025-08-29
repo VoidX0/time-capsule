@@ -257,12 +257,12 @@ export default function Page() {
               <>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-600">
-                    检测间隔帧数
+                    检测间隔(s)
                   </label>
                   <Input
                     type="number"
                     className="font-mono"
-                    placeholder="检测间隔帧数"
+                    placeholder="检测间隔(s)"
                     value={newDetectInterval}
                     onChange={(e) =>
                       setNewDetectInterval(Number(e.target.value))
@@ -272,7 +272,7 @@ export default function Page() {
 
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-600">
-                    检测置信度（0-1）
+                    检测置信度
                   </label>
                   <Input
                     type="number"
@@ -280,7 +280,7 @@ export default function Page() {
                     min="0"
                     max="1"
                     className="font-mono"
-                    placeholder="检测置信度（0-1）"
+                    placeholder="检测置信度"
                     value={newDetectionConfidence}
                     onChange={(e) =>
                       setNewDetectionConfidence(Number(e.target.value))
