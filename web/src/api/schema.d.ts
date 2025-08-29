@@ -1252,6 +1252,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/Detection/GetImage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取检测图片 */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description 摄像头ID */
+                    cameraId?: string;
+                    /** @description 视频片段ID */
+                    segmentId?: string;
+                    /** @description 帧路径 */
+                    framePath?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/Detection/Insert": {
         parameters: {
             query?: never;
@@ -1885,7 +1926,7 @@ export interface components {
             EnableDetection?: boolean;
             /**
              * Format: int32
-             * @description 目标检测间隔帧
+             * @description 目标检测间隔(s)
              */
             DetectionInterval?: number;
             /**
@@ -1950,6 +1991,8 @@ export interface components {
              * @description 视频片段ID
              */
             SegmentId?: number;
+            /** @description 帧路径 */
+            FramePath?: string | null;
             /**
              * Format: date-time
              * @description 帧时间
