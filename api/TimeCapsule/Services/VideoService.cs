@@ -1,24 +1,17 @@
-﻿using System.Diagnostics;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using Compunet.YoloSharp;
-using Compunet.YoloSharp.Data;
-using Compunet.YoloSharp.Metadata;
 using Compunet.YoloSharp.Plotting;
 using Microsoft.Extensions.Options;
-using OpenCvSharp;
-using OpenCvSharp.Tracking;
 using Serilog;
 using SixLabors.ImageSharp;
 using SqlSugar;
 using SqlSugar.IOC;
 using TimeCapsule.Core.Models.Common;
 using TimeCapsule.Core.Models.Db;
-using TimeCapsule.Models;
 using TimeCapsule.Models.Options;
 using Xabe.FFmpeg;
 using ILogger = Serilog.ILogger;
-using Size = SixLabors.ImageSharp.Size;
 
 namespace TimeCapsule.Services;
 
@@ -319,7 +312,7 @@ public class VideoService
             .SplitTable()
             .ToListAsync();
         // 获取检测目录下的所有结果
-        var detectResults = await GetFiles(path, [".mp4"]);
+        var detectResults = Directory.GetDirectories(path);
         // 检查结果对应的视频段是否存在
         foreach (var detectResult in detectResults)
         {
@@ -328,11 +321,11 @@ public class VideoService
             // 删除不存在的视频段的检测结果
             try
             {
-                File.Delete(Path.Combine(path, detectResult));
+                Directory.Delete(detectResult, true);
             }
             catch (Exception e)
             {
-                Logger.Warning(e, "删除摄像头 {CameraName} ({CameraId}) 的无效检测结果文件 {DetectionFile} 失败",
+                Logger.Warning(e, "删除摄像头 {CameraName} ({CameraId}) 的无效检测结果 {Detection} 失败",
                     camera.Name, camera.Id, detectResult);
             }
 
@@ -346,7 +339,7 @@ public class VideoService
         }
 
         // 对尚未检测的视频段进行画面检测
-        var dirIds = (await GetFiles(path, [".mp4"]))
+        var dirIds = Directory.GetDirectories(path)
             .Select(x => long.TryParse(Path.GetFileNameWithoutExtension(x), out var parsedId) ? parsedId : 0)
             .Where(x => x != 0)
             .ToList();
@@ -581,155 +574,77 @@ public class VideoService
     /// <param name="videoPath">视频存储路径</param>
     /// <param name="detectionPath">检测结果存储路径</param>
     /// <returns></returns>
-    private async Task<List<FrameDetection>> DetectSegment(Camera camera, VideoSegment segment,
+    private static async Task<List<FrameDetection>> DetectSegment(Camera camera, VideoSegment segment,
         YoloPredictor yoloPredictor,
         string videoPath, string detectionPath)
     {
         var detections = new List<FrameDetection>(); // 检测结果列表
-        // 初始化缓存目录
-        var cachePath = Path.Combine(SystemOptions.CachePath, $"segment_{segment.Id}");
-        if (Directory.Exists(cachePath)) Directory.Delete(cachePath, true);
-        var tmpImagePath = Path.Combine(cachePath, "tmp");
-        var targetImagePath = Path.Combine(cachePath, "target");
-        if (!Directory.Exists(tmpImagePath)) Directory.CreateDirectory(tmpImagePath);
-        if (!Directory.Exists(targetImagePath)) Directory.CreateDirectory(targetImagePath);
+        detectionPath = Path.Combine(detectionPath, segment.Id.ToString());
+        if (!Directory.Exists(detectionPath)) Directory.CreateDirectory(detectionPath);
         // 摄像头参数
         var minConfidence = Math.Min(Math.Max(camera.DetectionConfidence, 0.1M), 1.0M); // 最低置信度
-        var detectInterval = Math.Min(Math.Max(camera.DetectionInterval, 1), 100); // 检测间隔帧数
-        var imageWidth = Math.Min(Math.Max(camera.DetectionWidth, 320), 3840); // 检测图片宽度
-        // 切片到临时目录
-        var watch = Stopwatch.StartNew();
+        var detectInterval = Math.Min(Math.Max(camera.DetectionInterval, 1), 100); // 检测间隔秒数
+        // 切片
         try
         {
             await FFmpeg.Conversions.New()
                 .AddParameter($"-i \"{Path.Combine(videoPath, segment.Path)}\"")
-                .AddParameter($"-vf fps={segment.VideoFps},scale={imageWidth}:-1") // 按视频帧率切片 并缩放宽度，高度按比例
-                .AddParameter("-q:v 31") // 质量，范围2-31，数值越小质量越高
-                .SetOutput(Path.Combine(tmpImagePath, "%010d.jpg"))
+                .AddParameter($"-vf fps=1/{detectInterval}")
+                .AddParameter("-threads 2") // 限制线程数，防止过高的CPU占用
+                .SetOutput(Path.Combine(detectionPath, "%010d-tmp.jpg"))
                 .Start();
         }
-        catch (Exception e)
+        catch
         {
-            watch.Stop();
-            Logger.Warning(e, "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 切片失败",
-                camera.Name, camera.Id, segment.Id);
-            // 切片失败
-            Directory.Delete(cachePath, true); // 删除缓存目录
-            return detections;
+            // ignore
         }
 
-        // 跟踪器列表
-        var trackers = new List<TrackerItem>();
-        var trackIdCounter = 1L; // 跟踪ID计数器
-        // 遍历所有图片进行检测和跟踪
-        var files = Directory.GetFiles(tmpImagePath, "*.jpg")
-            .ToList().OrderBy(Path.GetFileNameWithoutExtension);
+        // 遍历所有图片进行检测
+        var files = Directory.GetFiles(detectionPath, "*.jpg")
+            .OrderBy(Path.GetFileNameWithoutExtension).ToList();
         foreach (var file in files)
         {
-            if (!int.TryParse(Path.GetFileNameWithoutExtension(file), out var frameIndex)) continue;
+            if (!int.TryParse(Path.GetFileNameWithoutExtension(file).Replace("-tmp", ""), out var frameIndex)) continue;
             frameIndex -= 1; // 文件名从1开始，索引从0开始
-            using var image = await Image.LoadAsync(file); // ImageSharp 图像
-            using var mat = Cv2.ImRead(file); // OpenCV 图像
-            if (frameIndex % detectInterval == 0) // 检测
+            using var image = await Image.LoadAsync(file);
+            var results = await yoloPredictor.DetectAsync(image, new YoloConfiguration
             {
-                var results = await yoloPredictor.DetectAsync(image, new YoloConfiguration
-                {
-                    Confidence = (float)minConfidence,
-                });
-                // 保存检测图片
-                using var plotted = await results.PlotImageAsync(image);
-                await plotted.SaveAsync(Path.Combine(targetImagePath, $"{frameIndex + 1:0000000000}.jpg"));
-                // 添加检测记录
-                detections.AddRange(results.Select(x => new FrameDetection
-                {
-                    CameraId = camera.Id,
-                    SegmentId = segment.Id,
-                    FrameTime = segment.StartTime.AddSeconds(frameIndex / (double)segment.VideoFps),
-                    TargetId = x.Name.Id,
-                    TargetName = x.Name.Name,
-                    TargetConfidence = Math.Round((decimal)x.Confidence, 4),
-                    TargetLocationX = x.Bounds.Location.X,
-                    TargetLocationY = x.Bounds.Location.Y,
-                    TargetSizeWidth = x.Bounds.Size.Width,
-                    TargetSizeHeight = x.Bounds.Size.Height
-                }));
-                // 重置跟踪器
-                trackers.Clear();
-                foreach (var result in results)
-                {
-                    var rect = new Rect(result.Bounds.Location.X, result.Bounds.Location.Y,
-                        result.Bounds.Size.Width, result.Bounds.Size.Height);
-                    var tracker = TrackerKCF.Create(); // 使用KCF跟踪算法
-                    tracker.Init(mat, rect); // 初始化跟踪器
-                    // 添加到跟踪器列表
-                    trackers.Add(new TrackerItem
-                    {
-                        TrackId = trackIdCounter++,
-                        LabelId = result.Name.Id,
-                        LabelName = result.Name.Name,
-                        Confidence = Math.Round(result.Confidence, 4),
-                        Tracker = tracker,
-                        BoundingBox = rect
-                    });
-                }
-            }
-            else // 跟踪
+                Confidence = (float)minConfidence,
+            });
+            if (results.Count == 0) continue; // 无检测结果则跳过
+            // 保存检测图片
+            using var plotted = await results.PlotImageAsync(image);
+            await plotted.SaveAsync(Path.Combine(detectionPath, $"{frameIndex + 1:0000000000}.jpg"));
+            // 添加检测记录
+            detections.AddRange(results.Select(x => new FrameDetection
             {
-                var yoloDetections = new List<Detection>();
-                foreach (var tracker in trackers)
-                {
-                    Rect rect = default;
-                    if (!tracker.Tracker.Update(mat, ref rect)) continue;
-                    tracker.BoundingBox = rect;
-                    yoloDetections.Add(new Detection
-                    {
-                        Name = new YoloName(tracker.LabelId, tracker.LabelName),
-                        Confidence = (float)tracker.Confidence,
-                        Bounds = new Rectangle(rect.X, rect.Y, rect.Width, rect.Height),
-                    });
-                }
+                CameraId = camera.Id,
+                SegmentId = segment.Id,
+                FramePath = Path.Combine($"{frameIndex + 1:0000000000}.jpg"),
+                FrameTime = segment.StartTime.AddSeconds(frameIndex / (double)segment.VideoFps),
+                TargetId = x.Name.Id,
+                TargetName = x.Name.Name,
+                TargetConfidence = Math.Round((decimal)x.Confidence, 4),
+                TargetLocationX = x.Bounds.Location.X,
+                TargetLocationY = x.Bounds.Location.Y,
+                TargetSizeWidth = x.Bounds.Size.Width,
+                TargetSizeHeight = x.Bounds.Size.Height
+            }));
+        }
 
-                // 组装检测结果
-                var trackerResult = new YoloResult<Detection>(yoloDetections.ToArray())
-                {
-                    ImageSize = new Size(image.Width, image.Height),
-                    Speed = default
-                };
-                using var plotted = await trackerResult.PlotImageAsync(image);
-                await plotted.SaveAsync(Path.Combine(targetImagePath, $"{frameIndex + 1:0000000000}.jpg"));
+        // 删除临时文件
+        foreach (var file in files.Where(x => x.EndsWith("-tmp.jpg")))
+        {
+            try
+            {
+                File.Delete(file);
+            }
+            catch
+            {
+                // ignore
             }
         }
 
-        // 检测转码为H265
-        try
-        {
-            var output = Path.Combine(detectionPath, $"{segment.Id}.mp4");
-            var conversion = FFmpeg.Conversions.New()
-                .AddParameter($"-i \"{Path.Combine(targetImagePath, "%010d.jpg")}\"")
-                .AddParameter($"-framerate {segment.VideoFps}")
-                .AddParameter("-pix_fmt yuv420p")
-                .AddParameter("-c:v libx265") // 使用 H.265 编码器
-                .AddParameter("-crf 28") // 控制压缩率（越小质量越高，文件越大；默认 28，推荐 23~28）
-                .AddParameter("-preset medium") // 编码速度与压缩效率权衡 (ultrafast, superfast, fast, medium, slow, slower)
-                .SetOutput(output);
-            await conversion.Start();
-            // 删除Cache目录
-            Directory.Delete(cachePath, true);
-        }
-        catch (Exception e)
-        {
-            watch.Stop();
-            Logger.Warning(e, "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 检测结果转码失败",
-                camera.Name, camera.Id, segment.Id);
-            // 转码失败
-            Directory.Delete(cachePath, true); // 删除缓存目录
-            return [];
-        }
-
-        watch.Stop();
-        Logger.Information(
-            "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测完成，检测到 {DetectionCount} 个目标，耗时 {Elapsed}s",
-            camera.Name, camera.Id, segment.Id, detections.Count, watch.Elapsed.TotalSeconds.ToString("F2"));
         return detections;
     }
 }

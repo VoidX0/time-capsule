@@ -16,6 +16,9 @@ public class FrameDetection
     [SugarColumn(ColumnDescription = "视频片段ID")]
     public long SegmentId { get; set; }
 
+    [SugarColumn(ColumnDescription = "帧路径")]
+    public string FramePath { get; set; } = string.Empty;
+
     [SugarColumn(ColumnDescription = "帧时间")]
     public DateTimeOffset FrameTime { get; set; }
 
