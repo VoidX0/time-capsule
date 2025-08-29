@@ -11,7 +11,6 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
 
-type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
 type Segment = components['schemas']['VideoSegment']
 

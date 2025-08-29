@@ -33,7 +33,6 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
-type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
 
 export default function Page({

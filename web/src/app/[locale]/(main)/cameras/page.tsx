@@ -14,7 +14,6 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
 
 export default function Page() {
@@ -27,7 +26,7 @@ export default function Page() {
   const [newBasePath, setNewBasePath] = useState('')
   const [newTemplate, setNewTemplate] = useState('')
   const [newEnableDetection, setNewEnableDetection] = useState(false)
-  const [newDetectInterval, setNewDetectInterval] = useState(30)
+  const [newDetectionInterval, setNewDetectionInterval] = useState(30)
   const [newDetectionConfidence, setNewDetectionConfidence] = useState(0.3)
 
   // 编辑相关
@@ -64,7 +63,7 @@ export default function Page() {
             BasePath: newBasePath,
             SegmentTemplate: newTemplate,
             EnableDetection: newEnableDetection,
-            DetectInterval: newDetectInterval,
+            DetectionInterval: newDetectionInterval,
             DetectionConfidence: newDetectionConfidence,
           },
         ],
@@ -78,7 +77,7 @@ export default function Page() {
             BasePath: newBasePath,
             SegmentTemplate: newTemplate,
             EnableDetection: newEnableDetection,
-            DetectInterval: newDetectInterval,
+            DetectionInterval: newDetectionInterval,
             DetectionConfidence: newDetectionConfidence,
           },
         ],
@@ -90,7 +89,7 @@ export default function Page() {
     setNewBasePath('')
     setNewTemplate('')
     setNewEnableDetection(false)
-    setNewDetectInterval(30)
+    setNewDetectionInterval(30)
     setNewDetectionConfidence(0.3)
     fetchList().then()
   }
@@ -101,7 +100,7 @@ export default function Page() {
     setNewBasePath(cam.BasePath || '')
     setNewTemplate(cam.SegmentTemplate || '')
     setNewEnableDetection(cam.EnableDetection || false)
-    setNewDetectInterval(cam.DetectionInterval || 30)
+    setNewDetectionInterval(cam.DetectionInterval || 30)
     setNewDetectionConfidence(cam.DetectionConfidence || 0.3)
     setDialogOpen(true)
   }
@@ -112,7 +111,7 @@ export default function Page() {
     setNewBasePath('')
     setNewTemplate('*_{start:yyyyMMddHHmmss}_{end:yyyyMMddHHmmss}')
     setNewEnableDetection(false)
-    setNewDetectInterval(30)
+    setNewDetectionInterval(30)
     setNewDetectionConfidence(0.3)
     setDialogOpen(true)
   }
@@ -258,9 +257,9 @@ export default function Page() {
                     type="number"
                     className="font-mono"
                     placeholder="检测间隔(s)"
-                    value={newDetectInterval}
+                    value={newDetectionInterval}
                     onChange={(e) =>
-                      setNewDetectInterval(Number(e.target.value))
+                      setNewDetectionInterval(Number(e.target.value))
                     }
                   />
                 </div>

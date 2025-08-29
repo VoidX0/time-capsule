@@ -583,7 +583,7 @@ public class VideoService
         if (!Directory.Exists(detectionPath)) Directory.CreateDirectory(detectionPath);
         // 摄像头参数
         var minConfidence = Math.Min(Math.Max(camera.DetectionConfidence, 0.1M), 1.0M); // 最低置信度
-        var detectInterval = Math.Min(Math.Max(camera.DetectionInterval, 1), 100); // 检测间隔秒数
+        var detectInterval = Math.Max(camera.DetectionInterval, 10); // 检测间隔秒数
         // 切片
         try
         {
