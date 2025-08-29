@@ -4,6 +4,7 @@ using System.Web;
 using Hangfire;
 using Hangfire.Dashboard.BasicAuthorization;
 using Microsoft.Extensions.Options;
+using OpenCvSharp;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Ui.Web.Extensions;
@@ -86,6 +87,28 @@ public static class WebApplicationExtension
         // 设置ffmpeg执行路径
         FFmpeg.SetExecutablesPath(ffmpegPath);
         logger.Information("ffmpeg executables path set to: {Path}", ffmpegPath);
+    }
+    
+    /// <summary>
+    /// OpenCv初始化
+    /// </summary>
+    /// <param name="app"></param>
+    public static async Task OpenCvInit(this WebApplication app)
+    {
+        await Task.CompletedTask;
+        var logger = Log.ForContext<Program>();
+        try
+        {
+            var version = Cv2.GetVersionString();
+            logger.Information("OpenCV version: {Version}", version);
+        }
+        catch (Exception e)
+        {
+            logger.Fatal(e,
+                "OpenCV initialization failed, please check if the OpenCV dependencies are correctly installed.");
+            Thread.Sleep(3000);
+            Environment.Exit(-1);
+        }
     }
 
     /// <summary>
