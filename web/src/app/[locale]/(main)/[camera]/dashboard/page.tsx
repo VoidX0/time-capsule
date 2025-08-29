@@ -1,6 +1,7 @@
 'use client'
 
 import { components } from '@/api/schema'
+import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
 import CameraChart from '@/components/camera/camera-chart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { openapi } from '@/lib/http'
@@ -22,20 +23,9 @@ export default function Page({
   const locale = useLocale()
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
   const [segments, setSegments] = useState<Segment[]>([]) // 视频切片列表
+  const [detectionCount, setDetectionCount] = useState(0) // 检测到的目标数量
 
   useEffect(() => {
-    const getCameraInfo = async (cameraId: string) => {
-      const body: QueryDto = {
-        PageNumber: 1,
-        PageSize: 1,
-        Condition: [
-          { FieldName: 'Id', FieldValue: cameraId, CSharpTypeName: 'long' },
-        ],
-      }
-      const { data } = await openapi.POST('/Camera/Query', { body })
-      if (data?.length) setCameraInfo(data[0])
-    }
-
     const getSegments = async (cameraId: string) => {
       const body: QueryDto = {
         PageNumber: 1,
@@ -54,11 +44,28 @@ export default function Page({
       setSegments(data)
     }
 
+    const getDetectionCount = async (cameraId: string) => {
+      const body: QueryDto = {
+        PageNumber: 1,
+        PageSize: 1,
+        Condition: [
+          {
+            FieldName: 'CameraId',
+            FieldValue: cameraId,
+            CSharpTypeName: 'long',
+          },
+        ],
+      }
+      const { data } = await openapi.POST('/Detection/Count', { body })
+      if (data) setDetectionCount(data)
+    }
+
     params.then((p) => {
       const cameraId = p.camera
       if (!cameraId) return
-      getCameraInfo(cameraId).then()
+      getCameraById(cameraId).then((camera) => setCameraInfo(camera))
       getSegments(cameraId).then()
+      getDetectionCount(cameraId).then()
     })
   }, [params])
 
@@ -251,24 +258,33 @@ export default function Page({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>平均每天时长</CardTitle>
+            <CardTitle>
+              <div className="flex items-center justify-between">
+                检测目标
+                <Link href={`/${locale}/${cameraInfo.Id}/detections`}>
+                  <ArrowUpRight />
+                </Link>
+              </div>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              {daysRecorded > 0 ? (totalDuration / daysRecorded).toFixed(2) : 0}{' '}
-              h
+              {detectionCount > 1000
+                ? detectionCount > 1000000
+                  ? (detectionCount / 1000000).toFixed(2) + ' M'
+                  : (detectionCount / 1000).toFixed(2) + ' K'
+                : detectionCount}{' '}
+              个
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>平均每段时长</CardTitle>
+            <CardTitle>平均每天时长</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">
-              {segments.length > 0
-                ? (totalDuration / segments.length).toFixed(2)
-                : 0}{' '}
+              {daysRecorded > 0 ? (totalDuration / daysRecorded).toFixed(2) : 0}{' '}
               h
             </p>
           </CardContent>

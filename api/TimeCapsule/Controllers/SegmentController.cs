@@ -71,7 +71,7 @@ public class SegmentController : OrmController<VideoSegment>
             var video = new FileInfo(Path.Combine(_systemOptions.CameraPath, camera.BasePath, segment.Path));
             var thumbnail = new FileInfo(Path.Combine(_systemOptions.CachePath, segment.CameraId.ToString(),
                 $"{segment.Id}.jpg"));
-            var detect = new DirectoryInfo(Path.Combine(_systemOptions.StoragePath, "detection", camera.Id.ToString(),
+            var detect = new DirectoryInfo(Path.Combine(_systemOptions.DetectionPath, segment.CameraId.ToString(),
                 segment.Id.ToString()));
             // 删除视频文件
             if (video.Exists)
@@ -99,7 +99,7 @@ public class SegmentController : OrmController<VideoSegment>
                 }
             }
 
-            // 删除检测目录
+            // 删除检测结果
             if (detect.Exists)
             {
                 try

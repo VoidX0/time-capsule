@@ -990,6 +990,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/Camera/ClearDetections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 清除检测结果 */
+        delete: {
+            parameters: {
+                query?: {
+                    /** @description 摄像头ID */
+                    cameraId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/Camera/Delete": {
         parameters: {
             query?: never;
@@ -1171,6 +1208,272 @@ export interface paths {
         trace?: never;
     };
     "/Camera/Count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 统计总数 */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description 查询条件 */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["QueryDto"];
+                    "text/json": components["schemas"]["QueryDto"];
+                    "application/*+json": components["schemas"]["QueryDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": number;
+                        "application/json": number;
+                        "text/json": number;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Detection/GetImage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取检测图片 */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description 摄像头ID */
+                    cameraId?: string;
+                    /** @description 视频片段ID */
+                    segmentId?: string;
+                    /** @description 帧路径 */
+                    framePath?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Detection/Insert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 添加数据 */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description 实例列表 */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["FrameDetection"][];
+                    "text/json": components["schemas"]["FrameDetection"][];
+                    "application/*+json": components["schemas"]["FrameDetection"][];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": number[];
+                        "application/json": number[];
+                        "text/json": number[];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Detection/Delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 删除数据 */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description 实例列表 */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["FrameDetection"][];
+                    "text/json": components["schemas"]["FrameDetection"][];
+                    "application/*+json": components["schemas"]["FrameDetection"][];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": number;
+                        "application/json": number;
+                        "text/json": number;
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Detection/Update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** 更新数据 */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description 实例列表 */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["FrameDetection"][];
+                    "text/json": components["schemas"]["FrameDetection"][];
+                    "application/*+json": components["schemas"]["FrameDetection"][];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": number;
+                        "application/json": number;
+                        "text/json": number;
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Detection/Query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 查询列表 */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description 查询条件 */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["QueryDto"];
+                    "text/json": components["schemas"]["QueryDto"];
+                    "application/*+json": components["schemas"]["QueryDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FrameDetection"][];
+                        "application/json": components["schemas"]["FrameDetection"][];
+                        "text/json": components["schemas"]["FrameDetection"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Detection/Count": {
         parameters: {
             query?: never;
             header?: never;
@@ -1623,7 +1926,7 @@ export interface components {
             EnableDetection?: boolean;
             /**
              * Format: int32
-             * @description 目标检测间隔时间(秒)
+             * @description 目标检测间隔(s)
              */
             DetectionInterval?: number;
             /**
@@ -1671,6 +1974,63 @@ export interface components {
          * @enum {integer}
          */
         CustomOrderByType: 0 | 1;
+        /** @description 帧目标检测 */
+        FrameDetection: {
+            /**
+             * Format: int64
+             * @description ID
+             */
+            Id?: number;
+            /**
+             * Format: int64
+             * @description 摄像头ID
+             */
+            CameraId?: number;
+            /**
+             * Format: int64
+             * @description 视频片段ID
+             */
+            SegmentId?: number;
+            /** @description 帧路径 */
+            FramePath?: string | null;
+            /**
+             * Format: date-time
+             * @description 帧时间
+             */
+            FrameTime?: string;
+            /**
+             * Format: int32
+             * @description 目标ID
+             */
+            TargetId?: number;
+            /** @description 目标名称 */
+            TargetName?: string | null;
+            /**
+             * Format: double
+             * @description 目标置信度
+             */
+            TargetConfidence?: number;
+            /**
+             * Format: int32
+             * @description 目标坐标X
+             */
+            TargetLocationX?: number;
+            /**
+             * Format: int32
+             * @description 目标坐标Y
+             */
+            TargetLocationY?: number;
+            /**
+             * Format: int32
+             * @description 目标宽度
+             */
+            TargetSizeWidth?: number;
+            /**
+             * Format: int32
+             * @description 目标高度
+             */
+            TargetSizeHeight?: number;
+        };
         QueryCondition: {
             /** @description 字段名 */
             FieldName?: string | null;
@@ -1847,8 +2207,6 @@ export interface components {
              * @description 音频比特率(Kbps)
              */
             AudioBitrate?: number;
-            /** @description 已进行检测 */
-            Detected?: boolean;
         };
     };
     responses: never;

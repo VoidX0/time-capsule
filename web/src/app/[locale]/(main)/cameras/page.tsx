@@ -1,6 +1,7 @@
 'use client'
 
 import { components } from '@/api/schema'
+import { getCameras } from '@/app/[locale]/(main)/[camera]/camera'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -34,14 +35,8 @@ export default function Page() {
 
   // 获取相关
   const fetchList = async () => {
-    const { data } = await openapi.POST('/Camera/Query', {
-      body: {
-        PageNumber: 1,
-        PageSize: 1000,
-        Order: [{ FieldName: 'Id', OrderByType: 0 }],
-      } as QueryDto,
-    })
-    setCameras(data || [])
+    const cameras = await getCameras()
+    setCameras(cameras || [])
   }
 
   useEffect(() => {
@@ -128,6 +123,14 @@ export default function Page() {
     })
     if (error) toast.error(`同步和缓存请求失败: ${error}`)
     else toast.success('同步和缓存请求成功，请稍等片刻，后台正在处理')
+  }
+
+  const clearDetection = async (cam: Camera) => {
+    const { error } = await openapi.DELETE('/Camera/ClearDetections', {
+      params: { query: { cameraId: cam.Id?.toString() } },
+    })
+    if (error) toast.error(`清除检测结果失败: ${error}`)
+    else toast.success('清除检测结果成功')
   }
 
   return (
@@ -236,17 +239,25 @@ export default function Page() {
                 checked={newEnableDetection}
                 onCheckedChange={(checked) => setNewEnableDetection(!!checked)}
               />
+              {editCam && (
+                <Button
+                  variant="destructive"
+                  onClick={() => clearDetection(editCam!)}
+                >
+                  清除检测结果
+                </Button>
+              )}
             </div>
             {newEnableDetection && (
               <>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-600">
-                    检测间隔（秒）
+                    检测间隔(s)
                   </label>
                   <Input
                     type="number"
                     className="font-mono"
-                    placeholder="检测间隔（秒）"
+                    placeholder="检测间隔(s)"
                     value={newDetectInterval}
                     onChange={(e) =>
                       setNewDetectInterval(Number(e.target.value))
@@ -256,7 +267,7 @@ export default function Page() {
 
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-600">
-                    检测置信度（0-1）
+                    检测置信度
                   </label>
                   <Input
                     type="number"
@@ -264,7 +275,7 @@ export default function Page() {
                     min="0"
                     max="1"
                     className="font-mono"
-                    placeholder="检测置信度（0-1）"
+                    placeholder="检测置信度"
                     value={newDetectionConfidence}
                     onChange={(e) =>
                       setNewDetectionConfidence(Number(e.target.value))

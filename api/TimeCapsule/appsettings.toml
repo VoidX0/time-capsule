@@ -9,11 +9,13 @@ Instance = "" # 实例名称
 StoragePath = "/app/storage" # 持久化存储路径
 CameraPath = "/camera" # 摄像头基础路径
 CachePath = "/cache" # 缓存基础路径
+DetectionPath = "/detection" # 检测结果存储目录
 ApiLogs = true # 启用API日志
 ApiReference = true # 启用API参考
 ApiHangfire = true # 启用Hangfire Dashboard
 DefaultUser = "root" # 默认用户名
 DefaultPassword = "time_capsule" # 默认密码
+MaxTaskPerCamera = 5 # 每个摄像头并行处理的任务数
 CronSyncAndCache = "0 0 15 * * *" # 视频元数据同步/重建缓存的定时任务
 CronFrameDetect = "0 0 9 * * *" # 检测画面目标的定时任务
 

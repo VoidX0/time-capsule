@@ -1,12 +1,14 @@
 'use client'
 
 import { components } from '@/api/schema'
+import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
 import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { rangeWeek } from '@/lib/date-time'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { ArrowUp, CalendarIcon, Trash2 } from 'lucide-react'
@@ -27,51 +29,17 @@ export default function Page({
   const [segmentsByDate, setSegmentsByDate] = useState<
     Record<string, Segment[]>
   >({}) // 按日期分组的视频切片
-  const now = Date.now()
-  const weeksAgo = now - 7 * 24 * 60 * 60 * 1000
-  const nowDate = new Date(now)
-  const weeksAgoDate = new Date(weeksAgo)
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(
-      weeksAgoDate.getFullYear(),
-      weeksAgoDate.getMonth(),
-      weeksAgoDate.getDate(),
-      0,
-      0,
-      0,
-    ),
-    to: new Date(
-      nowDate.getFullYear(),
-      nowDate.getMonth(),
-      nowDate.getDate(),
-      23,
-      59,
-      59,
-    ),
-  })
+  const [date, setDate] = useState<DateRange | undefined>(rangeWeek())
   const [popover, setPopover] = useState(false) // 控制 Popover 开关
   const [detailOpen, setDetailOpen] = useState(false) // 控制详情弹窗开关
   const [selectedSegment, setSelectedSegment] = useState<Segment | null>(null) // 当前选中的Segment
 
   /* 加载摄像头 */
   useEffect(() => {
-    const getCameraInfo = async (cameraId: string) => {
-      const body: QueryDto = {
-        PageNumber: 1,
-        PageSize: 1,
-        Condition: [
-          { FieldName: 'Id', FieldValue: cameraId, CSharpTypeName: 'long' },
-        ],
-      }
-      const { data } = await openapi.POST('/Camera/Query', { body })
-      if ((data?.length ?? -1) <= 0) return
-      setCameraInfo(data![0])
-    }
-
     params.then((param) => {
       const cameraId = param.camera
       if (!cameraId) return
-      getCameraInfo(cameraId).then()
+      getCameraById(cameraId).then((camera) => setCameraInfo(camera))
     })
   }, [params])
 

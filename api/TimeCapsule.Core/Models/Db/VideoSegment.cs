@@ -61,7 +61,4 @@ public class VideoSegment
 
     [SugarColumn(ColumnDescription = "音频比特率(Kbps)")]
     public decimal AudioBitrate { get; set; }
-
-    [SugarColumn(ColumnDescription = "已进行检测", DefaultValue = "false")]
-    public bool Detected { get; set; }
 }

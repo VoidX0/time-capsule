@@ -2,7 +2,7 @@ name: Docs Publish CI
 on:
   push:
     branches:
-      - main # 推送到主分支时触发
+      - main-stop # 推送到主分支时触发
     paths:
       - 'docs/**'
 

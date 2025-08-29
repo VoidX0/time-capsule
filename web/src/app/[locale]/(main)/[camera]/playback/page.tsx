@@ -1,15 +1,36 @@
 'use client'
 
 import { components } from '@/api/schema'
-import CameraPlayer, { CameraPlayerHandle } from '@/components/camera/camera-player'
-import CameraTimeline, { CameraTimelineHandle } from '@/components/camera/camera-timeline'
+import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
+import CameraPlayer, {
+  CameraPlayerHandle,
+} from '@/components/camera/camera-player'
+import CameraTimeline, {
+  CameraTimelineHandle,
+} from '@/components/camera/camera-timeline'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
-import { openapi } from '@/lib/http'
-import { Calendar as CalendarIcon, CirclePause, CirclePlay, Fullscreen, Volume2, VolumeOff } from 'lucide-react'
+import {
+  Calendar as CalendarIcon,
+  CirclePause,
+  CirclePlay,
+  Fullscreen,
+  Volume2,
+  VolumeOff,
+} from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 type QueryDto = components['schemas']['QueryDto']
@@ -37,22 +58,10 @@ export default function Page({
 
   /* 加载摄像头信息 */
   useEffect(() => {
-    const getCameraInfo = async (cameraId: string) => {
-      const body: QueryDto = {
-        PageNumber: 1,
-        PageSize: 1,
-        Condition: [
-          { FieldName: 'Id', FieldValue: cameraId, CSharpTypeName: 'long' },
-        ],
-      }
-      const { data } = await openapi.POST('/Camera/Query', { body: body })
-      if ((data?.length ?? -1) <= 0) return
-      setCameraInfo(data![0])
-    }
     params.then((param) => {
       const cameraId = param.camera
       if (!cameraId) return
-      getCameraInfo(cameraId).then()
+      getCameraById(cameraId).then((camera) => setCameraInfo(camera))
     })
   }, [params])
 
