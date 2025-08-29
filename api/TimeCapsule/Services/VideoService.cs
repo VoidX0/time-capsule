@@ -1,17 +1,23 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using Compunet.YoloSharp;
+using Compunet.YoloSharp.Data;
+using Compunet.YoloSharp.Metadata;
 using Compunet.YoloSharp.Plotting;
 using Microsoft.Extensions.Options;
+using OpenCvSharp;
+using OpenCvSharp.Tracking;
 using Serilog;
 using SixLabors.ImageSharp;
 using SqlSugar;
 using SqlSugar.IOC;
 using TimeCapsule.Core.Models.Common;
 using TimeCapsule.Core.Models.Db;
+using TimeCapsule.Models;
 using TimeCapsule.Models.Options;
 using Xabe.FFmpeg;
 using ILogger = Serilog.ILogger;
+using Size = SixLabors.ImageSharp.Size;
 
 namespace TimeCapsule.Services;
 
@@ -370,22 +376,22 @@ public class VideoService
                     groupDetections.AddRange(await DetectSegment(camera, segment, predictor, videoPath, path));
                 }
 
-                // // 保存
-                // var result = await db.AsTenant().UseTranAsync(async () =>
-                // {
-                //     await db.Insertable(groupDetections).SplitTable().ExecuteReturnSnowflakeIdListAsync();
-                // });
-                // if (result.IsSuccess)
-                // {
-                //     Logger.Information("摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测完成，检测到 {DetectionCount} 个目标",
-                //         camera.Name, camera.Id, group.First().Id, groupDetections.Count);
-                // }
-                // else
-                // {
-                //     Logger.Warning(result.ErrorException,
-                //         "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测失败: {ErrorMessage}",
-                //         camera.Name, camera.Id, group.First().Id, result.ErrorMessage);
-                // }
+                // 保存
+                var result = await db.AsTenant().UseTranAsync(async () =>
+                {
+                    await db.Insertable(groupDetections).SplitTable().ExecuteReturnSnowflakeIdListAsync();
+                });
+                if (result.IsSuccess)
+                {
+                    Logger.Information("摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测完成，检测到 {DetectionCount} 个目标",
+                        camera.Name, camera.Id, group.First().Id, groupDetections.Count);
+                }
+                else
+                {
+                    Logger.Warning(result.ErrorException,
+                        "摄像头 {CameraName} ({CameraId}) 的视频段 {SegmentId} 画面检测失败: {ErrorMessage}",
+                        camera.Name, camera.Id, group.First().Id, result.ErrorMessage);
+                }
             }));
         }
 
@@ -580,6 +586,7 @@ public class VideoService
         YoloPredictor yoloPredictor,
         string videoPath, string detectionPath)
     {
+        var detections = new List<FrameDetection>(); // 检测结果列表
         // 初始化缓存目录
         var cachePath = Path.Combine(SystemOptions.CachePath, $"segment_{segment.Id}");
         if (Directory.Exists(cachePath)) Directory.Delete(cachePath, true);
@@ -587,40 +594,45 @@ public class VideoService
         var targetImagePath = Path.Combine(cachePath, "target");
         if (!Directory.Exists(tmpImagePath)) Directory.CreateDirectory(tmpImagePath);
         if (!Directory.Exists(targetImagePath)) Directory.CreateDirectory(targetImagePath);
+        // 摄像头参数
+        var minConfidence = Math.Min(Math.Max(camera.DetectionConfidence, 0.1M), 1.0M); // 最低置信度
+        var detectInterval = Math.Min(Math.Max(camera.DetectionInterval, 1), 100); // 检测间隔帧数
+        var imageWidth = Math.Min(Math.Max(camera.DetectionWidth, 320), 3840); // 检测图片宽度
         // 切片到临时目录
         try
         {
             await FFmpeg.Conversions.New()
                 .AddParameter($"-i \"{Path.Combine(videoPath, segment.Path)}\"")
-                .AddParameter($"-vf fps={segment.VideoFps}")
+                .AddParameter($"-vf fps={segment.VideoFps},scale={imageWidth}:-1") // 按视频帧率切片 并缩放宽度，高度按比例
+                .AddParameter("-q:v 31") // 质量，范围2-31，数值越小质量越高
                 .SetOutput(Path.Combine(tmpImagePath, "%010d.jpg"))
                 .Start();
         }
         catch
         {
-            // ignored
+            // 切片失败
+            Directory.Delete(cachePath, true); // 删除缓存目录
+            return detections;
         }
 
-        // 遍历临时目录中的所有图片，进行目标检测
-        var detections = new List<FrameDetection>();
-        var minConfidence = Math.Min(Math.Max(camera.DetectionConfidence, 0.1M), 1.0M); // 最低置信度
-        var detectInterval = Math.Min(Math.Max(camera.DetectionInterval, 1), 100); // 检测间隔帧数
+        // 跟踪器列表
+        var trackers = new List<TrackerItem>();
+        var trackIdCounter = 1L; // 跟踪ID计数器
+        // 遍历所有图片进行检测和跟踪
         var files = Directory.GetFiles(tmpImagePath, "*.jpg")
             .ToList().OrderBy(Path.GetFileNameWithoutExtension);
         foreach (var file in files)
         {
-            var fileName = Path.GetFileNameWithoutExtension(file);
-            if (!int.TryParse(fileName, out var frameIndex)) continue;
+            if (!int.TryParse(Path.GetFileNameWithoutExtension(file), out var frameIndex)) continue;
             frameIndex -= 1; // 文件名从1开始，索引从0开始
+            using var image = await Image.LoadAsync(file); // ImageSharp 图像
+            using var mat = Cv2.ImRead(file); // OpenCV 图像
             if (frameIndex % detectInterval == 0) // 检测
             {
-                using var image = await Image.LoadAsync(file);
-                var results = await yoloPredictor.DetectAsync(file, new YoloConfiguration
+                var results = await yoloPredictor.DetectAsync(image, new YoloConfiguration
                 {
                     Confidence = (float)minConfidence,
                 });
-                // 计算帧时间
-                var frameTime = segment.StartTime.AddSeconds(frameIndex / (double)segment.VideoFps);
                 // 保存检测图片
                 using var plotted = await results.PlotImageAsync(image);
                 await plotted.SaveAsync(Path.Combine(targetImagePath, $"{frameIndex + 1:0000000000}.jpg"));
@@ -629,7 +641,7 @@ public class VideoService
                 {
                     CameraId = camera.Id,
                     SegmentId = segment.Id,
-                    FrameTime = frameTime,
+                    FrameTime = segment.StartTime.AddSeconds(frameIndex / (double)segment.VideoFps),
                     TargetId = x.Name.Id,
                     TargetName = x.Name.Name,
                     TargetConfidence = Math.Round((decimal)x.Confidence, 4),
@@ -638,11 +650,50 @@ public class VideoService
                     TargetSizeWidth = x.Bounds.Size.Width,
                     TargetSizeHeight = x.Bounds.Size.Height
                 }));
+                // 重置跟踪器
+                trackers.Clear();
+                foreach (var result in results)
+                {
+                    var rect = new Rect(result.Bounds.Location.X, result.Bounds.Location.Y,
+                        result.Bounds.Size.Width, result.Bounds.Size.Height);
+                    var tracker = TrackerKCF.Create(); // 使用KCF跟踪算法
+                    tracker.Init(mat, rect); // 初始化跟踪器
+                    // 添加到跟踪器列表
+                    trackers.Add(new TrackerItem
+                    {
+                        TrackId = trackIdCounter++,
+                        LabelId = result.Name.Id,
+                        LabelName = result.Name.Name,
+                        Confidence = Math.Round(result.Confidence, 4),
+                        Tracker = tracker,
+                        BoundingBox = rect
+                    });
+                }
             }
             else // 跟踪
             {
-                // 移动图片到目标目录
-                File.Move(file, Path.Combine(targetImagePath, $"{frameIndex + 1:0000000000}.jpg"));
+                var yoloDetections = new List<Detection>();
+                foreach (var tracker in trackers)
+                {
+                    Rect rect = default;
+                    if (!tracker.Tracker.Update(mat, ref rect)) continue;
+                    tracker.BoundingBox = rect;
+                    yoloDetections.Add(new Detection
+                    {
+                        Name = new YoloName(tracker.LabelId, tracker.LabelName),
+                        Confidence = (float)tracker.Confidence,
+                        Bounds = new Rectangle(rect.X, rect.Y, rect.Width, rect.Height),
+                    });
+                }
+
+                // 组装检测结果
+                var trackerResult = new YoloResult<Detection>(yoloDetections.ToArray())
+                {
+                    ImageSize = new Size(image.Width, image.Height),
+                    Speed = default
+                };
+                using var plotted = await trackerResult.PlotImageAsync(image);
+                await plotted.SaveAsync(Path.Combine(targetImagePath, $"{frameIndex + 1:0000000000}.jpg"));
             }
         }
 

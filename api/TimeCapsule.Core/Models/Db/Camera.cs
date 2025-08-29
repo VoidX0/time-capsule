@@ -25,4 +25,7 @@ public class Camera
 
     [SugarColumn(ColumnDescription = "目标检测最低置信度", DefaultValue = "0.3")]
     public decimal DetectionConfidence { get; set; } = 0.3M;
+
+    [SugarColumn(ColumnDescription = "目标检测图片宽度", DefaultValue = "1920")]
+    public int DetectionWidth { get; set; } = 1920;
 }
