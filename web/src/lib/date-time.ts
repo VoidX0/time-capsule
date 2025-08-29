@@ -5,7 +5,7 @@ import { DateRange } from 'react-day-picker'
  */
 export function rangeWeek(): DateRange {
   const now = Date.now()
-  const weeksAgo = now - 60 * 24 * 60 * 60 * 1000
+  const weeksAgo = now - 7 * 24 * 60 * 60 * 1000
   const nowDate = new Date(now)
   const weeksAgoDate = new Date(weeksAgo)
   return {
