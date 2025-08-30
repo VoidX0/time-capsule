@@ -268,7 +268,7 @@ export default function Page({
             <PopoverTrigger asChild>
               <Button
                 size="icon"
-                className="fixed right-4 bottom-4 rounded-full shadow-lg"
+                className="fixed right-4 bottom-4 z-50 rounded-full shadow-lg"
               >
                 <CalendarIcon className="h-5 w-5" />
               </Button>
@@ -292,7 +292,7 @@ export default function Page({
         <DialogTrigger asChild>
           <Button
             size="icon"
-            className="fixed right-16 bottom-4 rounded-full shadow-lg"
+            className="fixed right-16 bottom-4 z-50 rounded-full shadow-lg"
           >
             <Filter className="h-5 w-5" />
           </Button>
@@ -355,7 +355,7 @@ export default function Page({
       {/* 浮动按钮 - 回到顶部 */}
       <Button
         size="icon"
-        className="fixed right-28 bottom-4 rounded-full shadow-lg"
+        className="fixed right-28 bottom-4 z-50 rounded-full shadow-lg"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       >
         <ArrowUp className="h-5 w-5" />
