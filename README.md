@@ -7,7 +7,7 @@
 
 ## Features
 
-- Use your local videos on `/camera`
-- Automatically create video index
-- Seamless drag playback timeline
-- YOLO object detection
+- Centralized management of locally stored monitoring videos
+- Seamless timeline dragging for video playback
+- Automated video indexing and object detection
+- YOLO object detection labeling
