@@ -3,6 +3,8 @@
 import { components } from '@/api/schema'
 import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
 import CameraChart from '@/components/camera/camera-chart'
+import DetectionChart from '@/components/camera/detection-chart'
+import { NumberTicker } from '@/components/magicui/number-ticker'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
@@ -10,7 +12,6 @@ import { ArrowUpRight } from 'lucide-react'
 import { useLocale } from 'next-intl'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import DetectionChart from '@/components/camera/detection-chart'
 
 type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
@@ -216,7 +217,8 @@ export default function Page({
             <CardTitle>录制天数</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{daysRecorded} 天</p>
+            <NumberTicker value={daysRecorded} className="text-2xl font-bold" />{' '}
+            天
           </CardContent>
         </Card>
         <Card>
@@ -231,13 +233,22 @@ export default function Page({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
-              {detectionCount > 1000
-                ? detectionCount > 1000000
-                  ? (detectionCount / 1000000).toFixed(2) + ' M'
-                  : (detectionCount / 1000).toFixed(2) + ' K'
-                : detectionCount + ' 个'}
-            </p>
+            <NumberTicker
+              value={Number(
+                detectionCount > 1000
+                  ? detectionCount > 1000000
+                    ? (detectionCount / 1000000).toFixed(2)
+                    : (detectionCount / 1000).toFixed(2)
+                  : detectionCount.toFixed(0),
+              )}
+              className="text-2xl font-bold"
+              decimalPlaces={2}
+            />
+            {detectionCount > 1000
+              ? detectionCount > 1000000
+                ? ' M'
+                : ' K'
+              : ' 个'}
           </CardContent>
         </Card>
         <Card>
@@ -252,7 +263,12 @@ export default function Page({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{totalDuration.toFixed(2)} h</p>
+            <NumberTicker
+              value={totalDuration}
+              className="text-2xl font-bold"
+              decimalPlaces={2}
+            />{' '}
+            h
           </CardContent>
         </Card>
         <Card>
@@ -260,10 +276,12 @@ export default function Page({
             <CardTitle>平均每天时长</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
-              {daysRecorded > 0 ? (totalDuration / daysRecorded).toFixed(2) : 0}{' '}
-              h
-            </p>
+            <NumberTicker
+              value={daysRecorded > 0 ? totalDuration / daysRecorded : 0}
+              className="text-2xl font-bold"
+              decimalPlaces={2}
+            />{' '}
+            h
           </CardContent>
         </Card>
         <Card>
@@ -278,7 +296,11 @@ export default function Page({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{segments.length} 个</p>
+            <NumberTicker
+              value={segments.length}
+              className="text-2xl font-bold"
+            />{' '}
+            个
           </CardContent>
         </Card>
         <Card>
@@ -286,12 +308,12 @@ export default function Page({
             <CardTitle>平均每天片段</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
-              {segments.length > 0
-                ? (segments.length / daysRecorded).toFixed(2)
-                : 0}{' '}
-              个
-            </p>
+            <NumberTicker
+              value={daysRecorded > 0 ? segments.length / daysRecorded : 0}
+              className="text-2xl font-bold"
+              decimalPlaces={2}
+            />{' '}
+            个
           </CardContent>
         </Card>
         <Card>
@@ -299,7 +321,12 @@ export default function Page({
             <CardTitle>存储空间</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{storageUsed.toFixed(2)} GB</p>
+            <NumberTicker
+              value={storageUsed}
+              className="text-2xl font-bold"
+              decimalPlaces={2}
+            />{' '}
+            GB
           </CardContent>
         </Card>
         <Card>
@@ -307,12 +334,12 @@ export default function Page({
             <CardTitle>平均每天存储</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
-              {(segments.length > 0 ? storageUsed / daysRecorded : 0).toFixed(
-                2,
-              )}{' '}
-              GB
-            </p>
+            <NumberTicker
+              value={daysRecorded > 0 ? storageUsed / daysRecorded : 0}
+              className="text-2xl font-bold"
+              decimalPlaces={2}
+            />{' '}
+            GB
           </CardContent>
         </Card>
       </div>
