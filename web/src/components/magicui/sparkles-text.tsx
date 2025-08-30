@@ -4,7 +4,6 @@ import { motion } from 'motion/react'
 import { CSSProperties, ReactElement, useEffect, useState } from 'react'
 
 import { cn } from '@/lib/utils'
-import { Sparkle } from 'lucide-react'
 
 interface Sparkle {
   id: string
