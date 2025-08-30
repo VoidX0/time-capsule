@@ -621,7 +621,7 @@ public class VideoService
                 CameraId = camera.Id,
                 SegmentId = segment.Id,
                 FramePath = Path.Combine($"{frameIndex + 1:0000000000}.jpg"),
-                FrameTime = segment.StartTime.AddSeconds(frameIndex / (double)segment.VideoFps),
+                FrameTime = segment.StartTime.AddSeconds(frameIndex * detectInterval),
                 TargetId = x.Name.Id,
                 TargetName = x.Name.Name,
                 TargetConfidence = Math.Round((decimal)x.Confidence, 4),
