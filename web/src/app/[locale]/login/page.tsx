@@ -30,6 +30,9 @@ export default function Page() {
   useEffect(() => {
     // 设置渐变色
     setGradientColor(resolvedTheme === 'dark' ? '#262626' : '#D9D9D955')
+  }, [resolvedTheme])
+
+  useEffect(() => {
     // 更新公钥
     const getPublicKey = async () => {
       const { data } = await openapi.GET('/Authentication/GetKey', {
