@@ -128,7 +128,15 @@ export default function Page({
         ).keys(),
       )
       setCategories(cats)
-      setSelectedCategory([]) // 重置已选类别
+      // 设置已选类别
+      setSelectedCategory((prev) => {
+        // 只有当 selectedCategory 为空时，设置默认选项
+        if (prev.length === 0 && cats.length > 0) {
+          return [cats[0]!]
+        }
+        // 保持已选类别，但移除不存在的类别
+        return prev.filter((cat) => cats.includes(cat))
+      })
     }
     if (cameraInfo === undefined) return
     getDetections(cameraInfo?.Id?.toString() ?? '').then()
@@ -321,7 +329,15 @@ export default function Page({
             ))}
           </div>
           <div className="mt-4 flex justify-end">
-            <Button variant="secondary" onClick={() => setSelectedCategory([])}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setMinConfidence(cameraInfo?.DetectionConfidence || 0.3)
+                setSelectedCategory(
+                  categories.length > 0 ? [categories[0]!] : [],
+                )
+              }}
+            >
               重置
             </Button>
           </div>
