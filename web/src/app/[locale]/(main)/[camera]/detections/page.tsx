@@ -2,6 +2,7 @@
 
 import { components } from '@/api/schema'
 import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
+import { Lens } from '@/components/magicui/lens'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -180,17 +181,24 @@ export default function Page({
                 const firstDetection = detections[0] // 只显示第一张
                 return (
                   <div key={groupKey} className="overflow-hidden rounded-lg">
-                    <Image
-                      src={`/api/Detection/GetImage?cameraId=${cameraInfo.Id}&segmentId=${detections[0]!.SegmentId}&framePath=${encodeURIComponent(detections[0]!.FramePath!)}`}
-                      alt={`Detection ${firstDetection!.Id}`}
-                      width={1920}
-                      height={1080}
-                      className="aspect-video w-full cursor-pointer object-cover hover:scale-105"
-                      onClick={() => {
-                        setSelectedDetection(detections)
-                        setDetailOpen(true)
-                      }}
-                    />
+                    <Lens
+                      zoomFactor={2}
+                      lensSize={150}
+                      isStatic={false}
+                      ariaLabel="Zoom Area"
+                    >
+                      <Image
+                        src={`/api/Detection/GetImage?cameraId=${cameraInfo.Id}&segmentId=${detections[0]!.SegmentId}&framePath=${encodeURIComponent(detections[0]!.FramePath!)}`}
+                        alt={`Detection ${firstDetection!.Id}`}
+                        width={1920}
+                        height={1080}
+                        className="aspect-video w-full cursor-pointer object-cover hover:scale-105"
+                        onClick={() => {
+                          setSelectedDetection(detections)
+                          setDetailOpen(true)
+                        }}
+                      />
+                    </Lens>
                   </div>
                 )
               })}
