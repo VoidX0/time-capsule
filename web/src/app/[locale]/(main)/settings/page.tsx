@@ -2,6 +2,7 @@
 
 import { components } from '@/api/schema'
 import CameraChart from '@/components/camera/camera-chart'
+import StorageChart from '@/components/main/storage-chart'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -235,8 +236,9 @@ export default function Page() {
         </TabsList>
 
         {/* Statistics Tab */}
-        <TabsContent value="statistics">
+        <TabsContent value="statistics" className="space-y-6">
           <CameraChart cameraId="0" />
+          <StorageChart />
         </TabsContent>
 
         {/* Account Tab */}
