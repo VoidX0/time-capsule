@@ -10,6 +10,7 @@ import { ArrowUpRight } from 'lucide-react'
 import { useLocale } from 'next-intl'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import DetectionChart from '@/components/camera/detection-chart'
 
 type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
@@ -316,7 +317,10 @@ export default function Page({
         </Card>
       </div>
       {/*chart*/}
-      <CameraChart cameraId={cameraInfo.Id?.toString()} />
+      <div className="space-y-6">
+        <CameraChart cameraId={cameraInfo.Id?.toString()} />
+        <DetectionChart cameraId={cameraInfo.Id?.toString()} />
+      </div>
     </div>
   )
 }

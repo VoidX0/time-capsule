@@ -109,11 +109,7 @@ export default function StorageChart() {
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
         >
-          <PieChart
-            accessibilityLayer
-            data={chartData}
-            margin={{ left: 12, right: 12 }}
-          >
+          <PieChart accessibilityLayer data={chartData}>
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent hideLabel={true} />}
@@ -122,7 +118,7 @@ export default function StorageChart() {
               data={chartData}
               dataKey={activeChart}
               innerRadius={60}
-              strokeWidth={5}
+              label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
             >
               {chartData.map((entry, index) => (
                 <Cell
