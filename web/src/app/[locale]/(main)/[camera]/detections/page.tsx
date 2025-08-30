@@ -8,6 +8,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Slider } from '@/components/ui/slider'
 import { formatDate, rangeWeek } from '@/lib/date-time'
 import { openapi } from '@/lib/http'
 import { ArrowUp, CalendarIcon, Filter } from 'lucide-react'
@@ -31,6 +32,7 @@ export default function Page({
   >({}) // 按日期与SegmentID + FramePath分组的检测结果
   const [categories, setCategories] = useState<string[]>([]) // 目标类别列表
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]) // 当前选中的类别列表
+  const [minConfidence, setMinConfidence] = useState(0.3) // 最小置信度过滤
   const [date, setDate] = useState<DateRange | undefined>(rangeWeek())
   const [filterOpen, setFilterOpen] = useState(false) // 类别筛选开关
   const [datePopover, setDatePopover] = useState(false) // 日期选择弹窗开关
@@ -44,7 +46,10 @@ export default function Page({
     params.then((param) => {
       const cameraId = param.camera
       if (!cameraId) return
-      getCameraById(cameraId).then((camera) => setCameraInfo(camera))
+      getCameraById(cameraId).then((camera) => {
+        setCameraInfo(camera)
+        setMinConfidence(camera?.DetectionConfidence || 0.3)
+      })
     })
   }, [params])
 
@@ -60,19 +65,21 @@ export default function Page({
           : true,
       ) ?? []
     // 按日期与SegmentID + FramePath分组
-    filteredDetections.forEach((detection) => {
-      const dateKey = new Date(detection.FrameTime!).toLocaleDateString()
-      const segmentKey = `${detection.SegmentId}-${detection.FramePath}`
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = {}
-      }
-      if (!grouped[dateKey][segmentKey]) {
-        grouped[dateKey][segmentKey] = []
-      }
-      grouped[dateKey][segmentKey].push(detection)
-    })
+    filteredDetections
+      .filter((d) => (d.TargetConfidence ?? 0) >= minConfidence) // 置信度过滤
+      .forEach((detection) => {
+        const dateKey = new Date(detection.FrameTime!).toLocaleDateString()
+        const segmentKey = `${detection.SegmentId}-${detection.FramePath}`
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = {}
+        }
+        if (!grouped[dateKey][segmentKey]) {
+          grouped[dateKey][segmentKey] = []
+        }
+        grouped[dateKey][segmentKey].push(detection)
+      })
     setDetectionsGroups(grouped)
-  }, [detections, selectedCategory])
+  }, [detections, minConfidence, selectedCategory])
 
   /* 加载Detections */
   useEffect(() => {
@@ -264,7 +271,7 @@ export default function Page({
         )
       })()}
 
-      {/*浮动按钮 - 类别筛选*/}
+      {/*浮动按钮 - 目标过滤*/}
       <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
         <DialogTrigger asChild>
           <Button
@@ -276,9 +283,22 @@ export default function Page({
         </DialogTrigger>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>筛选类别</DialogTitle>
+            <DialogTitle>目标过滤</DialogTitle>
           </DialogHeader>
           <div className="max-h-[50vh] space-y-2 overflow-y-auto">
+            <div className="flex items-center space-x-2">
+              <label className="w-24 text-sm">
+                最小置信度({(minConfidence * 100).toFixed(0)}%)
+              </label>
+              <Slider
+                className="w-full"
+                value={[minConfidence]}
+                min={0}
+                max={1}
+                step={0.05}
+                onValueChange={(value) => setMinConfidence(value[0]!)}
+              />
+            </div>
             {categories.map((cat) => (
               <label
                 key={cat}
