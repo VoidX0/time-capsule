@@ -2,18 +2,38 @@
 
 import { components } from '@/api/schema'
 import CameraChart from '@/components/camera/camera-chart'
+import DetectionChart from '@/components/camera/detection-chart'
+import StorageChart from '@/components/main/storage-chart'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { openapi } from '@/lib/http'
 import { rsaEncrypt } from '@/lib/security'
-import { Check, Pen, Shield, ShieldPlus, ShieldX, UserRoundPen, UserRoundPlus, UserRoundX } from 'lucide-react'
+import {
+  Check,
+  Pen,
+  Shield,
+  ShieldPlus,
+  ShieldX,
+  UserRoundPen,
+  UserRoundPlus,
+  UserRoundX,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type Role = components['schemas']['SystemRole']
@@ -235,8 +255,10 @@ export default function Page() {
         </TabsList>
 
         {/* Statistics Tab */}
-        <TabsContent value="statistics">
+        <TabsContent value="statistics" className="space-y-6">
           <CameraChart cameraId="0" />
+          <DetectionChart cameraId="0" />
+          <StorageChart />
         </TabsContent>
 
         {/* Account Tab */}

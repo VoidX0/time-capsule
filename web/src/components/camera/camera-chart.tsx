@@ -119,8 +119,10 @@ export default function CameraChart({
     <Card>
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>每日趋势</CardTitle>
-          <CardDescription>每日存储空间、片段数量和录制时长</CardDescription>
+          <CardTitle>摄像头趋势</CardTitle>
+          <CardDescription>
+            摄像头存储空间、片段数量和录制时长趋势
+          </CardDescription>
         </div>
         <div className="flex">
           {['storage', 'segment', 'duration'].map((key) => {

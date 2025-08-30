@@ -238,12 +238,38 @@ export default function Page({
         </DialogContent>
       </Dialog>
 
+      {/* 浮动按钮 - 日期选择 */}
+      {(() => {
+        return (
+          <Popover open={datePopover} onOpenChange={setDatePopover}>
+            <PopoverTrigger asChild>
+              <Button
+                size="icon"
+                className="fixed right-4 bottom-4 rounded-full shadow-lg"
+              >
+                <CalendarIcon className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                autoFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={setDate}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
+        )
+      })()}
+
       {/*浮动按钮 - 类别筛选*/}
       <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
         <DialogTrigger asChild>
           <Button
             size="icon"
-            className="fixed right-28 bottom-4 rounded-full shadow-lg"
+            className="fixed right-16 bottom-4 rounded-full shadow-lg"
           >
             <Filter className="h-5 w-5" />
           </Button>
@@ -282,36 +308,10 @@ export default function Page({
         </DialogContent>
       </Dialog>
 
-      {/* 浮动按钮 - 日期选择 */}
-      {(() => {
-        return (
-          <Popover open={datePopover} onOpenChange={setDatePopover}>
-            <PopoverTrigger asChild>
-              <Button
-                size="icon"
-                className="fixed right-4 bottom-4 rounded-full shadow-lg"
-              >
-                <CalendarIcon className="h-5 w-5" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                autoFocus
-                mode="range"
-                defaultMonth={date?.from}
-                selected={date}
-                onSelect={setDate}
-                numberOfMonths={2}
-              />
-            </PopoverContent>
-          </Popover>
-        )
-      })()}
-
       {/* 浮动按钮 - 回到顶部 */}
       <Button
         size="icon"
-        className="fixed right-16 bottom-4 rounded-full shadow-lg"
+        className="fixed right-28 bottom-4 rounded-full shadow-lg"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       >
         <ArrowUp className="h-5 w-5" />

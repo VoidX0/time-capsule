@@ -1782,6 +1782,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/Settings/GetStorageInfo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取存储占用信息(MB) */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description cache / detection */
+                    path?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": {
+                            [key: string]: number;
+                        };
+                        "application/json": {
+                            [key: string]: number;
+                        };
+                        "text/json": {
+                            [key: string]: number;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/Video/SegmentStream": {
         parameters: {
             query?: never;

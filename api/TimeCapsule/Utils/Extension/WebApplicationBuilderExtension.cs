@@ -327,9 +327,9 @@ public static class WebApplicationBuilderExtension
         //初始化数据库
         DbScoped.SugarScope.InitDb(succeedAction, failAction);
         //初始化系统信息
-        var controllers = typeof(HomeController).Assembly.GetTypes()
+        var controllers = typeof(SettingsController).Assembly.GetTypes()
             .Where(x => x is { IsPublic: true, IsClass: true, IsAbstract: false }
-                        && x.Namespace?.StartsWith(typeof(HomeController).Namespace ?? "unknown namespace") ==
+                        && x.Namespace?.StartsWith(typeof(SettingsController).Namespace ?? "unknown namespace") ==
                         true) //命名空间过滤
             .Where(x => x.GetCustomAttributes(typeof(DisplayNameAttribute), false).Length > 0)
             .Select(x => new SystemController

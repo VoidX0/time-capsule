@@ -10,6 +10,7 @@ import { ArrowUpRight } from 'lucide-react'
 import { useLocale } from 'next-intl'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import DetectionChart from '@/components/camera/detection-chart'
 
 type QueryDto = components['schemas']['QueryDto']
 type Camera = components['schemas']['Camera']
@@ -222,6 +223,27 @@ export default function Page({
           <CardHeader>
             <CardTitle>
               <div className="flex items-center justify-between">
+                检测目标
+                <Link href={`/${locale}/${cameraInfo.Id}/detections`}>
+                  <ArrowUpRight />
+                </Link>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">
+              {detectionCount > 1000
+                ? detectionCount > 1000000
+                  ? (detectionCount / 1000000).toFixed(2) + ' M'
+                  : (detectionCount / 1000).toFixed(2) + ' K'
+                : detectionCount + ' 个'}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <div className="flex items-center justify-between">
                 录制时长
                 <Link href={`/${locale}/${cameraInfo.Id}/playback`}>
                   <ArrowUpRight />
@@ -231,6 +253,17 @@ export default function Page({
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{totalDuration.toFixed(2)} h</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>平均每天时长</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">
+              {daysRecorded > 0 ? (totalDuration / daysRecorded).toFixed(2) : 0}{' '}
+              h
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -250,47 +283,6 @@ export default function Page({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>存储空间</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{storageUsed.toFixed(2)} GB</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <div className="flex items-center justify-between">
-                检测目标
-                <Link href={`/${locale}/${cameraInfo.Id}/detections`}>
-                  <ArrowUpRight />
-                </Link>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {detectionCount > 1000
-                ? detectionCount > 1000000
-                  ? (detectionCount / 1000000).toFixed(2) + ' M'
-                  : (detectionCount / 1000).toFixed(2) + ' K'
-                : detectionCount}{' '}
-              个
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>平均每天时长</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {daysRecorded > 0 ? (totalDuration / daysRecorded).toFixed(2) : 0}{' '}
-              h
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
             <CardTitle>平均每天片段</CardTitle>
           </CardHeader>
           <CardContent>
@@ -300,6 +292,14 @@ export default function Page({
                 : 0}{' '}
               个
             </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>存储空间</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{storageUsed.toFixed(2)} GB</p>
           </CardContent>
         </Card>
         <Card>
@@ -317,7 +317,10 @@ export default function Page({
         </Card>
       </div>
       {/*chart*/}
-      <CameraChart cameraId={cameraInfo.Id?.toString()} />
+      <div className="space-y-6">
+        <CameraChart cameraId={cameraInfo.Id?.toString()} />
+        <DetectionChart cameraId={cameraInfo.Id?.toString()} />
+      </div>
     </div>
   )
 }

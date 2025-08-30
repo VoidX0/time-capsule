@@ -140,9 +140,9 @@ public class MarkdownDocumentFilter : IDocumentFilter
     private static string StatisticsDoc()
     {
         // 获取所有控制器
-        var controllers = typeof(HomeController).Assembly.GetTypes()
+        var controllers = typeof(SettingsController).Assembly.GetTypes()
             .Where(x => x is { IsPublic: true, IsClass: true, IsAbstract: false }
-                        && x.Namespace?.StartsWith(typeof(HomeController).Namespace ?? "unknown namespace") ==
+                        && x.Namespace?.StartsWith(typeof(SettingsController).Namespace ?? "unknown namespace") ==
                         true) //命名空间过滤
             .Where(x => typeof(ControllerBase).IsAssignableFrom(x))
             .ToList();
