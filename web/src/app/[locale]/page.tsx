@@ -1,6 +1,8 @@
 'use client'
 
+import { BoxReveal } from '@/components/magicui/box-reveal'
 import { RainbowButton } from '@/components/magicui/rainbow-button'
+import { SparklesText } from '@/components/magicui/sparkles-text'
 import { LayoutDashboard } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
@@ -27,9 +29,9 @@ export default function Home() {
     <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-sans sm:p-20">
       <main className="row-start-2 flex flex-col items-center gap-[32px] sm:items-start">
         <div>
-          <h1 className="max-w-[600px] text-center text-4xl font-bold sm:text-left">
-            <span className="text-primary">Time capsule</span>{' '}
-          </h1>
+          <SparklesText className="text-primary max-w-[600px] text-center text-4xl font-bold sm:text-left">
+            Time capsule
+          </SparklesText>
           <p className="text-muted-foreground max-w-[600px] text-center text-lg sm:text-left">
             {t('description')}
           </p>
@@ -42,10 +44,18 @@ export default function Home() {
           priority
         />
         <ol className="list-inside list-decimal text-center font-mono text-sm/6 sm:text-left">
-          <li className="tracking-[-.01em]">{t('details01')}</li>
-          <li className="tracking-[-.01em]">{t('details02')}</li>
-          <li className="tracking-[-.01em]"> {t('details03')}</li>
-          <li className="tracking-[-.01em]"> {t('details04')}</li>
+          <BoxReveal boxColor={'currentColor'} duration={0.5}>
+            <li className="tracking-[-.01em]">{t('details01')}</li>
+          </BoxReveal>
+          <BoxReveal boxColor={'currentColor'} duration={0.5}>
+            <li className="tracking-[-.01em]">{t('details02')}</li>
+          </BoxReveal>
+          <BoxReveal boxColor={'currentColor'} duration={0.5}>
+            <li className="tracking-[-.01em]"> {t('details03')}</li>
+          </BoxReveal>
+          <BoxReveal boxColor={'currentColor'} duration={0.5}>
+            <li className="tracking-[-.01em]"> {t('details04')}</li>
+          </BoxReveal>
         </ol>
         <Link href={`/${locale}/dashboard`} rel="noopener noreferrer">
           <RainbowButton className="h-10 rounded-full">
