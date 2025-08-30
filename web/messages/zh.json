@@ -27,10 +27,10 @@
   },
   "HomePage": {
     "description": "基于本地监控视频的回放应用",
-    "details01": "使用本地视频文件夹 /camera",
-    "details02": "自动创建视频索引",
-    "details03": "无缝拖动回放时间轴",
-    "details04": "YOLO 目标检测",
+    "details01": "集中管理存储在本地的监控视频",
+    "details02": "无缝拖动时间轴进行视频回放",
+    "details03": "自动化视频索引与目标检测",
+    "details04": "YOLO 目标检测标注",
     "github": "前往 GitHub →",
     "docs": "阅读文档 →"
   },

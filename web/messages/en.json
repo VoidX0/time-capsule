@@ -27,10 +27,10 @@
   },
   "HomePage": {
     "description": "Playback application based on local monitoring video",
-    "details01": "Use your local videos on /camera",
-    "details02": "Automatically create video index",
-    "details03": "Seamless drag playback timeline",
-    "details04": "YOLO object detection",
+    "details01": "Centralized management of locally stored monitoring videos",
+    "details02": "Seamless timeline dragging for video playback",
+    "details03": "Automated video indexing and object detection",
+    "details04": "YOLO object detection labeling",
     "github": "Go to GitHub →",
     "docs": "Read the documentation →"
   },
