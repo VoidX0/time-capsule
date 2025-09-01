@@ -219,5 +219,18 @@
     "storageUsed": "存储空间",
     "avgDailyStorage": "平均每天存储",
     "dayUnit": "天"
+  },
+  "CameraDetectionsPage": {
+    "detectionInfoTitle": "检测信息",
+    "cameraId": "摄像头ID",
+    "segmentId": "视频片段ID",
+    "detectionTime": "检测时间",
+    "category": "类别",
+    "confidence": "置信度",
+    "coordinates": "坐标",
+    "size": "尺寸",
+    "detectionFilterTitle": "目标过滤",
+    "minConfidenceLabel": "最小置信度",
+    "resetButton": "重置"
   }
 }

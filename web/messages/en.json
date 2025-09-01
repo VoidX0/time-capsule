@@ -219,5 +219,18 @@
     "storageUsed": "Storage Used",
     "avgDailyStorage": "Average Daily Storage",
     "dayUnit": "days"
+  },
+  "CameraDetectionsPage": {
+    "detectionInfoTitle": "Detection Info",
+    "cameraId": "Camera ID",
+    "segmentId": "Segment ID",
+    "detectionTime": "Detection Time",
+    "category": "Category",
+    "confidence": "Confidence",
+    "coordinates": "Coordinates",
+    "size": "Size",
+    "detectionFilterTitle": "Detection Filter",
+    "minConfidenceLabel": "Minimum Confidence",
+    "resetButton": "Reset"
   }
 }
