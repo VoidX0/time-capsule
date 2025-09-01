@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider'
 import { formatDate, rangeWeek } from '@/lib/date-time'
 import { openapi } from '@/lib/http'
 import { ArrowUp, CalendarIcon, Filter } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { DateRange } from 'react-day-picker'
@@ -26,6 +27,7 @@ export default function Page({
 }: Readonly<{
   params: Promise<{ locale: string; camera: string }>
 }>) {
+  const tDetection = useTranslations('DetectionItem')
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
   const [detections, setDetections] = useState<Detection[] | undefined>([]) // 检测结果列表
   const [detectionsGroups, setDetectionsGroups] = useState<
@@ -233,7 +235,8 @@ export default function Page({
                 >
                   <div className="space-y-1 text-sm">
                     <p>
-                      <strong>类别:</strong> {detection.TargetName || 'N/A'}
+                      <strong>类别:</strong> {detection.TargetName || 'N/A'} (
+                      {tDetection(detection.TargetName! as never) || 'N/A'})
                     </p>
                     <p>
                       <strong>置信度:</strong>{' '}
@@ -332,7 +335,9 @@ export default function Page({
                     }
                   }}
                 />
-                <span>{cat}</span>
+                <span>
+                  {cat} ({tDetection(cat as never)})
+                </span>
               </label>
             ))}
           </div>

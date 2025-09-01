@@ -4,6 +4,7 @@ import { components } from '@/api/schema'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { openapi } from '@/lib/http'
+import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 import { CartesianGrid, Cell, Line, LineChart, Pie, PieChart, XAxis } from 'recharts'
 
@@ -26,6 +27,7 @@ export default function DetectionChart({
 }: {
   cameraId: string | undefined
 }) {
+  const tDetection = useTranslations('DetectionItem')
   const [activeChart, setActiveChart] =
     useState<keyof typeof chartConfig>('daily') // 默认显示每日趋势
   const [dailyData, setDailyData] = useState<{ date: string; count: number }[]>(
@@ -83,7 +85,7 @@ export default function DetectionChart({
       const total = Object.values(categoryGrouped).reduce((a, b) => a + b, 0)
       const categoryData = Object.entries(categoryGrouped).map(
         ([name, value]) => ({
-          name,
+          name: tDetection(name as never),
           value,
           percent: value / total,
         }),
