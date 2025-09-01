@@ -9,10 +9,12 @@ import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import { formatDate, rangeWeek } from '@/lib/date-time'
 import { openapi } from '@/lib/http'
 import { ArrowUp, CalendarIcon, Filter } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { DateRange } from 'react-day-picker'
@@ -26,6 +28,8 @@ export default function Page({
 }: Readonly<{
   params: Promise<{ locale: string; camera: string }>
 }>) {
+  const t = useTranslations('CameraDetectionsPage')
+  const tDetection = useTranslations('DetectionItem')
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
   const [detections, setDetections] = useState<Detection[] | undefined>([]) // 检测结果列表
   const [detectionsGroups, setDetectionsGroups] = useState<
@@ -146,9 +150,31 @@ export default function Page({
   // 等待摄像头准备好
   if (cameraInfo == undefined) {
     return (
-      <div className="md:p-8">
-        <div className="flex h-96 items-center justify-center">
-          <p>Loading camera...</p>
+      <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl p-8">
+        {/* 标题骨架 */}
+        <Skeleton className="mb-6 h-10 w-64" />
+        <Skeleton className="mb-4 h-6 w-80" />
+
+        {/* 日期分组骨架 */}
+        <div className="space-y-6">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="bg-muted/50 space-y-4 rounded-xl p-4">
+              {/* 日期 & badge */}
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-5 w-16" />
+              </div>
+              {/* 图片网格骨架 */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+                {[...Array(4)].map((_, j) => (
+                  <Skeleton
+                    key={j}
+                    className="aspect-video w-full rounded-lg"
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     )
@@ -210,19 +236,20 @@ export default function Page({
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detections Info</DialogTitle>
+            <DialogTitle>{t('detectionInfoTitle')}</DialogTitle>
           </DialogHeader>
           {selectedDetection && (
             <div className="space-y-2">
               <div className="space-y-1 text-sm">
                 <p>
-                  <strong>摄像头ID:</strong> {selectedDetection[0]?.CameraId}
+                  <strong>{t('cameraId')}:</strong> {cameraInfo?.Id}
                 </p>
                 <p>
-                  <strong>视频片段ID:</strong> {selectedDetection[0]?.SegmentId}
+                  <strong>{t('segmentId')}:</strong>{' '}
+                  {selectedDetection[0]?.SegmentId}
                 </p>
                 <p>
-                  <strong>检测时间:</strong>{' '}
+                  <strong>{t('detectionTime')}:</strong>{' '}
                   {new Date(selectedDetection[0]!.FrameTime!).toLocaleString()}
                 </p>
               </div>
@@ -233,21 +260,22 @@ export default function Page({
                 >
                   <div className="space-y-1 text-sm">
                     <p>
-                      <strong>类别:</strong> {detection.TargetName || 'N/A'}
+                      <strong>{t('category')}:</strong>{' '}
+                      {tDetection(detection.TargetName! as never) || 'N/A'})
                     </p>
                     <p>
-                      <strong>置信度:</strong>{' '}
+                      <strong>{t('confidence')}:</strong>{' '}
                       {`${((detection.TargetConfidence ?? 0) * 100).toFixed(2)}%`}
                     </p>
                     <p>
-                      <strong>坐标:</strong>{' '}
+                      <strong>{t('coordinates')}:</strong>{' '}
                       {detection.TargetLocationX !== undefined &&
                       detection.TargetLocationY !== undefined
                         ? `${detection.TargetLocationX}, ${detection.TargetLocationY}`
                         : 'N/A'}
                     </p>
                     <p>
-                      <strong>尺寸:</strong>{' '}
+                      <strong>{t('size')}:</strong>{' '}
                       {detection.TargetSizeWidth !== undefined &&
                       detection.TargetSizeHeight !== undefined
                         ? `${detection.TargetSizeWidth} x ${detection.TargetSizeHeight}`
@@ -299,12 +327,12 @@ export default function Page({
         </DialogTrigger>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>目标过滤</DialogTitle>
+            <DialogTitle>{t('detectionFilterTitle')}</DialogTitle>
           </DialogHeader>
           <div className="max-h-[50vh] space-y-2 overflow-y-auto">
             <div className="flex items-center space-x-2">
               <label className="w-24 text-sm">
-                最小置信度({(minConfidence * 100).toFixed(0)}%)
+                {t('minConfidenceLabel')}({(minConfidence * 100).toFixed(0)}%)
               </label>
               <Slider
                 className="w-full"
@@ -332,7 +360,9 @@ export default function Page({
                     }
                   }}
                 />
-                <span>{cat}</span>
+                <span>
+                  {cat} ({tDetection(cat as never)})
+                </span>
               </label>
             ))}
           </div>
@@ -346,7 +376,7 @@ export default function Page({
                 )
               }}
             >
-              重置
+              {t('resetButton')}
             </Button>
           </div>
         </DialogContent>

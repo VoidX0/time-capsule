@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
@@ -30,6 +30,7 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export default function Page() {
+  const t = useTranslations('DashboardPage')
   const locale = useLocale()
   const [summaries, setSummaries] = useState<CameraSummary[]>([]) // 摄像头汇总信息
 
@@ -102,10 +103,6 @@ export default function Page() {
     fetchAll().then()
   }, [])
 
-  if (summaries.length === 0) {
-    return <div className="p-8 text-center">加载中...</div>
-  }
-
   return (
     <div className="max-w-8xl mx-auto grid grid-cols-1 gap-6 p-8 sm:grid-cols-2 lg:grid-cols-3">
       {summaries.map((s) => (
@@ -113,21 +110,24 @@ export default function Page() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               {s.camera.Name}
-              <Link href={`/${locale}/${s.camera.Id}/dashboard`}>详情</Link>
+              <Link href={`/${locale}/${s.camera.Id}/dashboard`}>
+                {t('details')}
+              </Link>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <p>
-              录制天数: <strong>{s.days} 天</strong>
+              {t('recordingDays')}: <strong>{s.days}</strong>
             </p>
             <p>
-              录制时长: <strong>{s.totalDuration.toFixed(2)} h</strong>
+              {t('recordingDuration')}:{' '}
+              <strong>{s.totalDuration.toFixed(2)} h</strong>
             </p>
             <p>
-              片段数量: <strong>{s.segmentCount} 个</strong>
+              {t('segmentCount')}: <strong>{s.segmentCount}</strong>
             </p>
             <p>
-              存储空间: <strong>{s.totalStorage.toFixed(2)} GB</strong>
+              {t('storage')}: <strong>{s.totalStorage.toFixed(2)} GB</strong>
             </p>
             {/* 小图表 */}
             {s.chartData.length > 0 && (

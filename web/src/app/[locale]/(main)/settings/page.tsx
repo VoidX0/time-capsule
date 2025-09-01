@@ -8,32 +8,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { openapi } from '@/lib/http'
 import { rsaEncrypt } from '@/lib/security'
-import {
-  Check,
-  Pen,
-  Shield,
-  ShieldPlus,
-  ShieldX,
-  UserRoundPen,
-  UserRoundPlus,
-  UserRoundX,
-} from 'lucide-react'
+import { Check, Pen, Shield, ShieldPlus, ShieldX, UserRoundPen, UserRoundPlus, UserRoundX } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 
 type Role = components['schemas']['SystemRole']
@@ -41,6 +24,7 @@ type User = components['schemas']['SystemUser']
 type SystemController = components['schemas']['SystemController']
 
 export default function Page() {
+  const t = useTranslations('SettingsPage')
   const [roles, setRoles] = useState<Role[]>([]) // 所有角色列表
   const [users, setUsers] = useState<User[]>([]) // 所有用户列表
   const [roleDialogOpen, setRoleDialogOpen] = useState(false) // 角色弹窗状态
@@ -237,20 +221,19 @@ export default function Page() {
     // 刷新本弹窗数据
     await openAuthorizeDialog(authorizeType!, authorizeTarget)
   }
-
   return (
     <div className="max-w-8xl mx-auto w-full gap-6 p-8">
       <Tabs defaultValue="statistics">
         {/* 一级 Tabs */}
         <TabsList className="mb-4 w-full">
           <TabsTrigger value="statistics" className="w-1/3">
-            系统统计
+            {t('statisticsTab')}
           </TabsTrigger>
           <TabsTrigger value="account" className="w-1/3">
-            用户
+            {t('accountTab')}
           </TabsTrigger>
           <TabsTrigger value="role" className="w-1/3">
-            角色
+            {t('roleTab')}
           </TabsTrigger>
         </TabsList>
 
@@ -265,7 +248,7 @@ export default function Page() {
         <TabsContent value="account">
           <Card>
             <CardHeader className="flex items-center justify-between">
-              <CardTitle>所有用户</CardTitle>
+              <CardTitle>{t('allUsers')}</CardTitle>
               <Button
                 variant="outline"
                 onClick={() => {
@@ -282,10 +265,10 @@ export default function Page() {
                 <thead>
                   <tr className="border-b">
                     <th className="p-2">ID</th>
-                    <th className="p-2">邮箱</th>
-                    <th className="p-2">昵称</th>
-                    <th className="p-2">角色</th>
-                    <th className="w-32 p-2">操作</th>
+                    <th className="p-2">{t('email')}</th>
+                    <th className="p-2">{t('nickname')}</th>
+                    <th className="p-2">{t('role')}</th>
+                    <th className="w-32 p-2">{t('operations')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -326,7 +309,9 @@ export default function Page() {
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-40 p-2">
-                            <p className="mb-2 text-sm">确定要删除该用户吗？</p>
+                            <p className="mb-2 text-sm">
+                              {t('deleteUserConfirm')}
+                            </p>
                             <div className="flex justify-end gap-2">
                               <Button
                                 variant="outline"
@@ -359,7 +344,7 @@ export default function Page() {
         <TabsContent value="role">
           <Card>
             <CardHeader className="flex items-center justify-between">
-              <CardTitle>所有角色</CardTitle>
+              <CardTitle>{t('allRoles')}</CardTitle>
               <Button
                 variant="outline"
                 onClick={() => {
@@ -375,8 +360,8 @@ export default function Page() {
                 <thead>
                   <tr className="border-b">
                     <th className="p-2">ID</th>
-                    <th className="p-2">名称</th>
-                    <th className="w-32 p-2">操作</th>
+                    <th className="p-2">{t('role')}</th>
+                    <th className="w-32 p-2">{t('operations')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -407,7 +392,9 @@ export default function Page() {
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-40 p-2">
-                            <p className="mb-2 text-sm">确定要删除该角色吗？</p>
+                            <p className="mb-2 text-sm">
+                              {t('deleteRoleConfirm')}
+                            </p>
                             <div className="flex justify-end gap-2">
                               <Button
                                 variant="outline"
@@ -441,10 +428,12 @@ export default function Page() {
       <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{editRole?.Id ? '编辑角色' : '新增角色'}</DialogTitle>
+            <DialogTitle>
+              {editRole?.Id ? t('editRole') : t('addRole')}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Label>名称</Label>
+            <Label>{t('role')}</Label>
             <Input
               value={editRole?.Name || ''}
               onChange={(e) =>
@@ -462,10 +451,12 @@ export default function Page() {
       <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{editUser?.Id ? '编辑用户' : '新增用户'}</DialogTitle>
+            <DialogTitle>
+              {editUser?.Id ? t('editUser') : t('addUser')}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Label>邮箱</Label>
+            <Label>{t('email')}</Label>
             <Input
               value={editUser?.Email || ''}
               onChange={(e) =>
@@ -473,7 +464,7 @@ export default function Page() {
               }
             />
 
-            <Label>昵称</Label>
+            <Label>{t('nickname')}</Label>
             <Input
               value={editUser?.NickName || ''}
               onChange={(e) =>
@@ -481,7 +472,7 @@ export default function Page() {
               }
             />
 
-            <Label>密码</Label>
+            <Label>{t('password')}</Label>
             <Input
               type="password"
               value={editUser?.Password || ''}
@@ -490,7 +481,7 @@ export default function Page() {
               }
             />
 
-            <Label>角色</Label>
+            <Label>{t('role')}</Label>
             <div className="flex max-h-40 flex-col gap-2 overflow-y-auto rounded border p-2">
               {roles.map((role) => (
                 <label key={role.Id} className="flex items-center gap-2">
@@ -533,13 +524,15 @@ export default function Page() {
           <DialogHeader>
             <DialogTitle>
               {authorizeType === 'user'
-                ? `用户授权：${(authorizeTarget as User)?.NickName}`
-                : `角色授权：${(authorizeTarget as Role)?.Name}`}
+                ? t('authorizeUser') +
+                  '：' +
+                  (authorizeTarget as User)?.NickName
+                : t('authorizeRole') + '：' + (authorizeTarget as Role)?.Name}
             </DialogTitle>
           </DialogHeader>
 
           {/* 未授权列表 */}
-          <Label>未授权</Label>
+          <Label className="mt-2">{t('unauthorized')}</Label>
           <div className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded border p-2">
             {unGrantedControllers.map((ctrl) => (
               <label key={ctrl.Id} className="flex items-center gap-2">
@@ -561,7 +554,7 @@ export default function Page() {
           </div>
 
           {/* 已授权列表 */}
-          <Label className="mt-4">已授权</Label>
+          <Label className="mt-2">{t('authorized')}</Label>
           <div className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded border p-2">
             {grantedControllers.map((ctrl) => (
               <label key={ctrl.Id} className="flex items-center gap-2">

@@ -1,19 +1,21 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { openapi } from '@/lib/http'
+import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
 
 const chartConfig = {
   detection: {
-    label: '检测',
+    label: 'detection',
   },
   cache: {
-    label: '缓存',
+    label: 'cache',
   },
 } satisfies ChartConfig
 
 export default function StorageChart() {
+  const t = useTranslations('SettingsPage')
   const [activeChart, setActiveChart] =
     useState<keyof typeof chartConfig>('detection') // 激活的图表
   const [chartData, setChartData] = useState<
@@ -80,8 +82,8 @@ export default function StorageChart() {
     <Card>
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>额外存储</CardTitle>
-          <CardDescription>摄像头额外占用的存储空间(GB)</CardDescription>
+          <CardTitle>{t('extraStorage')}</CardTitle>
+          <CardDescription>{t('cameraExtraStorage')}</CardDescription>
         </div>
         <div className="flex">
           {['detection', 'cache'].map((key) => {
@@ -94,7 +96,7 @@ export default function StorageChart() {
                 onClick={() => setActiveChart(chart)}
               >
                 <span className="text-muted-foreground text-xs">
-                  {chartConfig[chart].label}
+                  {t(chartConfig[chart].label as never)}
                 </span>
                 <span className="text-xl leading-none font-bold sm:text-3xl">
                   {total[key as keyof typeof total].toLocaleString()}

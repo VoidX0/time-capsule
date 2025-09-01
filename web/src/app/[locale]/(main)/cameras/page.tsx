@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input'
 import { openapi } from '@/lib/http'
 import { Plus, RefreshCcw, SquarePen, Trash2 } from 'lucide-react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -17,6 +17,7 @@ import { toast } from 'sonner'
 type Camera = components['schemas']['Camera']
 
 export default function Page() {
+  const t = useTranslations('CamerasPage')
   const locale = useLocale()
   const [cameras, setCameras] = useState<Camera[]>([])
 
@@ -120,16 +121,16 @@ export default function Page() {
     const { error } = await openapi.POST('/Camera/SyncAndCache', {
       params: { query: { cameraId: cam.Id?.toString() } },
     })
-    if (error) toast.error(`同步和缓存请求失败: ${error}`)
-    else toast.success('同步和缓存请求成功，请稍等片刻，后台正在处理')
+    if (error) toast.error(`${t('syncFail')}: ${error}`)
+    else toast.success(t('syncSuccess'))
   }
 
   const clearDetection = async (cam: Camera) => {
     const { error } = await openapi.DELETE('/Camera/ClearDetections', {
       params: { query: { cameraId: cam.Id?.toString() } },
     })
-    if (error) toast.error(`清除检测结果失败: ${error}`)
-    else toast.success('清除检测结果成功')
+    if (error) toast.error(`${t('clearDetectionFail')}: ${error}`)
+    else toast.success(t('clearDetectionSuccess'))
   }
 
   return (
@@ -139,7 +140,7 @@ export default function Page() {
         className="mb-4 w-full sm:col-span-2 lg:col-span-3"
       >
         <Plus />
-        新增摄像头
+        {t('addCamera')}
       </Button>
 
       {cameras.map((cam) => (
@@ -147,7 +148,9 @@ export default function Page() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               {cam.Name}
-              <Link href={`/${locale}/${cam.Id}/dashboard`}>详情</Link>
+              <Link href={`/${locale}/${cam.Id}/dashboard`}>
+                {t('details')}
+              </Link>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -169,18 +172,17 @@ export default function Page() {
                 </DialogTrigger>
                 <DialogContent className="max-w-sm">
                   <DialogHeader>
-                    <DialogTitle>确认删除</DialogTitle>
+                    <DialogTitle>{t('deleteConfirm')}</DialogTitle>
                   </DialogHeader>
                   <p className="py-2">
-                    确认删除摄像头 <strong>{cam.Name}</strong>{' '}
-                    吗？此操作不会删除摄像头原视频数据，但会删除相关配置和缓存数据。
+                    {t('deleteConfirmText', { param: cam.Name ?? '' })}
                   </p>
                   <div className="mt-4 flex justify-end gap-2">
                     <Button
                       variant="destructive"
                       onClick={() => handleDelete(cam.Id)}
                     >
-                      删除
+                      {t('delete')}
                     </Button>
                   </div>
                 </DialogContent>
@@ -194,45 +196,44 @@ export default function Page() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editCam ? '编辑摄像头' : '新增摄像头'}</DialogTitle>
+            <DialogTitle>
+              {editCam ? t('editCamera') : t('addCamera')}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-600">
-                名称
+                {t('name')}
               </label>
               <Input
                 className="font-mono"
-                placeholder="名称"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
               />
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-600">
-                基础路径
+                {t('basePath')}
               </label>
               <Input
                 className="font-mono"
-                placeholder="基础路径"
                 value={newBasePath}
                 onChange={(e) => setNewBasePath(e.target.value)}
               />
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-600">
-                Segment 解析模板
+                {t('segmentTemplate')}
               </label>
               <Input
                 className="font-mono"
-                placeholder="Segment解析模板"
                 value={newTemplate}
                 onChange={(e) => setNewTemplate(e.target.value)}
               />
             </div>
             <div className="flex items-center space-x-2">
               <label className="text-sm font-medium text-gray-600">
-                启用目标检测
+                {t('detectionEnable')}
               </label>
               <Checkbox
                 checked={newEnableDetection}
@@ -243,7 +244,7 @@ export default function Page() {
                   variant="destructive"
                   onClick={() => clearDetection(editCam!)}
                 >
-                  清除检测结果
+                  {t('clearDetections')}
                 </Button>
               )}
             </div>
@@ -251,12 +252,11 @@ export default function Page() {
               <>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-600">
-                    检测间隔(s)
+                    {t('detectionInterval')}
                   </label>
                   <Input
                     type="number"
                     className="font-mono"
-                    placeholder="检测间隔(s)"
                     value={newDetectionInterval}
                     onChange={(e) =>
                       setNewDetectionInterval(Number(e.target.value))
@@ -266,7 +266,7 @@ export default function Page() {
 
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-600">
-                    检测置信度
+                    {t('detectionConfidence')}
                   </label>
                   <Input
                     type="number"
@@ -274,7 +274,6 @@ export default function Page() {
                     min="0"
                     max="1"
                     className="font-mono"
-                    placeholder="检测置信度"
                     value={newDetectionConfidence}
                     onChange={(e) =>
                       setNewDetectionConfidence(Number(e.target.value))
@@ -284,7 +283,7 @@ export default function Page() {
               </>
             )}
             <Button onClick={handleSave} className="w-full">
-              保存
+              {t('save')}
             </Button>
           </div>
         </DialogContent>
