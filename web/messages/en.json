@@ -174,7 +174,7 @@
     "editCamera": "Edit Camera",
     "delete": "Delete",
     "deleteConfirm": "Confirm Deletion",
-    "deleteConfirmText": "Are you sure you want to delete the camera {name}? This action will not delete the original video data of the camera, but will delete related configurations and cached data.",
+    "deleteConfirmText": "Are you sure you want to delete the camera {param}? This action will not delete the original video data of the camera, but will delete related configurations and cached data.",
     "details": "Details",
     "save": "Save",
     "name": "Name",
