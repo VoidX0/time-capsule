@@ -232,5 +232,26 @@
     "detectionFilterTitle": "Detection Filter",
     "minConfidenceLabel": "Minimum Confidence",
     "resetButton": "Reset"
+  },
+  "CameraSegmentsPage": {
+    "segmentInfoTitle": "Segment Info",
+    "confirmDeleteTitle": "Confirm Deletion",
+    "confirmDeleteMessage": "Are you sure you want to delete {param} video segments? This action cannot be undone.",
+    "deleteButton": "Delete",
+    "cameraId": "Camera ID",
+    "syncTime": "Sync Time",
+    "fileSize": "File Size",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "durationActual": "Actual Duration",
+    "durationTheoretical": "Theoretical Duration",
+    "videoCodec": "Video Codec",
+    "videoResolution": "Video Resolution",
+    "videoFps": "Video FPS",
+    "videoBitrate": "Video Bitrate",
+    "audioCodec": "Audio Codec",
+    "audioSampleRate": "Audio Sample Rate",
+    "audioChannels": "Audio Channels",
+    "audioBitrate": "Audio Bitrate"
   }
 }

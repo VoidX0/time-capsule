@@ -232,5 +232,26 @@
     "detectionFilterTitle": "目标过滤",
     "minConfidenceLabel": "最小置信度",
     "resetButton": "重置"
+  },
+  "CameraSegmentsPage": {
+    "segmentInfoTitle": "视频段信息",
+    "confirmDeleteTitle": "确认删除",
+    "confirmDeleteMessage": "确定要删除 {param} 个视频片段吗？此操作不可恢复。",
+    "deleteButton": "删除",
+    "cameraId": "摄像头ID",
+    "syncTime": "同步时间",
+    "fileSize": "文件大小",
+    "startTime": "录制开始时间",
+    "endTime": "录制结束时间",
+    "durationActual": "实际录制时长",
+    "durationTheoretical": "理论录制时长",
+    "videoCodec": "视频编码器",
+    "videoResolution": "视频分辨率",
+    "videoFps": "视频帧率",
+    "videoBitrate": "视频比特率",
+    "audioCodec": "音频编码器",
+    "audioSampleRate": "音频采样率",
+    "audioChannels": "音频声道数",
+    "audioBitrate": "音频比特率"
   }
 }

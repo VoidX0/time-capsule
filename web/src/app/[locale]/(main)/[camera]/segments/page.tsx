@@ -9,10 +9,11 @@ import { Calendar } from '@/components/ui/calendar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
-import { rangeWeek } from '@/lib/date-time'
+import { formatDate, rangeWeek } from '@/lib/date-time'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { ArrowUp, CalendarIcon, Trash2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 import { DateRange } from 'react-day-picker'
 
@@ -25,6 +26,7 @@ export default function Page({
 }: Readonly<{
   params: Promise<{ locale: string; camera: string }>
 }>) {
+  const t = useTranslations('CameraSegmentsPage')
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
   const [, setSegments] = useState<Segment[] | undefined>([]) // 视频切片列表
   const [segmentsByDate, setSegmentsByDate] = useState<
@@ -46,13 +48,6 @@ export default function Page({
 
   /* 加载Segments */
   useEffect(() => {
-    const formatDate = (date: Date) => {
-      const y = date.getFullYear()
-      const m = String(date.getMonth() + 1).padStart(2, '0')
-      const d = String(date.getDate()).padStart(2, '0')
-      return `${y}-${m}-${d}`
-    }
-
     const getSegments = async (cameraId: string) => {
       const body: QueryDto = {
         PageNumber: 1,
@@ -198,10 +193,10 @@ export default function Page({
                 </DialogTrigger>
                 <DialogContent className="max-w-sm">
                   <DialogHeader>
-                    <DialogTitle>确认删除</DialogTitle>
+                    <DialogTitle>{t('confirmDeleteTitle')}</DialogTitle>
                   </DialogHeader>
                   <p className="py-2">
-                    确定要删除 {segments.length} 个视频片段吗？此操作不可恢复。
+                    {t('confirmDeleteMessage', { param: segments.length || 0 })}
                   </p>
                   <div className="mt-4 flex justify-end gap-2">
                     <Button
@@ -210,7 +205,7 @@ export default function Page({
                         deleteSegments(segments).then()
                       }}
                     >
-                      删除
+                      {t('deleteButton')}
                     </Button>
                   </div>
                 </DialogContent>
@@ -265,7 +260,7 @@ export default function Page({
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Segment Info</DialogTitle>
+            <DialogTitle>{t('segmentInfoTitle')}</DialogTitle>
           </DialogHeader>
           {selectedSegment && (
             <div className="space-y-2">
@@ -282,43 +277,43 @@ export default function Page({
                 <strong>ID:</strong> {selectedSegment.Id}
               </p>
               <p>
-                <strong>摄像头ID:</strong> {selectedSegment.CameraId}
+                <strong>{t('cameraId')}:</strong> {selectedSegment.CameraId}
               </p>
               <p>
-                <strong>同步时间:</strong>{' '}
+                <strong>{t('syncTime')}:</strong>{' '}
                 {new Date(selectedSegment.SyncTime!).toLocaleString()}
               </p>
               <p>
-                <strong>文件大小:</strong>{' '}
+                <strong>{t('fileSize')}:</strong>{' '}
                 {selectedSegment.Size ? selectedSegment.Size.toFixed(2) : 'N/A'}{' '}
                 MB
               </p>
               <p>
-                <strong>录制开始时间:</strong>{' '}
+                <strong>{t('startTime')}:</strong>{' '}
                 {new Date(selectedSegment.StartTime!).toLocaleString()}
               </p>
               <p>
-                <strong>录制结束时间:</strong>{' '}
+                <strong>{t('endTime')}:</strong>{' '}
                 {new Date(selectedSegment.EndTime!).toLocaleString()}
               </p>
               <p>
-                <strong>实际录制时长:</strong>{' '}
+                <strong>{t('durationActual')}:</strong>{' '}
                 {selectedSegment.DurationActual
                   ? selectedSegment.DurationActual
                   : 'N/A'}
               </p>
               <p>
-                <strong>理论录制时长:</strong>{' '}
+                <strong>{t('durationTheoretical')}:</strong>{' '}
                 {selectedSegment.DurationTheoretical
                   ? selectedSegment.DurationTheoretical
                   : 'N/A'}
               </p>
               <p>
-                <strong>视频编码器:</strong>{' '}
+                <strong>{t('videoCodec')}:</strong>{' '}
                 {selectedSegment.VideoCodec || 'N/A'}
               </p>
               <p>
-                <strong>视频分辨率:</strong>{' '}
+                <strong>{t('videoResolution')}:</strong>{' '}
                 {selectedSegment.VideoWidth
                   ? selectedSegment.VideoWidth
                   : 'N/A'}{' '}
@@ -328,38 +323,38 @@ export default function Page({
                   : 'N/A'}
               </p>
               <p>
-                <strong>视频帧率:</strong>{' '}
+                <strong>{t('videoFps')}:</strong>{' '}
                 {selectedSegment.VideoFps
                   ? selectedSegment.VideoFps.toFixed(2)
                   : 'N/A'}{' '}
                 fps
               </p>
               <p>
-                <strong>视频比特率:</strong>{' '}
+                <strong>{t('videoBitrate')}:</strong>{' '}
                 {selectedSegment.VideoBitrate
                   ? selectedSegment.VideoBitrate.toFixed(2)
                   : 'N/A'}{' '}
                 kbps
               </p>
               <p>
-                <strong>音频编码器:</strong>{' '}
+                <strong>{t('audioCodec')}:</strong>{' '}
                 {selectedSegment.AudioCodec || 'N/A'}
               </p>
               <p>
-                <strong>音频采样率:</strong>{' '}
+                <strong>{t('audioSampleRate')}:</strong>{' '}
                 {selectedSegment.AudioSampleRate
                   ? selectedSegment.AudioSampleRate.toFixed(2)
                   : 'N/A'}{' '}
                 Hz
               </p>
               <p>
-                <strong>音频声道数:</strong>{' '}
+                <strong>{t('audioChannels')}:</strong>{' '}
                 {selectedSegment.AudioChannels
                   ? selectedSegment.AudioChannels
                   : 'N/A'}
               </p>
               <p>
-                <strong>音频比特率:</strong>{' '}
+                <strong>{t('audioBitrate')}:</strong>{' '}
                 {selectedSegment.AudioBitrate
                   ? selectedSegment.AudioBitrate.toFixed(2)
                   : 'N/A'}{' '}
