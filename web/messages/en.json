@@ -130,5 +130,25 @@
     "register": "Sign up",
     "policyTip": "By clicking continue, you agree to our",
     "policy": "Privacy Policy"
+  },
+  "CamerasPage": {
+    "syncSuccess": "Sync and cache request successful, please wait a moment while the backend processes it",
+    "syncFail": "Sync and cache request failed",
+    "clearDetectionSuccess": "Detection data cleared successfully",
+    "clearDetectionFail": "Failed to clear detection data",
+    "addCamera": "Add Camera",
+    "editCamera": "Edit Camera",
+    "delete": "Delete",
+    "deleteConfirm": "Confirm Deletion",
+    "deleteConfirmText": "Are you sure you want to delete the camera {name}? This action will not delete the original video data of the camera, but will delete related configurations and cached data.",
+    "details": "Details",
+    "save": "Save",
+    "name": "Name",
+    "basePath": "Base Path",
+    "segmentTemplate": "Segment Template",
+    "detectionEnable": "Enable Object Detection",
+    "clearDetections": "Clear Detections",
+    "detectionInterval": "Detection Interval (seconds)",
+    "detectionConfidence": "Detection Confidence"
   }
 }

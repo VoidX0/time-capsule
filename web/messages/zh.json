@@ -130,5 +130,25 @@
     "register": "注册",
     "policyTip": "点击继续即表示您同意我们的",
     "policy": "隐私政策。"
+  },
+  "CamerasPage": {
+    "syncSuccess": "同步和缓存请求成功，请稍等片刻，后台正在处理",
+    "syncFail": "同步和缓存请求失败",
+    "clearDetectionSuccess": "检测数据清除成功",
+    "clearDetectionFail": "检测数据清除失败",
+    "addCamera": "添加摄像头",
+    "editCamera": "编辑摄像头",
+    "delete": "删除",
+    "deleteConfirm": "确认删除",
+    "deleteConfirmText": "确认删除摄像头 {name} 吗？此操作不会删除摄像头原视频数据，但会删除相关配置和缓存数据。",
+    "details": "详情",
+    "save": "保存",
+    "name": "名称",
+    "basePath": "基础路径",
+    "segmentTemplate": "Segment 解析模板",
+    "detectionEnable": "启用目标检测",
+    "clearDetections": "清除检测结果",
+    "detectionInterval": "检测间隔(秒)",
+    "detectionConfidence": "检测置信度"
   }
 }
