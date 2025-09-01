@@ -140,7 +140,7 @@
     "editCamera": "编辑摄像头",
     "delete": "删除",
     "deleteConfirm": "确认删除",
-    "deleteConfirmText": "确认删除摄像头 {name} 吗？此操作不会删除摄像头原视频数据，但会删除相关配置和缓存数据。",
+    "deleteConfirmText": "确认删除摄像头 {param} 吗？此操作不会删除摄像头原视频数据，但会删除相关配置和缓存数据。",
     "details": "详情",
     "save": "保存",
     "name": "名称",

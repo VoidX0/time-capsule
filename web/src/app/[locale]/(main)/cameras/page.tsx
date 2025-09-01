@@ -175,7 +175,7 @@ export default function Page() {
                     <DialogTitle>{t('deleteConfirm')}</DialogTitle>
                   </DialogHeader>
                   <p className="py-2">
-                    {t('deleteConfirmText', { name: cam.Name ?? '' })}
+                    {t('deleteConfirmText', { param: cam.Name ?? '' })}
                   </p>
                   <div className="mt-4 flex justify-end gap-2">
                     <Button
