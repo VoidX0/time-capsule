@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { ArrowUpRight } from 'lucide-react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
@@ -23,6 +23,7 @@ export default function Page({
 }: Readonly<{
   params: Promise<{ locale: string; camera: string }>
 }>) {
+  const t = useTranslations('CameraDashboardPage')
   const locale = useLocale()
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
   const [segments, setSegments] = useState<Segment[]>([]) // 视频切片列表
@@ -146,7 +147,7 @@ export default function Page({
         <CardHeader>
           <CardTitle>
             <div className="flex items-center justify-between">
-              摄像头信息
+              {t('cameraInfo')}
               <Link href={`/${locale}/cameras`}>
                 <ArrowUpRight />
               </Link>
@@ -158,14 +159,14 @@ export default function Page({
             <strong>ID:</strong> {cameraInfo.Id}
           </p>
           <p>
-            <strong>存储位置:</strong> {cameraInfo.BasePath}
+            <strong>{t('basePath')}:</strong> {cameraInfo.BasePath}
           </p>
           <p>
-            <strong>首次上线:</strong>{' '}
+            <strong>{t('firstOnline')}:</strong>{' '}
             {new Date(firstSegment?.StartTime ?? '').toLocaleString()}
           </p>
           <p>
-            <strong>最后上线:</strong>{' '}
+            <strong>{t('lastOnline')}:</strong>{' '}
             {new Date(lastSegment?.EndTime ?? '').toLocaleString()}
           </p>
         </CardContent>
@@ -174,18 +175,18 @@ export default function Page({
         {/* Camera Video Params Card */}
         <Card>
           <CardHeader>
-            <CardTitle>视频参数</CardTitle>
+            <CardTitle>{t('videoParams')}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <p>
-              <strong>编码器:</strong> {firstSegment?.VideoCodec}
+              <strong>{t('videoCodec')}:</strong> {firstSegment?.VideoCodec}
             </p>
             <p>
-              <strong>分辨率:</strong> {firstSegment?.VideoWidth} x{' '}
+              <strong>{t('resolution')}:</strong> {firstSegment?.VideoWidth} x{' '}
               {firstSegment?.VideoHeight}
             </p>
             <p>
-              <strong>平均帧率:</strong>{' '}
+              <strong>{t('avgFps')}:</strong>{' '}
               {segments.length > 0
                 ? (
                     segments.reduce(
@@ -197,7 +198,7 @@ export default function Page({
               fps
             </p>
             <p>
-              <strong>平均码率:</strong>{' '}
+              <strong>{t('avgBitrate')}:</strong>{' '}
               {segments.length > 0
                 ? (
                     segments.reduce(
@@ -213,20 +214,21 @@ export default function Page({
         {/* Camera Audio Params Card */}
         <Card>
           <CardHeader>
-            <CardTitle>音频参数</CardTitle>
+            <CardTitle>{t('audioParams')}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <p>
-              <strong>音频编码器:</strong> {firstSegment?.AudioCodec}
+              <strong>{t('audioCodec')}:</strong> {firstSegment?.AudioCodec}
             </p>
             <p>
-              <strong>采样率:</strong> {firstSegment?.AudioSampleRate} Hz
+              <strong>{t('sampleRate')}</strong> {firstSegment?.AudioSampleRate}{' '}
+              Hz
             </p>
             <p>
-              <strong>声道数:</strong> {firstSegment?.AudioChannels}
+              <strong>{t('channels')}:</strong> {firstSegment?.AudioChannels}
             </p>
             <p>
-              <strong>平均码率:</strong>{' '}
+              <strong>{t('avgBitrate')}:</strong>{' '}
               {segments.length > 0
                 ? (
                     segments.reduce(
@@ -245,18 +247,18 @@ export default function Page({
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader>
-            <CardTitle>录制天数</CardTitle>
+            <CardTitle>{t('daysRecorded')}</CardTitle>
           </CardHeader>
           <CardContent>
             <NumberTicker value={daysRecorded} className="text-2xl font-bold" />{' '}
-            天
+            {t('dayUnit')}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle>
               <div className="flex items-center justify-between">
-                检测目标
+                {t('detections')}
                 <Link href={`/${locale}/${cameraInfo.Id}/detections`}>
                   <ArrowUpRight />
                 </Link>
@@ -279,14 +281,14 @@ export default function Page({
               ? detectionCount > 1000000
                 ? ' M'
                 : ' K'
-              : ' 个'}
+              : ''}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle>
               <div className="flex items-center justify-between">
-                录制时长
+                {t('recordDuration')}
                 <Link href={`/${locale}/${cameraInfo.Id}/playback`}>
                   <ArrowUpRight />
                 </Link>
@@ -304,7 +306,7 @@ export default function Page({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>平均每天时长</CardTitle>
+            <CardTitle>{t('avgDailyDuration')}</CardTitle>
           </CardHeader>
           <CardContent>
             <NumberTicker
@@ -319,7 +321,7 @@ export default function Page({
           <CardHeader>
             <CardTitle>
               <div className="flex items-center justify-between">
-                片段数量
+                {t('segmentCount')}
                 <Link href={`/${locale}/${cameraInfo.Id}/segments`}>
                   <ArrowUpRight />
                 </Link>
@@ -330,26 +332,24 @@ export default function Page({
             <NumberTicker
               value={segments.length}
               className="text-2xl font-bold"
-            />{' '}
-            个
+            />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>平均每天片段</CardTitle>
+            <CardTitle>{t('avgDailySegment')}</CardTitle>
           </CardHeader>
           <CardContent>
             <NumberTicker
               value={daysRecorded > 0 ? segments.length / daysRecorded : 0}
               className="text-2xl font-bold"
               decimalPlaces={2}
-            />{' '}
-            个
+            />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>存储空间</CardTitle>
+            <CardTitle>{t('storageUsed')}</CardTitle>
           </CardHeader>
           <CardContent>
             <NumberTicker
@@ -362,7 +362,7 @@ export default function Page({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>平均每天存储</CardTitle>
+            <CardTitle>{t('avgDailyStorage')}</CardTitle>
           </CardHeader>
           <CardContent>
             <NumberTicker
