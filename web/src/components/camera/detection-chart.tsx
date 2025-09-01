@@ -1,12 +1,13 @@
 'use client'
 
-import { components } from '@/api/schema'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { openapi } from '@/lib/http'
-import { useTranslations } from 'next-intl'
-import { useEffect, useMemo, useState } from 'react'
-import { CartesianGrid, Cell, Line, LineChart, Pie, PieChart, XAxis } from 'recharts'
+import {components} from '@/api/schema'
+import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from '@/components/ui/card'
+import {ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent,} from '@/components/ui/chart'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select'
+import {openapi} from '@/lib/http'
+import {useTranslations} from 'next-intl'
+import {useEffect, useMemo, useState} from 'react'
+import {CartesianGrid, Cell, Line, LineChart, Pie, PieChart, XAxis,} from 'recharts'
 
 type FrameDetection = components['schemas']['FrameDetection']
 type QueryDto = components['schemas']['QueryDto']
@@ -30,12 +31,22 @@ export default function DetectionChart({
   const tDetection = useTranslations('DetectionItem')
   const [activeChart, setActiveChart] =
     useState<keyof typeof chartConfig>('daily') // 默认显示每日趋势
+
+  // --- 原始数据 ---
+  const [detections, setDetections] = useState<FrameDetection[]>([])
+
+  // --- 每日数据 ---
   const [dailyData, setDailyData] = useState<{ date: string; count: number }[]>(
     [],
   )
+
+  // --- 类别数据 ---
   const [categoryData, setCategoryData] = useState<
     { name: string; value: number; percent?: number }[]
   >([])
+
+  // --- 当前选中日期 ---
+  const [selectedDate, setSelectedDate] = useState<'all' | string>('all')
 
   const totalDetections = useMemo(
     () => dailyData.reduce((acc, curr) => acc + curr.count, 0),
@@ -60,41 +71,57 @@ export default function DetectionChart({
         ]
 
       const { data } = await openapi.POST('/Detection/Query', { body })
-      calculateChartData(data ?? [])
-    }
-
-    const calculateChartData = (detections: FrameDetection[]) => {
-      // --- 每日数据 ---
-      const dailyGrouped: Record<string, number> = {}
-      detections.forEach((d) => {
-        const dateKey = new Date(d.FrameTime!).toISOString().split('T')[0]
-        dailyGrouped[dateKey!] = (dailyGrouped[dateKey!] || 0) + 1
-      })
-      const dailyData = Object.entries(dailyGrouped).map(([date, count]) => ({
-        date,
-        count,
-      }))
-      setDailyData(dailyData)
-
-      // --- 类别数据 ---
-      const categoryGrouped: Record<string, number> = {}
-      detections.forEach((d) => {
-        const name = d.TargetName || 'Unknown'
-        categoryGrouped[name] = (categoryGrouped[name] || 0) + 1
-      })
-      const total = Object.values(categoryGrouped).reduce((a, b) => a + b, 0)
-      const categoryData = Object.entries(categoryGrouped).map(
-        ([name, value]) => ({
-          name: tDetection(name as never),
-          value,
-          percent: value / total,
-        }),
-      )
-      setCategoryData(categoryData)
+      setDetections(data ?? [])
     }
 
     getDetections().then()
   }, [cameraId])
+
+  // --- 每日数据计算 ---
+  useEffect(() => {
+    const dailyGrouped: Record<string, number> = {}
+    detections.forEach((d) => {
+      const dateKey = new Date(d.FrameTime!).toISOString().split('T')[0]
+      dailyGrouped[dateKey!] = (dailyGrouped[dateKey!] || 0) + 1
+    })
+    const dailyData = Object.entries(dailyGrouped).map(([date, count]) => ({
+      date,
+      count,
+    }))
+    setDailyData(dailyData)
+
+    // 默认选择最后一天
+    if (dailyData.length > 0) {
+      setSelectedDate(dailyData[dailyData.length - 1]!.date)
+    }
+  }, [detections])
+
+  // --- 类别数据计算（支持按日期筛选 / 全部） ---
+  useEffect(() => {
+    let filtered = detections
+    if (selectedDate !== 'all') {
+      filtered = detections.filter(
+        (d) =>
+          new Date(d.FrameTime!).toISOString().split('T')[0] === selectedDate,
+      )
+    }
+
+    const categoryGrouped: Record<string, number> = {}
+    filtered.forEach((d) => {
+      const name = d.TargetName || 'Unknown'
+      categoryGrouped[name] = (categoryGrouped[name] || 0) + 1
+    })
+    const total = Object.values(categoryGrouped).reduce((a, b) => a + b, 0)
+    const categoryData = Object.entries(categoryGrouped)
+      .map(([name, value]) => ({
+        name: tDetection(name as never),
+        value,
+        percent: value / total,
+      }))
+      // 按数量从大到小排序
+      .sort((a, b) => b.value - a.value)
+    setCategoryData(categoryData)
+  }, [detections, selectedDate, tDetection])
 
   // 为饼图生成颜色
   const colors = [
@@ -145,6 +172,25 @@ export default function DetectionChart({
         </div>
       </CardHeader>
       <CardContent className="px-2 sm:p-6">
+        {/* --- 日期选择器，仅在类别分布视图显示 --- */}
+        {activeChart === 'category' && (
+          <div className="mb-2 flex justify-end">
+            <Select value={selectedDate} onValueChange={setSelectedDate}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="选择日期" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部</SelectItem>
+                {dailyData.map((d) => (
+                  <SelectItem key={d.date} value={d.date}>
+                    {d.date}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
