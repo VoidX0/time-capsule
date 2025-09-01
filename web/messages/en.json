@@ -131,6 +131,13 @@
     "policyTip": "By clicking continue, you agree to our",
     "policy": "Privacy Policy"
   },
+  "DashboardPage": {
+    "details": "Details",
+    "recordingDays": "Recording Days",
+    "recordingDuration": "Recording Duration",
+    "segmentCount": "Segment Count",
+    "storage": "Storage"
+  },
   "CamerasPage": {
     "syncSuccess": "Sync and cache request successful, please wait a moment while the backend processes it",
     "syncFail": "Sync and cache request failed",
