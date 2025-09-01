@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import {
   Calendar as CalendarIcon,
@@ -73,10 +74,22 @@ export default function Page({
   // 等待初始时间准备好
   if (initialTime == 0 || cameraInfo == undefined) {
     return (
-      <div className="md:p-8">
-        <div className="flex h-96 items-center justify-center">
-          <p>Loading camera...</p>
+      <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl p-8 md:w-2/3">
+        {/* 标题骨架 */}
+        <Skeleton className="mb-6 h-10 w-64" />
+
+        {/* 播放器骨架 */}
+        <Skeleton className="mb-4 h-64 w-full rounded-xl" />
+
+        {/* 播放器控制面板骨架 */}
+        <div className="bg-muted/50 mb-4 space-y-2 rounded-xl p-4">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-4 w-60" />
         </div>
+
+        {/* 时间轴骨架 */}
+        <Skeleton className="h-12 w-full rounded-xl" />
       </div>
     )
   }

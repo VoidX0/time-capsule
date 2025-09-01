@@ -6,6 +6,7 @@ import CameraChart from '@/components/camera/camera-chart'
 import DetectionChart from '@/components/camera/detection-chart'
 import { NumberTicker } from '@/components/magicui/number-ticker'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { ArrowUpRight } from 'lucide-react'
@@ -101,8 +102,38 @@ export default function Page({
 
   if (!cameraInfo) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <p>Loading camera...</p>
+      <div className="max-w-8xl mx-auto grid w-full gap-6 p-8">
+        {/* 标题骨架 */}
+        <Skeleton className="mb-6 h-10 w-64" />
+
+        {/* Camera Info Card 骨架 */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          ))}
+        </div>
+
+        {/* 统计 Card 骨架 */}
+        <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="bg-muted/50 space-y-2 rounded-lg p-4">
+              <Skeleton className="mb-2 h-5 w-24" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ))}
+        </div>
+
+        {/* Chart 骨架 */}
+        <div className="mt-6 space-y-6">
+          {[...Array(2)].map((_, i) => (
+            <Skeleton key={i} className="h-64 w-full rounded-lg" />
+          ))}
+        </div>
       </div>
     )
   }

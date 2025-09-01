@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Skeleton } from '@/components/ui/skeleton'
 import { rangeWeek } from '@/lib/date-time'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
@@ -125,9 +126,33 @@ export default function Page({
   // 等待摄像头准备好
   if (cameraInfo == undefined) {
     return (
-      <div className="md:p-8">
-        <div className="flex h-96 items-center justify-center">
-          <p>Loading camera...</p>
+      <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl p-8">
+        {/* 标题骨架 */}
+        <Skeleton className="mb-4 h-10 w-64" />
+
+        {/* 日期范围骨架 */}
+        <Skeleton className="mb-4 h-6 w-40" />
+
+        {/* 视频段列表骨架 */}
+        <div className="space-y-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="bg-muted/50 space-y-2 rounded-xl p-4">
+              <Skeleton className="h-6 w-32" /> {/* 日期标题 */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, j) => (
+                  <Skeleton key={j} className="h-32 w-full rounded-xl" />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 浮动按钮骨架 */}
+        <div className="fixed right-4 bottom-4">
+          <Skeleton className="h-10 w-10 rounded-full" />
+        </div>
+        <div className="fixed right-16 bottom-4">
+          <Skeleton className="h-10 w-10 rounded-full" />
         </div>
       </div>
     )

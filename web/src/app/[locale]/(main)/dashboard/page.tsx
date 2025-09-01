@@ -102,10 +102,6 @@ export default function Page() {
     fetchAll().then()
   }, [])
 
-  if (summaries.length === 0) {
-    return <div className="p-8 text-center">加载中...</div>
-  }
-
   return (
     <div className="max-w-8xl mx-auto grid grid-cols-1 gap-6 p-8 sm:grid-cols-2 lg:grid-cols-3">
       {summaries.map((s) => (

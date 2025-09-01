@@ -7,8 +7,19 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import { formatDate, rangeWeek } from '@/lib/date-time'
 import { openapi } from '@/lib/http'
@@ -148,9 +159,31 @@ export default function Page({
   // 等待摄像头准备好
   if (cameraInfo == undefined) {
     return (
-      <div className="md:p-8">
-        <div className="flex h-96 items-center justify-center">
-          <p>Loading camera...</p>
+      <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl p-8">
+        {/* 标题骨架 */}
+        <Skeleton className="mb-6 h-10 w-64" />
+        <Skeleton className="mb-4 h-6 w-80" />
+
+        {/* 日期分组骨架 */}
+        <div className="space-y-6">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="bg-muted/50 space-y-4 rounded-xl p-4">
+              {/* 日期 & badge */}
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-5 w-16" />
+              </div>
+              {/* 图片网格骨架 */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+                {[...Array(4)].map((_, j) => (
+                  <Skeleton
+                    key={j}
+                    className="aspect-video w-full rounded-lg"
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     )
