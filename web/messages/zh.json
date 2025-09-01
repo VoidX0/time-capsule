@@ -184,5 +184,12 @@
     "clearDetections": "清除检测结果",
     "detectionInterval": "检测间隔(秒)",
     "detectionConfidence": "检测置信度"
+  },
+  "CameraDashboardPage": {
+    "cameraTrends": "摄像头趋势",
+    "cameraTrendsDesc": "摄像头存储空间、片段数量和录制时长趋势",
+    "storage": "存储",
+    "segments": "片段",
+    "duration": "时长"
   }
 }

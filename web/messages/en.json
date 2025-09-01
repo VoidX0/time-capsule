@@ -184,5 +184,12 @@
     "clearDetections": "Clear Detections",
     "detectionInterval": "Detection Interval (seconds)",
     "detectionConfidence": "Detection Confidence"
+  },
+  "CameraDashboardPage": {
+    "cameraTrends": "Camera Trends",
+    "cameraTrendsDesc": "Camera storage, segment count, and recording duration trends",
+    "storage": "Storage",
+    "segments": "Segments",
+    "duration": "Duration"
   }
 }

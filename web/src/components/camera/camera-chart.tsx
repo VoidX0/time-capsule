@@ -1,46 +1,33 @@
 import { components } from '@/api/schema'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
+import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 
 const chartConfig = {
   views: {
-    label: '新增',
+    label: '+',
   },
   storage: {
-    label: '存储',
+    label: 'storage',
     color: '#4f46e5',
   },
   segment: {
-    label: '片段',
+    label: 'segments',
     color: '#16a34a',
   },
   duration: {
-    label: '时长',
+    label: 'duration',
     color: '#f59e0b',
   },
 } satisfies ChartConfig
 type QueryDto = components['schemas']['QueryDto']
 type Segment = components['schemas']['VideoSegment']
-export default function CameraChart({
-  cameraId,
-}: {
-  cameraId: string | undefined
-}) {
+export default function CameraChart({ cameraId }: { cameraId: string | undefined }) {
+  const t = useTranslations('CameraDashboardPage')
   const [activeChart, setActiveChart] =
     useState<keyof typeof chartConfig>('storage') // 激活的图表
   const [chartData, setChartData] = useState<
@@ -119,10 +106,8 @@ export default function CameraChart({
     <Card>
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>摄像头趋势</CardTitle>
-          <CardDescription>
-            摄像头存储空间、片段数量和录制时长趋势
-          </CardDescription>
+          <CardTitle>{t('cameraTrends')}</CardTitle>
+          <CardDescription>{t('cameraTrendsDesc')}</CardDescription>
         </div>
         <div className="flex">
           {['storage', 'segment', 'duration'].map((key) => {
@@ -135,7 +120,7 @@ export default function CameraChart({
                 onClick={() => setActiveChart(chart)}
               >
                 <span className="text-muted-foreground text-xs">
-                  {chartConfig[chart].label}
+                  {t(chartConfig[chart].label as never)}
                 </span>
                 <span className="text-xl leading-none font-bold sm:text-3xl">
                   {total[key as keyof typeof total].toLocaleString()}
