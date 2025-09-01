@@ -1,33 +1,30 @@
 'use client'
 
-import {components} from '@/api/schema'
-import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from '@/components/ui/card'
-import {ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent,} from '@/components/ui/chart'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select'
-import {openapi} from '@/lib/http'
-import {useTranslations} from 'next-intl'
-import {useEffect, useMemo, useState} from 'react'
-import {CartesianGrid, Cell, Line, LineChart, Pie, PieChart, XAxis,} from 'recharts'
+import { components } from '@/api/schema'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { openapi } from '@/lib/http'
+import { useTranslations } from 'next-intl'
+import { useEffect, useMemo, useState } from 'react'
+import { CartesianGrid, Cell, Line, LineChart, Pie, PieChart, XAxis } from 'recharts'
 
 type FrameDetection = components['schemas']['FrameDetection']
 type QueryDto = components['schemas']['QueryDto']
 
 const chartConfig = {
   daily: {
-    label: '每日目标',
+    label: 'dailyDetections',
     color: '#4f46e5',
   },
   category: {
-    label: '类别占比',
+    label: 'categoryDistribution',
     color: '#16a34a',
   },
 } satisfies ChartConfig
 
-export default function DetectionChart({
-  cameraId,
-}: {
-  cameraId: string | undefined
-}) {
+export default function DetectionChart({ cameraId }: { cameraId: string | undefined }) {
+  const t = useTranslations('CameraDashboardPage')
   const tDetection = useTranslations('DetectionItem')
   const [activeChart, setActiveChart] =
     useState<keyof typeof chartConfig>('daily') // 默认显示每日趋势
@@ -138,8 +135,8 @@ export default function DetectionChart({
     <Card>
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>检测趋势</CardTitle>
-          <CardDescription>每日检测数量与目标类别分布</CardDescription>
+          <CardTitle>{t('detectionTrends')}</CardTitle>
+          <CardDescription>{t('detectionTrendsDesc')}</CardDescription>
         </div>
         <div className="flex">
           {(['daily', 'category'] as (keyof typeof chartConfig)[]).map(
@@ -151,7 +148,7 @@ export default function DetectionChart({
                 onClick={() => setActiveChart(chart)}
               >
                 <span className="text-muted-foreground text-xs">
-                  {chartConfig[chart].label}
+                  {t(chartConfig[chart].label as never)}
                 </span>
                 {chart === 'daily' ? (
                   <span className="text-xl leading-none font-bold whitespace-nowrap sm:text-3xl">
@@ -177,10 +174,10 @@ export default function DetectionChart({
           <div className="mb-2 flex justify-end">
             <Select value={selectedDate} onValueChange={setSelectedDate}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="选择日期" />
+                <SelectValue placeholder={t('selectDate')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">全部</SelectItem>
+                <SelectItem value="all">{t('all')}</SelectItem>
                 {dailyData.map((d) => (
                   <SelectItem key={d.date} value={d.date}>
                     {d.date}

@@ -190,6 +190,12 @@
     "cameraTrendsDesc": "摄像头存储空间、片段数量和录制时长趋势",
     "storage": "存储",
     "segments": "片段",
-    "duration": "时长"
+    "duration": "时长",
+    "detectionTrends": "检测趋势",
+    "detectionTrendsDesc": "每日检测数量与目标类别分布",
+    "dailyDetections": "每日检测",
+    "categoryDistribution": "类别占比",
+    "selectDate": "选择日期",
+    "all": "全部"
   }
 }

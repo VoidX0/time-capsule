@@ -190,6 +190,12 @@
     "cameraTrendsDesc": "Camera storage, segment count, and recording duration trends",
     "storage": "Storage",
     "segments": "Segments",
-    "duration": "Duration"
+    "duration": "Duration",
+    "detectionTrends": "Detection Trends",
+    "detectionTrendsDesc": "Daily detection counts and category distribution",
+    "dailyDetections": "Daily Detections",
+    "categoryDistribution": "Category Distribution",
+    "selectDate": "Select Date",
+    "all": "All"
   }
 }
