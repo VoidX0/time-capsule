@@ -1,18 +1,15 @@
 'use client'
 
 import { components } from '@/api/schema'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { openapi } from '@/lib/http'
 import { rsaEncrypt } from '@/lib/security'
+import { Pencil } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type SystemUser = components['schemas']['SystemUser']
 
@@ -30,6 +27,7 @@ export function UserProfileDialog({
   onSave,
 }: UserProfileDialogProps) {
   const t = useTranslations('MainLayout')
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const [form, setForm] = useState({
     Email: user?.Email ?? '',
@@ -65,6 +63,29 @@ export function UserProfileDialog({
     onOpenChange(false)
   }
 
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('file', file)
+    await openapi.POST('/Authentication/SetAvatar', {
+      body: formData as unknown as { file: string },
+    })
+
+    // 强制刷新头像 (加时间戳避免缓存)
+    const avatarImg = document.getElementById(
+      'user-avatar-img',
+    ) as HTMLImageElement
+    if (avatarImg) {
+      avatarImg.src = `/api/Authentication/GetAvatar?id=${user?.Id}&t=${Date.now()}`
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[450px]">
@@ -72,13 +93,37 @@ export function UserProfileDialog({
           <DialogTitle>{t('account')}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <Avatar className="h-15 w-15 rounded-full">
-            <AvatarFallback className="rounded-full">
-              {(user?.NickName?.length ?? -1) > 0
-                ? user?.NickName![0]!.toUpperCase()
-                : ' '}
-            </AvatarFallback>
-          </Avatar>
+          {/* 头像 + 编辑按钮 */}
+          <div className="relative w-fit">
+            <Avatar className="h-20 w-20 rounded-full">
+              <AvatarImage
+                id="user-avatar-img"
+                src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}`}
+                alt={user?.NickName ?? ''}
+              />
+              <AvatarFallback className="rounded-full">
+                {(user?.NickName?.length ?? -1) > 0
+                  ? user?.NickName![0]!.toUpperCase()
+                  : ' '}
+              </AvatarFallback>
+            </Avatar>
+            <button
+              type="button"
+              onClick={handleUploadClick}
+              className="absolute right-0 bottom-0 rounded-full bg-white p-1 shadow hover:bg-gray-100"
+            >
+              <Pencil className="h-4 w-4 text-gray-600" />
+            </button>
+            <input
+              type="file"
+              accept="image/png,image/jpeg"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </div>
+
+          {/* 表单部分 */}
           <div className="grid gap-1">
             <label className="text-sm font-medium">{t('changeEmail')}</label>
             <Input
