@@ -17,7 +17,7 @@ using TimeCapsule.Services.Api;
 using TimeCapsule.Utils.Extension;
 using TimeCapsule.Utils.Middleware;
 
-namespace TimeCapsule.Controllers.System;
+namespace TimeCapsule.Controllers;
 
 /// <summary>
 /// 权限管理
