@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using RestSharp;
@@ -28,6 +29,7 @@ namespace TimeCapsule.Controllers;
 public class AuthenticationController : ControllerBase
 {
     private ISqlSugarClient Db { get; } = DbScoped.SugarScope;
+    private readonly SystemOptions _systemOptions;
     private readonly TokenOptions _tokenOptions;
     private readonly OidcOptions _oidcOptions;
     private readonly SmtpApi _smtpApi;
@@ -35,10 +37,13 @@ public class AuthenticationController : ControllerBase
     /// <summary>
     /// 构造函数
     /// </summary>
+    /// <param name="systemOptions"></param>
     /// <param name="tokenOptions"></param>
     /// <param name="oidcOptions"></param>
-    public AuthenticationController(IOptions<TokenOptions> tokenOptions, IOptions<OidcOptions> oidcOptions)
+    public AuthenticationController(IOptions<SystemOptions> systemOptions, IOptions<TokenOptions> tokenOptions,
+        IOptions<OidcOptions> oidcOptions)
     {
+        _systemOptions = systemOptions.Value;
         _tokenOptions = tokenOptions.Value;
         _oidcOptions = oidcOptions.Value;
         _smtpApi = new SmtpApi();
@@ -154,6 +159,44 @@ public class AuthenticationController : ControllerBase
         verify.IsVerified = true;
         await Db.AsTenant().UseTranAsync(async () => { await Db.Updateable(verify).ExecuteCommandAsync(); });
         return Ok(await _tokenOptions.GenerateToken(user, Db));
+    }
+
+    /// <summary>
+    /// 设置用户头像
+    /// </summary>
+    [HttpPost]
+    public async Task<ActionResult> SetAvatar(IFormFile file)
+    {
+        var currentUser = HttpContext.User.Claims.Parsing();
+        if (currentUser is null) return BadRequest("用户未授权");
+        switch (file.Length)
+        {
+            case 0:
+                return BadRequest("头像文件不能为空");
+            // 限制文件大小 10MB
+            case > 10 * 1024 * 1024:
+                return BadRequest("头像文件不能超过10MB");
+        }
+
+        // 创建目录
+        var avatarDir = Path.Combine(_systemOptions.StoragePath, "Avatar");
+        if (!Directory.Exists(avatarDir)) Directory.CreateDirectory(avatarDir);
+        // 允许的扩展名
+        var ext = Path.GetExtension(file.FileName).ToLower();
+        if (ext != ".jpg" && ext != ".png") ext = ".png"; // 默认用 png
+        // 删除已有的头像
+        var existJpg = Path.Combine(avatarDir, $"{currentUser.Id}.jpg");
+        var existPng = Path.Combine(avatarDir, $"{currentUser.Id}.png");
+        if (System.IO.File.Exists(existJpg)) System.IO.File.Delete(existJpg);
+        if (System.IO.File.Exists(existPng)) System.IO.File.Delete(existPng);
+        // 保存新头像
+        var filePath = Path.Combine(avatarDir, $"{currentUser.Id}{ext}");
+        await using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        return Ok();
     }
 
     /// <summary>
@@ -523,6 +566,34 @@ public class AuthenticationController : ControllerBase
         if (dbUser is null) return BadRequest("用户不存在");
         dbUser.Password = new string('*', dbUser.Password.Length); //隐藏密码
         return Ok(dbUser);
+    }
+
+    /// <summary>
+    /// 获取用户头像
+    /// </summary>
+    /// <param name="id">用户ID</param>
+    /// <returns></returns>
+    [HttpGet]
+    [TypeFilter(typeof(AllowAnonymousFilter))]
+    public async Task<IActionResult> GetAvatar(string id)
+    {
+        // 查找头像文件
+        var avatarDir = Path.Combine(_systemOptions.StoragePath, "Avatar");
+        var jpgPath = Path.Combine(avatarDir, $"{id}.jpg");
+        var pngPath = Path.Combine(avatarDir, $"{id}.png");
+        string? filePath = null;
+        if (System.IO.File.Exists(jpgPath)) filePath = jpgPath;
+        else if (System.IO.File.Exists(pngPath)) filePath = pngPath;
+        if (filePath == null) return BadRequest("用户未设置头像");
+        // 返回文件
+        var provider = new FileExtensionContentTypeProvider();
+        if (!provider.TryGetContentType(filePath, out var contentType))
+        {
+            contentType = "application/octet-stream";
+        }
+
+        var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+        return File(fileBytes, contentType);
     }
 
     /// <summary>
