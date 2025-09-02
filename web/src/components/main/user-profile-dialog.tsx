@@ -10,6 +10,7 @@ import { rsaEncrypt } from '@/lib/security'
 import { Pencil } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 type SystemUser = components['schemas']['SystemUser']
 
@@ -29,10 +30,12 @@ export function UserProfileDialog({
   const t = useTranslations('MainLayout')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
+  const [isEditing, setIsEditing] = useState(false) // 是否处于编辑模式
   const [form, setForm] = useState({
     Email: user?.Email ?? '',
     NickName: user?.NickName ?? '',
     Password: '',
+    ConfirmPassword: '',
   })
 
   useEffect(() => {
@@ -40,19 +43,27 @@ export function UserProfileDialog({
       Email: user?.Email ?? '',
       NickName: user?.NickName ?? '',
       Password: '',
+      ConfirmPassword: '',
     })
+    setIsEditing(false) // 打开时默认查看模式
   }, [user, open])
 
-  const handleChange = (
-    field: 'Email' | 'NickName' | 'Password',
-    value: string,
-  ) => {
+  const handleChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleSave = () => {
+    if (form.Password && form.Password !== form.ConfirmPassword) {
+      toast.error(t('passwordNotMatch'))
+      return
+    }
+
     if (onSave) {
-      const password = rsaEncrypt(form.Password)
+      const password =
+        form.Password.length > 0
+          ? rsaEncrypt(form.Password)
+          : rsaEncrypt(user!.Password ?? '***')
+
       onSave({
         ...user!,
         Email: form.Email,
@@ -60,6 +71,7 @@ export function UserProfileDialog({
         Password: password == false ? user!.Password : password,
       })
     }
+    setIsEditing(false)
     onOpenChange(false)
   }
 
@@ -107,13 +119,15 @@ export function UserProfileDialog({
                   : ' '}
               </AvatarFallback>
             </Avatar>
-            <button
-              type="button"
-              onClick={handleUploadClick}
-              className="absolute right-0 bottom-0 rounded-full bg-white p-1 shadow hover:bg-gray-100"
-            >
-              <Pencil className="h-4 w-4 text-gray-600" />
-            </button>
+            {isEditing && (
+              <button
+                type="button"
+                onClick={handleUploadClick}
+                className="absolute right-0 bottom-0 rounded-full bg-white p-1 shadow hover:bg-gray-100"
+              >
+                <Pencil className="h-4 w-4 text-gray-600" />
+              </button>
+            )}
             <input
               type="file"
               accept="image/png,image/jpeg"
@@ -123,32 +137,68 @@ export function UserProfileDialog({
             />
           </div>
 
-          {/* 表单部分 */}
-          <div className="grid gap-1">
-            <label className="text-sm font-medium">{t('changeEmail')}</label>
-            <Input
-              value={form.Email}
-              onChange={(e) => handleChange('Email', e.target.value)}
-            />
-          </div>
-          <div className="grid gap-1">
-            <label className="text-sm font-medium">{t('changeNickname')}</label>
-            <Input
-              value={form.NickName}
-              onChange={(e) => handleChange('NickName', e.target.value)}
-            />
-          </div>
-          <div className="grid gap-1">
-            <label className="text-sm font-medium">{t('changePassword')}</label>
-            <Input
-              type="password"
-              value={form.Password}
-              onChange={(e) => handleChange('Password', e.target.value)}
-            />
-          </div>
-          <Button className="mt-2" onClick={handleSave}>
-            {t('changeSave')}
-          </Button>
+          {isEditing ? (
+            <>
+              <div className="grid gap-1">
+                <label className="text-sm font-medium">
+                  {t('changeEmail')}
+                </label>
+                <Input
+                  value={form.Email}
+                  onChange={(e) => handleChange('Email', e.target.value)}
+                />
+              </div>
+              <div className="grid gap-1">
+                <label className="text-sm font-medium">
+                  {t('changeNickname')}
+                </label>
+                <Input
+                  value={form.NickName}
+                  onChange={(e) => handleChange('NickName', e.target.value)}
+                />
+              </div>
+              <div className="grid gap-1">
+                <label className="text-sm font-medium">
+                  {t('changePassword')}
+                </label>
+                <Input
+                  type="password"
+                  value={form.Password}
+                  onChange={(e) => handleChange('Password', e.target.value)}
+                />
+                <Input
+                  type="password"
+                  placeholder={t('confirmPassword')}
+                  value={form.ConfirmPassword}
+                  onChange={(e) =>
+                    handleChange('ConfirmPassword', e.target.value)
+                  }
+                />
+              </div>
+              <div className="mt-2 flex gap-2">
+                <Button onClick={handleSave}>{t('changeSave')}</Button>
+                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  {t('cancel')}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid gap-1">
+                <span className="text-sm font-medium">{t('changeEmail')}</span>
+                <span>{user?.Email}</span>
+              </div>
+              <div className="grid gap-1">
+                <span className="text-sm font-medium">
+                  {t('changeNickname')}
+                </span>
+                <span>{user?.NickName}</span>
+              </div>
+              <Button className="mt-2" onClick={() => setIsEditing(true)}>
+                {t('editProfile')}
+              </Button>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

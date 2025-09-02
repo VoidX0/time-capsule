@@ -102,10 +102,14 @@
     "cameraSearch": "Camera Search",
     "cameraSearchPlaceholder": "Search cameras by name",
     "cameraSearchNoResults": "No cameras found",
-    "changeEmail": "Change Email",
-    "changeNickname": "Change Nickname",
-    "changePassword": "Change Password",
-    "changeSave": "Save"
+    "changeEmail": "Email",
+    "changeNickname": "Nickname",
+    "changePassword": "Password",
+    "confirmPassword": "Confirm Password",
+    "passwordNotMatch": "The two passwords do not match",
+    "editProfile": "Edit Profile",
+    "changeSave": "Save",
+    "cancel": "Cancel"
   },
   "HomePage": {
     "description": "Playback application based on local monitoring video",
