@@ -368,9 +368,10 @@ public class VideoService
                     var videoPath = Path.Combine(SystemOptions.CameraPath, camera.BasePath);
                     var detections = await DetectSegment(camera, segment, predictor, videoPath, path);
                     // 保存检测结果
-                    var result = await db.AsTenant().UseTranAsync(async () =>
+                    using var segmentDb = new SqlSugarClient(DbScoped.SugarScope.CurrentConnectionConfig);
+                    var result = await segmentDb.AsTenant().UseTranAsync(async () =>
                     {
-                        await db.Insertable(detections).SplitTable().ExecuteReturnSnowflakeIdListAsync();
+                        await segmentDb.Insertable(detections).SplitTable().ExecuteReturnSnowflakeIdListAsync();
                     });
                     if (result.IsSuccess)
                     {
