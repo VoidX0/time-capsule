@@ -1,5 +1,9 @@
 import { JSEncrypt } from 'jsencrypt'
 
+/**
+ * 使用 RSA 公钥加密数据
+ * @param data
+ */
 export function rsaEncrypt(data: string): string | false {
   if (typeof window === 'undefined') {
     console.error('rsaEncrypt can only be used in the browser')

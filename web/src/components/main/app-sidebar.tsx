@@ -40,6 +40,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [cameras, setCameras] = useState<Camera[] | undefined>([])
   const [searchOpen, setSearchOpen] = useState(false)
 
+  // 更新公钥
+  useEffect(() => {
+    const getPublicKey = async () => {
+      const { data } = await openapi.GET('/Authentication/GetKey', {
+        parseAs: 'text',
+      })
+      if (data) localStorage.setItem('publicKey', data)
+    }
+    getPublicKey().then()
+  }, [])
+
   /* 侧边栏初始化 */
   useEffect(() => {
     const init = async () => {
