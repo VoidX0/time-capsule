@@ -1,16 +1,10 @@
 'use client'
 
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CircleFadingArrowUp,
-  LogOut,
-} from 'lucide-react'
+import { BadgeCheck, Bell, ChevronsUpDown, CircleFadingArrowUp, LogOut } from 'lucide-react'
 
 import { components } from '@/api/schema'
 import { UserProfileDialog } from '@/components/main/user-profile-dialog'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,15 +12,11 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/ui/sidebar'
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
 import { openapi } from '@/lib/http'
+import { rsaEncrypt } from '@/lib/security'
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -73,6 +63,12 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
                 <Avatar className="h-8 w-8 rounded-full">
+                  {user && (
+                    <AvatarImage
+                      src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                      alt={user?.NickName ?? ''}
+                    />
+                  )}
                   <AvatarFallback className="rounded-full">
                     {(user?.NickName?.length ?? -1) > 0
                       ? user?.NickName![0]!.toUpperCase()
@@ -95,6 +91,10 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="h-8 w-8 rounded-full">
+                    <AvatarImage
+                      src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                      alt={user?.NickName ?? ''}
+                    />
                     <AvatarFallback className="rounded-full">
                       {(user?.NickName?.length ?? -1) > 0
                         ? user?.NickName![0]!.toUpperCase()

@@ -1,14 +1,8 @@
 'use client'
 
+import { rsaEncrypt } from '@/lib/security'
 import Hls from 'hls.js'
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 export interface CameraPlayerHandle {
   /**
@@ -65,7 +59,7 @@ const CameraPlayer = forwardRef<CameraPlayerHandle, CameraPlayerProps>(
         // 设置视频源 URL
         const m3u8Url = `/api/Video/CameraPlaylist?cameraId=${encodeURIComponent(
           cameraId,
-        )}&start=${startTime}&durationSec=${segmentDurationSec}&segmentSec=10`
+        )}&start=${startTime}&durationSec=${segmentDurationSec}&segmentSec=10&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`
         // 加载 M3U8 播放列表
         hls.loadSource(m3u8Url)
         hls.attachMedia(videoRef.current)

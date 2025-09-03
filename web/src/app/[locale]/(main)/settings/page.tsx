@@ -60,14 +60,6 @@ export default function Page() {
 
   useEffect(() => {
     refresh().then()
-    // 更新公钥
-    const getPublicKey = async () => {
-      const { data } = await openapi.GET('/Authentication/GetKey', {
-        parseAs: 'text',
-      })
-      if (data) localStorage.setItem('publicKey', data)
-    }
-    getPublicKey().then()
   }, [])
 
   /* 角色保存 */

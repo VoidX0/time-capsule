@@ -102,10 +102,14 @@
     "cameraSearch": "摄像头搜索",
     "cameraSearchPlaceholder": "按名称搜索摄像头",
     "cameraSearchNoResults": "未找到摄像头",
-    "changeEmail": "更改邮箱",
-    "changeNickname": "更改昵称",
-    "changePassword": "更改密码",
-    "changeSave": "保存"
+    "changeEmail": "邮箱",
+    "changeNickname": "昵称",
+    "changePassword": "密码",
+    "confirmPassword": "确认密码",
+    "passwordNotMatch": "两次输入的密码不一致",
+    "editProfile": "编辑资料",
+    "changeSave": "保存",
+    "cancel": "取消"
   },
   "HomePage": {
     "description": "基于本地监控视频的回放应用",

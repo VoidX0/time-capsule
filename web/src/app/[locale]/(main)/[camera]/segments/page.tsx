@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatDate, rangeWeek } from '@/lib/date-time'
 import { openapi } from '@/lib/http'
+import { rsaEncrypt } from '@/lib/security'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { ArrowUp, CalendarIcon, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -244,8 +245,8 @@ export default function Page({
                     <HeroVideoDialog
                       className="block"
                       animationStyle="from-center"
-                      videoSrc={`/api/Video/SegmentStream?segmentId=${segment.Id}`}
-                      thumbnailSrc={`/api/Segment/GetThumbnail?cameraId=${cameraInfo.Id}&segmentId=${segment.Id}`}
+                      videoSrc={`/api/Video/SegmentStream?segmentId=${segment.Id}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                      thumbnailSrc={`/api/Segment/GetThumbnail?cameraId=${cameraInfo.Id}&segmentId=${segment.Id}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
                       thumbnailAlt={`${new Date(segment.StartTime!).toLocaleString()} - ${new Date(segment.EndTime!).toLocaleString()}`}
                     />
                   </div>
