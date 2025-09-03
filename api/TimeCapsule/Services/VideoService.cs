@@ -436,6 +436,9 @@ public class VideoService
                 segment.EndTime = segment.StartTime.Add(segment.DurationActual); // 开始时间 + 实际录制时长
             }
 
+            // 调整理论时长(防止超过24小时)
+            if (segment.DurationTheoretical >= new TimeSpan(1, 0, 0, 0))
+                segment.DurationTheoretical = segment.DurationActual;
             // 设置视频流信息
             if (videoStream != null)
             {
