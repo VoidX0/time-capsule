@@ -1,11 +1,6 @@
 'use client'
 
-import {
-  Camera as CameraIcon,
-  LayoutDashboard,
-  Search,
-  Settings,
-} from 'lucide-react'
+import { Camera as CameraIcon, LayoutDashboard, Search, Settings } from 'lucide-react'
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 
@@ -17,14 +12,9 @@ import { NavCameras } from '@/components/main/nav-cameras'
 import { NavMain } from '@/components/main/nav-main'
 import { NavUser } from '@/components/main/nav-user'
 import { ThemeToggle } from '@/components/main/theme-toggle'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
-} from '@/components/ui/sidebar'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
 import { openapi } from '@/lib/http'
+import { tokenParse } from '@/lib/security'
 import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -40,7 +30,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [cameras, setCameras] = useState<Camera[] | undefined>([])
   const [searchOpen, setSearchOpen] = useState(false)
 
-  // 更新公钥
+  // 更新公钥 JWT续期
   useEffect(() => {
     const getPublicKey = async () => {
       const { data } = await openapi.GET('/Authentication/GetKey', {
@@ -48,7 +38,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       })
       if (data) localStorage.setItem('publicKey', data)
     }
-    getPublicKey().then()
+    const renewToken = async () => {
+      const payload = tokenParse()
+      if (!payload) return
+      const now = Date.now() / 1000
+      // 检查是否可以续期(未过期且n小时内过期)
+      if (payload.expire >= now && payload.expire - now < 2 * 60 * 60) {
+        const { data } = await openapi.GET('/Authentication/RefreshToken', {
+          parseAs: 'text',
+        })
+        if (data) localStorage.setItem('token', data)
+      }
+    }
+    // 获取公钥并续期
+    getPublicKey().then(() => renewToken().then())
   }, [])
 
   /* 侧边栏初始化 */
