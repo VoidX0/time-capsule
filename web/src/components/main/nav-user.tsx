@@ -63,10 +63,12 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
                 <Avatar className="h-8 w-8 rounded-full">
-                  <AvatarImage
-                    src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
-                    alt={user?.NickName ?? ''}
-                  />
+                  {user && (
+                    <AvatarImage
+                      src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                      alt={user?.NickName ?? ''}
+                    />
+                  )}
                   <AvatarFallback className="rounded-full">
                     {(user?.NickName?.length ?? -1) > 0
                       ? user?.NickName![0]!.toUpperCase()
