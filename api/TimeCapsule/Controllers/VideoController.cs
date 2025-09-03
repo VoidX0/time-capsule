@@ -137,16 +137,17 @@ public class VideoController : ControllerBase
 
         string BaseUrl(string action, long seq)
         {
+            var urlEncodedToken = Uri.EscapeDataString(token);
             if (sourceAddress == true)
             {
                 // 获取请求过来的源地址
                 var request = HttpContext.Request;
                 var baseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
-                return $"{baseUrl}/Video/{action}?sid={session.Sid}&seq={seq}&token={token}";
+                return $"{baseUrl}/Video/{action}?sid={session.Sid}&seq={seq}&token={urlEncodedToken}";
             }
 
             // 使用代理地址
-            return $"/api/Video/{action}?sid={session.Sid}&seq={seq}&token={token}";
+            return $"/api/Video/{action}?sid={session.Sid}&seq={seq}&token={urlEncodedToken}";
         }
     }
 
