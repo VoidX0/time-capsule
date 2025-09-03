@@ -8,6 +8,7 @@ using SqlSugar;
 using SqlSugar.IOC;
 using TimeCapsule.Contracts;
 using TimeCapsule.Core.Models.Db;
+using TimeCapsule.Core.Utils.Security;
 using TimeCapsule.Models;
 using TimeCapsule.Models.Options;
 
@@ -41,12 +42,18 @@ public class VideoController : ControllerBase
     /// 指定Segment的视频流(FLV)
     /// </summary>
     /// <param name="segmentId">视频片段ID</param>
+    /// <param name="token">token</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<IActionResult> SegmentStream(string segmentId)
+    public async Task<IActionResult> SegmentStream(string segmentId, string token)
     {
-        var segmentIdActual = long.TryParse(segmentId.Replace(" ", ""), out var sid) ? sid : 0;
+        // 验证token
+        var isValid = long.TryParse(SecurityRsa.Decrypt(token), out var ticks) &&
+                      DateTimeOffset.Now - DateTimeOffset.FromUnixTimeMilliseconds(ticks).ToLocalTime() <
+                      TimeSpan.FromMinutes(5);
+        if (!isValid) return BadRequest("token invalid or expired");
         // 查询视频片段
+        var segmentIdActual = long.TryParse(segmentId.Replace(" ", ""), out var sid) ? sid : 0;
         var segment = await _db.Queryable<VideoSegment>()
             .Where(x => x.Id == segmentIdActual)
             .SplitTable()
@@ -71,6 +78,7 @@ public class VideoController : ControllerBase
     /// </summary>
     /// <param name="cameraId">摄像头ID</param>
     /// <param name="start">开始时间</param>
+    /// <param name="token">token</param>
     /// <param name="durationSec">持续时间（秒）</param>
     /// <param name="segmentSec">分片时长（秒）</param>
     /// <param name="sid">会话ID（可选）</param>
@@ -79,12 +87,19 @@ public class VideoController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> CameraPlaylist(
         string cameraId,
-        long start,
+        long start, 
+        string token,
         int durationSec = 1800,
         int segmentSec = 10,
         string? sid = null,
         bool? sourceAddress = null)
     {
+        // 验证token
+        var isValid = long.TryParse(SecurityRsa.Decrypt(token), out var ticks) &&
+                      DateTimeOffset.Now - DateTimeOffset.FromUnixTimeMilliseconds(ticks).ToLocalTime() <
+                      TimeSpan.FromMinutes(5);
+        if (!isValid) return BadRequest("token invalid or expired");
+        // 切片
         segmentSec = Math.Clamp(segmentSec, 2, 15); // 建议 5~10 秒
         durationSec = Math.Clamp(durationSec, 60, 7200); // 一次最多 2 小时
 
@@ -127,11 +142,11 @@ public class VideoController : ControllerBase
                 // 获取请求过来的源地址
                 var request = HttpContext.Request;
                 var baseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
-                return $"{baseUrl}/Video/{action}?sid={session.Sid}&seq={seq}";
+                return $"{baseUrl}/Video/{action}?sid={session.Sid}&seq={seq}&token={token}";
             }
 
             // 使用代理地址
-            return $"/api/Video/{action}?sid={session.Sid}&seq={seq}";
+            return $"/api/Video/{action}?sid={session.Sid}&seq={seq}&token={token}";
         }
     }
 
@@ -140,11 +155,16 @@ public class VideoController : ControllerBase
     /// </summary>
     /// <param name="sid">会话ID</param>
     /// <param name="seq">视频片段序列号</param>
+    /// <param name="token">token</param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<IActionResult> CameraStream(string sid, long seq)
+    public async Task<IActionResult> CameraStream(string sid, long seq, string token)
     {
         await Task.CompletedTask;
+        // 验证token
+        var isValid = long.TryParse(SecurityRsa.Decrypt(token), out _);
+        if (!isValid) return BadRequest("token invalid or expired");
+        // 获取片段
         if (!_hls.TryGetSegment(sid, seq, out var map) || map == null)
             return NotFound();
         Response.Headers.Append("Content-Type", "video/mp2t");

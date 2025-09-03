@@ -572,11 +572,17 @@ public class AuthenticationController : ControllerBase
     /// 获取用户头像
     /// </summary>
     /// <param name="id">用户ID</param>
+    /// <param name="token">token</param>
     /// <returns></returns>
     [HttpGet]
     [TypeFilter(typeof(AllowAnonymousFilter))]
-    public async Task<IActionResult> GetAvatar(string id)
+    public async Task<IActionResult> GetAvatar(string id, string token)
     {
+        // 验证token
+        var isValid = long.TryParse(SecurityRsa.Decrypt(token), out var ticks) &&
+                      DateTimeOffset.Now - DateTimeOffset.FromUnixTimeMilliseconds(ticks).ToLocalTime() <
+                      TimeSpan.FromMinutes(5);
+        if (!isValid) return BadRequest("token invalid or expired");
         // 查找头像文件
         var avatarDir = Path.Combine(_systemOptions.StoragePath, "Avatar");
         var jpgPath = Path.Combine(avatarDir, $"{id}.jpg");
