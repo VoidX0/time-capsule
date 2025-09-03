@@ -7,12 +7,23 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import { formatDate, rangeWeek } from '@/lib/date-time'
 import { openapi } from '@/lib/http'
+import { rsaEncrypt } from '@/lib/security'
 import { ArrowUp, CalendarIcon, Filter } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
@@ -214,7 +225,7 @@ export default function Page({
                       ariaLabel="Zoom Area"
                     >
                       <Image
-                        src={`/api/Detection/GetImage?cameraId=${cameraInfo.Id}&segmentId=${detections[0]!.SegmentId}&framePath=${encodeURIComponent(detections[0]!.FramePath!)}`}
+                        src={`/api/Detection/GetImage?cameraId=${cameraInfo.Id}&segmentId=${detections[0]!.SegmentId}&framePath=${encodeURIComponent(detections[0]!.FramePath!)}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
                         alt={`Detection ${firstDetection!.Id}`}
                         width={1920}
                         height={1080}
