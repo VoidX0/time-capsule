@@ -94,7 +94,7 @@ export function UserProfileDialog({
       'user-avatar-img',
     ) as HTMLImageElement
     if (avatarImg) {
-      avatarImg.src = `/api/Authentication/GetAvatar?id=${user?.Id}&t=${Date.now()}`
+      avatarImg.src = `/api/Authentication/GetAvatar?id=${user?.Id}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}&t=${Date.now()}`
     }
   }
 
@@ -110,7 +110,7 @@ export function UserProfileDialog({
             <Avatar className="h-20 w-20 rounded-full">
               <AvatarImage
                 id="user-avatar-img"
-                src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}`}
+                src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
                 alt={user?.NickName ?? ''}
               />
               <AvatarFallback className="rounded-full">

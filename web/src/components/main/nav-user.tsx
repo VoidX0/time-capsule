@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
 import { openapi } from '@/lib/http'
+import { rsaEncrypt } from '@/lib/security'
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -63,7 +64,7 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
               >
                 <Avatar className="h-8 w-8 rounded-full">
                   <AvatarImage
-                    src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}`}
+                    src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
                     alt={user?.NickName ?? ''}
                   />
                   <AvatarFallback className="rounded-full">
@@ -89,7 +90,7 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="h-8 w-8 rounded-full">
                     <AvatarImage
-                      src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}`}
+                      src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
                       alt={user?.NickName ?? ''}
                     />
                     <AvatarFallback className="rounded-full">
