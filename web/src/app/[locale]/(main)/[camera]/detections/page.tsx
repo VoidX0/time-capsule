@@ -261,7 +261,7 @@ export default function Page({
                 >
                   <div className="space-y-1 text-sm">
                     <p>
-                      <strong>{t('category')}:</strong>{' '}
+                      <strong>{t('category')}:</strong> (
                       {tDetection(detection.TargetName! as never) || 'N/A'})
                     </p>
                     <p>
