@@ -134,7 +134,7 @@ public static class WebApplicationBuilderExtension
             // 控制台日志
             .WriteTo.Console(theme: SerilogTheme.CustomConsole,
                 outputTemplate:
-                "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {SourceContext:l} {Message:lj}{NewLine}{Exception}") //控制台日志
+                "[{Timestamp:HH:mm:ss.fff} {Level}] {SourceContext:l} {Message:lj}{NewLine}{Exception}") //控制台日志
             // Sqlite日志
             .WriteTo.SQLite(Path.Combine(logPath.FullName, "logs.db"),
                 storeTimestampInUtc: true, // 以UTC时间存储
