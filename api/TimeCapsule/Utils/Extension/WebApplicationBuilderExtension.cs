@@ -125,16 +125,16 @@ public static class WebApplicationBuilderExtension
             .Filter.ByExcluding(x =>
                 x.RenderMessage().Contains("/scalar/") || x.RenderMessage().Contains("/openapi/")) //排除的日志
             .MinimumLevel.Debug() //最低日志级别
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning) //隐藏低级别日志
-            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning) //隐藏低级别日志
-            .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Warning) //隐藏低级别日志
-            .MinimumLevel.Override("Hangfire", LogEventLevel.Information) //隐藏低级别日志
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning) //覆盖日志级别
+            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning) //覆盖日志级别
+            .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Warning) //覆盖日志级别
+            .MinimumLevel.Override("Hangfire", LogEventLevel.Information) //覆盖日志级别
             .Enrich.FromLogContext() //添加上下文
             .Enrich.With(new ContextEnricher()) // 转换上下文
             // 控制台日志
             .WriteTo.Console(theme: SerilogTheme.CustomConsole,
                 outputTemplate:
-                "[{Timestamp:HH:mm:ss.fff} {Level}] {SourceContext:l} {Message:lj}{NewLine}{Exception}") //控制台日志
+                "[{Timestamp:HH:mm:ss.fff}] [{Level:u3}] [{SourceContext:l}] {Message:lj}{NewLine}{Exception}") //控制台日志
             // Sqlite日志
             .WriteTo.SQLite(Path.Combine(logPath.FullName, "logs.db"),
                 storeTimestampInUtc: true, // 以UTC时间存储
