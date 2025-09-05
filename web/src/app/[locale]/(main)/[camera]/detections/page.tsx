@@ -7,18 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import { formatDate, rangeWeek } from '@/lib/date-time'
@@ -354,6 +344,23 @@ export default function Page({
                 onValueChange={(value) => setMinConfidence(value[0]!)}
               />
             </div>
+            {/* 全选选项 */}
+            <label className="flex cursor-pointer items-center space-x-2">
+              <Checkbox
+                checked={
+                  categories.length > 0 &&
+                  selectedCategory.length === categories.length
+                }
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedCategory(categories)
+                  } else {
+                    setSelectedCategory([])
+                  }
+                }}
+              />
+              <span>All</span>
+            </label>
             {categories.map((cat) => (
               <label
                 key={cat}
