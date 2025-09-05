@@ -22,7 +22,12 @@ import { useRouter } from 'next/navigation'
 type SystemUser = components['schemas']['SystemUser']
 type Camera = components['schemas']['Camera']
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  onAuthChecked,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & {
+  onAuthChecked?: (authorized: boolean) => void
+}) {
   const t = useTranslations('MainLayout')
   const router = useRouter()
   const locale = useLocale()
@@ -60,6 +65,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       // 检查授权
       const { data, error } = await openapi.GET('/Authentication/Granted')
       if (error || !data) {
+        onAuthChecked?.(false) // 通知未授权
         // 授权失败 → 跳转登录
         const currentPath = window.location.pathname + window.location.search
         router.replace(
@@ -67,6 +73,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         )
         return // 停止执行
       }
+      onAuthChecked?.(true) // 通知已授权
       // 用户信息
       const { data: userData } = await openapi.GET(
         '/Authentication/CurrentUser',
@@ -78,7 +85,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
 
     init().then()
-  }, [locale, router])
+  }, [locale, onAuthChecked, router])
 
   const navMain = [
     {
