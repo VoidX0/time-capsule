@@ -4,6 +4,7 @@ import { components } from '@/api/schema'
 import CameraChart from '@/components/camera/camera-chart'
 import DetectionChart from '@/components/camera/detection-chart'
 import StorageChart from '@/components/main/storage-chart'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -256,6 +257,7 @@ export default function Page() {
               <table className="w-full table-auto border-collapse text-left">
                 <thead>
                   <tr className="border-b">
+                    <th className="p-2" />
                     <th className="p-2">ID</th>
                     <th className="p-2">{t('email')}</th>
                     <th className="p-2">{t('nickname')}</th>
@@ -266,6 +268,21 @@ export default function Page() {
                 <tbody>
                   {users.map((user) => (
                     <tr key={user.Id} className="border-b">
+                      <td className="p-2">
+                        <Avatar className="h-8 w-8 rounded-full">
+                          {user && (
+                            <AvatarImage
+                              src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                              alt={user?.NickName ?? ''}
+                            />
+                          )}
+                          <AvatarFallback className="rounded-full">
+                            {(user?.NickName?.length ?? -1) > 0
+                              ? user?.NickName![0]!.toUpperCase()
+                              : ' '}
+                          </AvatarFallback>
+                        </Avatar>
+                      </td>
                       <td className="p-2">{user.Id}</td>
                       <td className="p-2">{user.Email}</td>
                       <td className="p-2">{user.NickName}</td>
