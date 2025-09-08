@@ -20,6 +20,7 @@ public class FrameDetection
     public string FramePath { get; set; } = string.Empty;
 
     [SugarColumn(ColumnDescription = "帧时间")]
+    [SplitField]
     public DateTimeOffset FrameTime { get; set; }
 
     [SugarColumn(ColumnDescription = "目标ID")]
