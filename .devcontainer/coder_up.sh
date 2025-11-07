@@ -6,10 +6,13 @@ echo "⚙️ Coder up script executed."
 
 echo "⚙️ Install packages..."
 
-echo "🧩Installing extension..."
+echo "🧩 Waiting VSCode..."
+sleep 30
+echo "🧩 Installing extension..."
 # common
 $CODE_SERVER --install-extension tamasfe.even-better-toml
 # backend
+$CODE_SERVER --install-extension ms-dotnettools.csharp
 $CODE_SERVER --install-extension ms-dotnettools.csdevkit
 # frontend
 $CODE_SERVER --install-extension dbaeumer.vscode-eslint
@@ -17,4 +20,4 @@ $CODE_SERVER --install-extension esbenp.prettier-vscode
 $CODE_SERVER --install-extension pulkitgangwar.nextjs-snippets
 $CODE_SERVER --install-extension bradlc.vscode-tailwindcss
 
-echo "🔧Configuring editor settings..."
+echo "🔧 Configuring editor settings..."
