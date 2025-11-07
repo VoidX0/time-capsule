@@ -6,15 +6,6 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        // common
-        "tamasfe.even-better-toml",
-        // backend
-        "ms-dotnettools.csdevkit",
-        // frontend
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "pulkitgangwar.nextjs-snippets",
-        "bradlc.vscode-tailwindcss",
       ],
       "settings": {
       }
