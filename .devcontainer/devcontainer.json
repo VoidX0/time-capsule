@@ -1,6 +1,6 @@
 {
   "name": "TimeCapsule (Envbuilder)",
-  "image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:1-10.0",
   "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
   "postStartCommand": "bash .devcontainer/postStartCommand.sh",
   "customizations": {

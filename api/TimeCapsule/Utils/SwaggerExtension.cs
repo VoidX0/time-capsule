@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using SqlSugar;
 using SqlSugar.IOC;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -25,7 +25,7 @@ public class EnumDescriptionFilter : ISchemaFilter
     /// </summary>
     /// <param name="schema"></param>
     /// <param name="context"></param>
-    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
         if (!context.Type.IsEnum) return;
 
@@ -62,7 +62,7 @@ public class SugarTableDescriptionFilter : ISchemaFilter
     /// </summary>
     /// <param name="schema"></param>
     /// <param name="context"></param>
-    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
         if (!context.Type.IsClass) return;
         var tableAttr = context.Type.GetCustomAttribute<SugarTable>();
@@ -83,7 +83,7 @@ public class SugarColumnDescriptionFilter : ISchemaFilter
     /// </summary>
     /// <param name="schema"></param>
     /// <param name="context"></param>
-    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
         if (!context.Type.IsClass) return;
         foreach (var property in context.Type.GetProperties())
@@ -94,7 +94,7 @@ public class SugarColumnDescriptionFilter : ISchemaFilter
                 .FirstOrDefault();
             if (columnAttr == null || string.IsNullOrEmpty(columnAttr.ColumnDescription)) continue;
             var propertyName = property.Name;
-            if (schema.Properties.TryGetValue(propertyName, out var propSchema))
+            if (schema.Properties != null && schema.Properties.TryGetValue(propertyName, out var propSchema))
             {
                 propSchema.Description = columnAttr.ColumnDescription;
             }

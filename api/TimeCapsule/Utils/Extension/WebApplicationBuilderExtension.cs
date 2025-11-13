@@ -5,7 +5,7 @@ using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Grafana.Loki;
@@ -209,21 +209,7 @@ public static class WebApplicationBuilderExtension
             {
                 In = ParameterLocation.Header,
                 Name = "Authorization",
-                Type = SecuritySchemeType.ApiKey
-            });
-            x.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    []
-                }
+                Type = SecuritySchemeType.ApiKey,
             });
         });
     }

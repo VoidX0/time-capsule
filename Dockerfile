@@ -1,6 +1,6 @@
 ﻿# 后端
 # 编译阶段
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS api_build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS api_build
 ARG BUILD_CONFIGURATION=Release
 # 依赖
 WORKDIR /src
@@ -29,7 +29,7 @@ COPY ./web/ ./
 RUN corepack enable pnpm && pnpm run build
 
 # 最终镜像
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 EXPOSE 8080 3000
 LABEL org.opencontainers.image.source=https://github.com/VoidX0/time-capsule

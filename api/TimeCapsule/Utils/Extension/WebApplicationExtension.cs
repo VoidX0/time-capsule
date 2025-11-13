@@ -4,6 +4,7 @@ using System.Web;
 using Hangfire;
 using Hangfire.Dashboard.BasicAuthorization;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Ui.Web.Extensions;
@@ -108,12 +109,16 @@ public static class WebApplicationExtension
     public static void ApiReference(this WebApplication app)
     {
         var system = app.Services.GetRequiredService<IOptions<SystemOptions>>().Value;
-        if (!app.Environment.IsDevelopment() && system.ApiReference != true) return;
-        app.UseSwagger(x => { x.RouteTemplate = "/openapi/{documentName}.json"; });
+        if (!app.Environment.IsDevelopment() && !system.ApiReference) return;
+        app.UseSwagger(x =>
+        {
+            x.OpenApiVersion = OpenApiSpecVersion.OpenApi3_1;
+            x.RouteTemplate = "/openapi/{documentName}.json";
+        });
         app.MapScalarApiReference(x =>
         {
-            x.WithOperationSorter(OperationSorter.Method) // 按方法排序
-                .WithTagSorter(TagSorter.Alpha) // 按Tag排序
+            x.SortOperationsByMethod() // 按方法排序
+                .SortTagsAlphabetically() // 按Tag排序
                 .WithTheme(ScalarTheme.DeepSpace) // 主题
                 // 添加Bearer认证
                 .AddApiKeyAuthentication("Bearer", y =>
