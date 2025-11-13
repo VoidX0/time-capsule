@@ -8,12 +8,12 @@ on:
       - synchronize # 当 PR 被更新时触发
       - reopened # 当 PR 被重新打开时触发
     paths:
-      - 'api/**' # 仅监控 api 目录下的变更
+      - "api/**" # 仅监控 api 目录下的变更
 
 jobs:
   api-check:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,7 +21,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Restore dependencies
         working-directory: api
