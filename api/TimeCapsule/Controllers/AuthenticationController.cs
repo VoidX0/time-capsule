@@ -106,7 +106,7 @@ public class AuthenticationController : ControllerBase
             .OrderBy(x => x.CreateTime)
             .ToListAsync();
         //检查未使用的验证码，是否频繁发送
-        var lastVerify = verify.Where(x => !x.IsVerified).LastOrDefault();
+        var lastVerify = verify.LastOrDefault(x => !x.IsVerified);
         if (lastVerify != null && now - lastVerify.CreateTime < TimeSpan.FromMinutes(3))
             return BadRequest("发送验证码过于频繁，请稍后再试");
         //检查所有验证码，是否超过限制

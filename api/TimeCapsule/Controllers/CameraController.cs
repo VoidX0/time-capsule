@@ -168,16 +168,14 @@ public class CameraController : OrmController<Camera>
 
             var cache = new DirectoryInfo(Path.Combine(_systemOptions.CachePath, camera.Id.ToString()));
             // 删除缓存目录
-            if (cache.Exists)
+            if (!cache.Exists) continue;
+            try
             {
-                try
-                {
-                    cache.Delete(true);
-                }
-                catch
-                {
-                    // ignore
-                }
+                cache.Delete(true);
+            }
+            catch
+            {
+                // ignore
             }
         }
 
