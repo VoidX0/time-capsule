@@ -49,17 +49,15 @@ namespace TimeCapsule
     /// </summary>
     public static class App
     {
-        private static WebApplication? _application;
-
         /// <summary>
         /// WebApplication
         /// </summary>
         public static WebApplication? Application
         {
-            get => _application;
+            get;
             set
             {
-                _application = value;
+                field = value;
                 Services = value?.Services;
             }
         }

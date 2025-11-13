@@ -5,8 +5,6 @@
 /// </summary>
 public class SystemOptions
 {
-    private string? _instance;
-
     /// <summary>
     /// 实例名称
     /// </summary>
@@ -14,19 +12,18 @@ public class SystemOptions
     {
         get
         {
-            if (!string.IsNullOrWhiteSpace(_instance)) return _instance;
+            if (!string.IsNullOrWhiteSpace(field)) return field;
             try
             {
-                _instance = Environment.MachineName;
+                field = Environment.MachineName;
             }
             catch
             {
-                _instance = "Unknown";
+                field = "Unknown";
             }
 
-            return _instance;
+            return field;
         }
-        set => _instance = value;
     }
 
     /// <summary>

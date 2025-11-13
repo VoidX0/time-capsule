@@ -107,16 +107,14 @@ public class SegmentController : OrmController<VideoSegment>
             }
 
             // 删除检测结果
-            if (detect.Exists)
+            if (!detect.Exists) continue;
+            try
             {
-                try
-                {
-                    detect.Delete(true);
-                }
-                catch
-                {
-                    // ignore
-                }
+                detect.Delete(true);
+            }
+            catch
+            {
+                // ignore
             }
         }
 

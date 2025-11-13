@@ -62,7 +62,7 @@ public class HlsService : IHlsService
     {
         // 复用或新建 session
         HlsSession session;
-        if (!string.IsNullOrEmpty(sid) && _cache.TryGetValue<HlsSession>(CacheKey(sid!), out var exist))
+        if (!string.IsNullOrEmpty(sid) && _cache.TryGetValue<HlsSession>(CacheKey(sid), out var exist))
         {
             session = exist!;
             session.Segments.Clear(); // 重新生成当前窗口的分片（也可以选择追加）
@@ -74,7 +74,7 @@ public class HlsService : IHlsService
         {
             session = new HlsSession
             {
-                Sid = string.IsNullOrEmpty(sid) ? Guid.NewGuid().ToString("N") : sid!,
+                Sid = string.IsNullOrEmpty(sid) ? Guid.NewGuid().ToString("N") : sid,
                 Start = start,
                 End = start + window,
                 TargetDuration = targetDurationSec,

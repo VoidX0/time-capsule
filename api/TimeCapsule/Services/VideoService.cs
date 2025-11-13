@@ -476,7 +476,7 @@ public class VideoService
     /// <param name="segment">视频片段</param>
     /// <param name="template">解析模板</param>
     /// <returns></returns>
-    public static bool ParseStartAndEndTime(VideoSegment segment, string template)
+    private static bool ParseStartAndEndTime(VideoSegment segment, string template)
     {
         // 解析文件名中的时间戳
         var fileName = Path.GetFileNameWithoutExtension(segment.Path);
@@ -512,10 +512,8 @@ public class VideoService
         if (!match.Success) return false;
 
         // 解析时间
-        foreach (var kv in formats)
+        foreach (var (name, format) in formats)
         {
-            var name = kv.Key;
-            var format = kv.Value;
             if (!match.Groups[name].Success) continue;
             if (DateTimeOffset.TryParseExact(
                     match.Groups[name].Value,
