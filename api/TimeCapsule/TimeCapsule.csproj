@@ -5,14 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <Version>0.0.1</Version>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <DocumentationFile>bin\Debug\TimeCapsule.xml</DocumentationFile>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <DocumentationFile>bin\Release\TimeCapsule.xml</DocumentationFile>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -20,6 +13,7 @@
         <PackageReference Include="Hangfire.Dashboard.BasicAuthorization" Version="1.0.2"/>
         <PackageReference Include="Hangfire.InMemory" Version="1.0.0"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
         <PackageReference Include="RestSharp" Version="112.1.0"/>
         <PackageReference Include="Scalar.AspNetCore" Version="2.10.3" />
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0"/>
@@ -29,7 +23,6 @@
         <PackageReference Include="Serilog.UI.SqliteProvider" Version="1.1.0"/>
         <PackageReference Include="SqlSugar.IOC" Version="2.0.1"/>
         <PackageReference Include="SqlSugarCore" Version="5.1.4.207" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
         <PackageReference Include="Tomlyn" Version="0.19.0"/>
         <PackageReference Include="Tomlyn.Extensions.Configuration" Version="1.0.6"/>
         <PackageReference Include="Xabe.FFmpeg" Version="6.0.2" />

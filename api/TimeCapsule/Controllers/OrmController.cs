@@ -26,6 +26,8 @@ public abstract class OrmController<T> : ControllerBase where T : class, new()
     /// </summary>
     /// <param name="entity">实例列表</param>
     /// <returns></returns>
+    [EndpointSummary("添加数据")]
+    [EndpointDescription("批量添加数据")]
     [HttpPost]
     public virtual async Task<ActionResult<List<long>>> Insert(List<T> entity)
     {
@@ -41,6 +43,8 @@ public abstract class OrmController<T> : ControllerBase where T : class, new()
     /// </summary>
     /// <param name="entity">实例列表</param>
     /// <returns></returns>
+    [EndpointSummary("删除数据")]
+    [EndpointDescription("批量删除数据")]
     [HttpDelete]
     public virtual async Task<ActionResult<int>> Delete(List<T> entity)
     {
@@ -56,6 +60,8 @@ public abstract class OrmController<T> : ControllerBase where T : class, new()
     /// </summary>
     /// <param name="entity">实例列表</param>
     /// <returns></returns>
+    [EndpointSummary("更新数据")]
+    [EndpointDescription("批量更新数据")]
     [HttpPut]
     public virtual async Task<ActionResult<int>> Update(List<T> entity)
     {
@@ -71,6 +77,8 @@ public abstract class OrmController<T> : ControllerBase where T : class, new()
     /// </summary>
     /// <param name="dto">查询条件</param>
     /// <returns></returns>
+    [EndpointSummary("查询数据")]
+    [EndpointDescription("按照条件和排序方式查询数据列表")]
     [HttpPost]
     public virtual async Task<ActionResult<List<T>>> Query(QueryDto dto)
     {
@@ -101,6 +109,8 @@ public abstract class OrmController<T> : ControllerBase where T : class, new()
     /// </summary>
     /// <param name="dto">查询条件</param>
     /// <returns></returns>
+    [EndpointSummary("统计总数")]
+    [EndpointDescription("按照条件统计数据总数")]
     [HttpPost]
     public virtual async Task<ActionResult<int>> Count(QueryDto dto)
     {
