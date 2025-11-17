@@ -292,3 +292,53 @@ internal sealed class SugarColumnDescriptionTransformer : IOpenApiSchemaTransfor
         }
     }
 }
+
+/// <summary>
+/// 大驼峰命名策略
+/// </summary>
+internal sealed class NamingPolicyTransformer : IOpenApiSchemaTransformer
+{
+    /// <summary>
+    /// 转换为 PascalCase
+    /// </summary>
+    private static string ToPascalCase(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return name;
+        return char.ToUpperInvariant(name[0]) + name[1..];
+    }
+
+    /// <summary>
+    /// TransformAsync
+    /// </summary>
+    public async Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context,
+        CancellationToken cancellationToken)
+    {
+        await Task.CompletedTask;
+        TransformSchemaRecursive(schema);
+    }
+
+    /// <summary>
+    /// 递归转换 schema 属性为 PascalCase
+    /// </summary>
+    private static void TransformSchemaRecursive(OpenApiSchema? schema)
+    {
+        if (schema?.Properties == null || schema.Properties.Count == 0)
+            return;
+        var newProperties = new Dictionary<string, IOpenApiSchema>();
+        foreach (var (key, childSchema) in schema.Properties)
+        {
+            var newKey = ToPascalCase(key);
+            newProperties[newKey] = childSchema;
+            // 递归处理嵌套类型
+            TransformSchemaRecursive(childSchema as OpenApiSchema);
+            // 如果是数组类型，也需要处理 Items
+            if (childSchema is OpenApiSchema { Items: not null } cs)
+                TransformSchemaRecursive(cs.Items as OpenApiSchema);
+            // 处理 dictionary 类型的 AdditionalProperties
+            if (childSchema is OpenApiSchema { AdditionalProperties: not null } cs2)
+                TransformSchemaRecursive(cs2.AdditionalProperties as OpenApiSchema);
+        }
+
+        schema.Properties = newProperties;
+    }
+}

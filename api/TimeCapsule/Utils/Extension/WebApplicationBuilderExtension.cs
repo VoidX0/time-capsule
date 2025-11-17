@@ -196,6 +196,7 @@ public static class WebApplicationBuilderExtension
                 x.AddSchemaTransformer<EnumDescriptionTransformer>();
                 x.AddSchemaTransformer<SugarTableDescriptionTransformer>();
                 x.AddSchemaTransformer<SugarColumnDescriptionTransformer>();
+                x.AddSchemaTransformer<NamingPolicyTransformer>();
             });
         }
 
