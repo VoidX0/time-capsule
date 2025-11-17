@@ -213,7 +213,7 @@ internal sealed class EnumDescriptionTransformer : IOpenApiSchemaTransformer
         // 获取metadata信息
         if (schema.Metadata?.TryGetValue("x-ref-description", out var metaDescription) is true)
             sb.AppendLine(metaDescription + "\n");
-        sb.AppendLine("\n\n| 枚举值 | 描述 |");
+        sb.AppendLine("| 枚举值 | 描述 |");
         sb.AppendLine("|------|------|");
         var enumType = context.JsonTypeInfo.Type;
         // 获取枚举的底层类型（int/long等）
