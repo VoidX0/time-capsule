@@ -210,6 +210,9 @@ internal sealed class EnumDescriptionTransformer : IOpenApiSchemaTransformer
         if (!context.JsonTypeInfo.Type.IsEnum) return;
 
         var sb = new StringBuilder();
+        // 获取metadata信息
+        if (schema.Metadata?.TryGetValue("x-ref-description", out var metaDescription) is true)
+            sb.AppendLine(metaDescription + "\n");
         sb.AppendLine("\n\n| 枚举值 | 描述 |");
         sb.AppendLine("|------|------|");
         var enumType = context.JsonTypeInfo.Type;
