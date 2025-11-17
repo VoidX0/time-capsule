@@ -186,7 +186,7 @@ public static class WebApplicationBuilderExtension
             var version = Assembly.GetEntryAssembly()?.GetName().Version;
             builder.Services.AddOpenApi(x =>
             {
-                x.AddDocumentTransformer((document, context, cts) =>
+                x.AddDocumentTransformer((document, _, _) =>
                 {
                     document.Info = new() { Title = app, Version = version?.ToString() };
                     return Task.CompletedTask;
