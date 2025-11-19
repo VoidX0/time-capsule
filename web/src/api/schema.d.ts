@@ -25,7 +25,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 登录信息 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["SystemUser"];
                     "text/json": components["schemas"]["SystemUser"];
@@ -66,7 +66,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 登录信息 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["SystemUser"];
                     "text/json": components["schemas"]["SystemUser"];
@@ -110,11 +110,10 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "multipart/form-data": {
-                        /** Format: binary */
-                        file?: string;
+                        file?: components["schemas"]["IFormFile"];
                     };
                 };
             };
@@ -152,7 +151,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 角色信息 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["SystemRole"];
                     "text/json": components["schemas"]["SystemRole"];
@@ -193,7 +192,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 注册信息 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["SystemUser"];
                     "text/json": components["schemas"]["SystemUser"];
@@ -230,9 +229,9 @@ export interface paths {
             parameters: {
                 query?: {
                     /** @description 角色ID */
-                    roleId?: number;
+                    roleId?: number | string;
                     /** @description 控制器ID */
-                    controllerId?: number;
+                    controllerId?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -269,9 +268,9 @@ export interface paths {
             parameters: {
                 query?: {
                     /** @description 用户ID */
-                    userId?: number;
+                    userId?: number | string;
                     /** @description 控制器ID */
-                    controllerId?: number;
+                    controllerId?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -309,7 +308,7 @@ export interface paths {
             parameters: {
                 query?: {
                     /** @description 角色ID */
-                    roleId?: number;
+                    roleId?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -346,7 +345,7 @@ export interface paths {
             parameters: {
                 query?: {
                     /** @description 用户ID */
-                    userId?: number;
+                    userId?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -383,9 +382,9 @@ export interface paths {
             parameters: {
                 query?: {
                     /** @description 角色ID */
-                    roleId?: number;
+                    roleId?: number | string;
                     /** @description 控制器ID */
-                    controllerId?: number;
+                    controllerId?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -422,9 +421,9 @@ export interface paths {
             parameters: {
                 query?: {
                     /** @description 用户ID */
-                    userId?: number;
+                    userId?: number | string;
                     /** @description 控制器ID */
-                    controllerId?: number;
+                    controllerId?: number | string;
                 };
                 header?: never;
                 path?: never;
@@ -463,7 +462,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 角色信息 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["SystemRole"];
                     "text/json": components["schemas"]["SystemRole"];
@@ -504,7 +503,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 用户信息 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["SystemUser"];
                     "text/json": components["schemas"]["SystemUser"];
@@ -779,6 +778,8 @@ export interface paths {
                 query?: {
                     /** @description 用户ID */
                     id?: string;
+                    /** @description token */
+                    token?: string;
                 };
                 header?: never;
                 path?: never;
@@ -1124,7 +1125,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 实例列表 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["Camera"][];
                     "text/json": components["schemas"]["Camera"][];
@@ -1138,9 +1139,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number;
-                        "application/json": number;
-                        "text/json": number;
+                        "text/plain": number | string;
+                        "application/json": number | string;
+                        "text/json": number | string;
                     };
                 };
             };
@@ -1159,7 +1160,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 添加数据 */
+        /**
+         * 添加数据
+         * @description 批量添加数据
+         */
         post: {
             parameters: {
                 query?: never;
@@ -1167,8 +1171,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description 实例列表 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["Camera"][];
                     "text/json": components["schemas"]["Camera"][];
@@ -1182,9 +1185,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number[];
-                        "application/json": number[];
-                        "text/json": number[];
+                        "text/plain": (number | string)[];
+                        "application/json": (number | string)[];
+                        "text/json": (number | string)[];
                     };
                 };
             };
@@ -1203,7 +1206,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** 更新数据 */
+        /**
+         * 更新数据
+         * @description 批量更新数据
+         */
         put: {
             parameters: {
                 query?: never;
@@ -1211,8 +1217,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description 实例列表 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["Camera"][];
                     "text/json": components["schemas"]["Camera"][];
@@ -1226,9 +1231,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number;
-                        "application/json": number;
-                        "text/json": number;
+                        "text/plain": number | string;
+                        "application/json": number | string;
+                        "text/json": number | string;
                     };
                 };
             };
@@ -1249,7 +1254,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 查询列表 */
+        /**
+         * 查询列表
+         * @description 按照条件和排序方式查询数据列表
+         */
         post: {
             parameters: {
                 query?: never;
@@ -1258,7 +1266,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 查询条件 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["QueryDto"];
                     "text/json": components["schemas"]["QueryDto"];
@@ -1294,7 +1302,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 统计总数 */
+        /**
+         * 统计总数
+         * @description 按照条件统计数据总数
+         */
         post: {
             parameters: {
                 query?: never;
@@ -1303,7 +1314,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 查询条件 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["QueryDto"];
                     "text/json": components["schemas"]["QueryDto"];
@@ -1317,9 +1328,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number;
-                        "application/json": number;
-                        "text/json": number;
+                        "text/plain": number | string;
+                        "application/json": number | string;
+                        "text/json": number | string;
                     };
                 };
             };
@@ -1347,6 +1358,8 @@ export interface paths {
                     segmentId?: string;
                     /** @description 帧路径 */
                     framePath?: string;
+                    /** @description token */
+                    token?: string;
                 };
                 header?: never;
                 path?: never;
@@ -1380,7 +1393,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 添加数据 */
+        /**
+         * 添加数据
+         * @description 批量添加数据
+         */
         post: {
             parameters: {
                 query?: never;
@@ -1388,8 +1404,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description 实例列表 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["FrameDetection"][];
                     "text/json": components["schemas"]["FrameDetection"][];
@@ -1403,9 +1418,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number[];
-                        "application/json": number[];
-                        "text/json": number[];
+                        "text/plain": (number | string)[];
+                        "application/json": (number | string)[];
+                        "text/json": (number | string)[];
                     };
                 };
             };
@@ -1426,7 +1441,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** 删除数据 */
+        /**
+         * 删除数据
+         * @description 批量删除数据
+         */
         delete: {
             parameters: {
                 query?: never;
@@ -1434,8 +1452,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description 实例列表 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["FrameDetection"][];
                     "text/json": components["schemas"]["FrameDetection"][];
@@ -1449,9 +1466,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number;
-                        "application/json": number;
-                        "text/json": number;
+                        "text/plain": number | string;
+                        "application/json": number | string;
+                        "text/json": number | string;
                     };
                 };
             };
@@ -1469,7 +1486,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** 更新数据 */
+        /**
+         * 更新数据
+         * @description 批量更新数据
+         */
         put: {
             parameters: {
                 query?: never;
@@ -1477,8 +1497,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description 实例列表 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["FrameDetection"][];
                     "text/json": components["schemas"]["FrameDetection"][];
@@ -1492,9 +1511,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number;
-                        "application/json": number;
-                        "text/json": number;
+                        "text/plain": number | string;
+                        "application/json": number | string;
+                        "text/json": number | string;
                     };
                 };
             };
@@ -1515,7 +1534,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 查询列表 */
+        /**
+         * 查询列表
+         * @description 按照条件和排序方式查询数据列表
+         */
         post: {
             parameters: {
                 query?: never;
@@ -1524,7 +1546,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 查询条件 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["QueryDto"];
                     "text/json": components["schemas"]["QueryDto"];
@@ -1560,7 +1582,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 统计总数 */
+        /**
+         * 统计总数
+         * @description 按照条件统计数据总数
+         */
         post: {
             parameters: {
                 query?: never;
@@ -1569,7 +1594,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 查询条件 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["QueryDto"];
                     "text/json": components["schemas"]["QueryDto"];
@@ -1583,9 +1608,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number;
-                        "application/json": number;
-                        "text/json": number;
+                        "text/plain": number | string;
+                        "application/json": number | string;
+                        "text/json": number | string;
                     };
                 };
             };
@@ -1611,6 +1636,8 @@ export interface paths {
                     cameraId?: string;
                     /** @description 视频片段ID */
                     segmentId?: string;
+                    /** @description token */
+                    token?: string;
                 };
                 header?: never;
                 path?: never;
@@ -1654,7 +1681,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 实例列表 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["VideoSegment"][];
                     "text/json": components["schemas"]["VideoSegment"][];
@@ -1668,9 +1695,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number;
-                        "application/json": number;
-                        "text/json": number;
+                        "text/plain": number | string;
+                        "application/json": number | string;
+                        "text/json": number | string;
                     };
                 };
             };
@@ -1689,7 +1716,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 添加数据 */
+        /**
+         * 添加数据
+         * @description 批量添加数据
+         */
         post: {
             parameters: {
                 query?: never;
@@ -1697,8 +1727,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description 实例列表 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["VideoSegment"][];
                     "text/json": components["schemas"]["VideoSegment"][];
@@ -1712,9 +1741,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number[];
-                        "application/json": number[];
-                        "text/json": number[];
+                        "text/plain": (number | string)[];
+                        "application/json": (number | string)[];
+                        "text/json": (number | string)[];
                     };
                 };
             };
@@ -1733,7 +1762,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** 更新数据 */
+        /**
+         * 更新数据
+         * @description 批量更新数据
+         */
         put: {
             parameters: {
                 query?: never;
@@ -1741,8 +1773,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description 实例列表 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["VideoSegment"][];
                     "text/json": components["schemas"]["VideoSegment"][];
@@ -1756,9 +1787,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number;
-                        "application/json": number;
-                        "text/json": number;
+                        "text/plain": number | string;
+                        "application/json": number | string;
+                        "text/json": number | string;
                     };
                 };
             };
@@ -1779,7 +1810,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 查询列表 */
+        /**
+         * 查询列表
+         * @description 按照条件和排序方式查询数据列表
+         */
         post: {
             parameters: {
                 query?: never;
@@ -1788,7 +1822,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 查询条件 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["QueryDto"];
                     "text/json": components["schemas"]["QueryDto"];
@@ -1824,7 +1858,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 统计总数 */
+        /**
+         * 统计总数
+         * @description 按照条件统计数据总数
+         */
         post: {
             parameters: {
                 query?: never;
@@ -1833,7 +1870,7 @@ export interface paths {
                 cookie?: never;
             };
             /** @description 查询条件 */
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["QueryDto"];
                     "text/json": components["schemas"]["QueryDto"];
@@ -1847,9 +1884,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": number;
-                        "application/json": number;
-                        "text/json": number;
+                        "text/plain": number | string;
+                        "application/json": number | string;
+                        "text/json": number | string;
                     };
                 };
             };
@@ -1887,13 +1924,13 @@ export interface paths {
                     };
                     content: {
                         "text/plain": {
-                            [key: string]: number;
+                            [key: string]: number | string;
                         };
                         "application/json": {
-                            [key: string]: number;
+                            [key: string]: number | string;
                         };
                         "text/json": {
-                            [key: string]: number;
+                            [key: string]: number | string;
                         };
                     };
                 };
@@ -1920,6 +1957,8 @@ export interface paths {
                 query?: {
                     /** @description 视频片段ID */
                     segmentId?: string;
+                    /** @description token */
+                    token?: string;
                 };
                 header?: never;
                 path?: never;
@@ -1958,11 +1997,13 @@ export interface paths {
                     /** @description 摄像头ID */
                     cameraId?: string;
                     /** @description 开始时间 */
-                    start?: number;
+                    start?: number | string;
+                    /** @description token */
+                    token?: string;
                     /** @description 持续时间（秒） */
-                    durationSec?: number;
+                    durationSec?: number | string;
                     /** @description 分片时长（秒） */
-                    segmentSec?: number;
+                    segmentSec?: number | string;
                     /** @description 会话ID（可选） */
                     sid?: string;
                     /** @description 是否使用源地址（可选） */
@@ -2005,7 +2046,9 @@ export interface paths {
                     /** @description 会话ID */
                     sid?: string;
                     /** @description 视频片段序列号 */
-                    seq?: number;
+                    seq?: number | string;
+                    /** @description token */
+                    token?: string;
                 };
                 header?: never;
                 path?: never;
@@ -2040,29 +2083,28 @@ export interface components {
              * Format: int64
              * @description ID
              */
-            Id?: number;
+            id?: number | string;
             /** @description 摄像头名称 */
-            Name?: string | null;
+            name?: string;
             /** @description 基础路径 */
-            BasePath?: string | null;
+            basePath?: string;
             /** @description Segment解析模板 */
-            SegmentTemplate?: string | null;
+            segmentTemplate?: string;
             /** @description 启用目标检测 */
-            EnableDetection?: boolean;
+            enableDetection?: boolean;
             /**
              * Format: int32
              * @description 目标检测间隔(s)
              */
-            DetectionInterval?: number;
+            detectionInterval?: number | string;
             /**
              * Format: double
              * @description 目标检测最低置信度
              */
-            DetectionConfidence?: number;
+            detectionConfidence?: number | string;
         };
         /**
-         * Format: int32
-         * @description
+         * @description 条件类型
          *
          *     | 枚举值 | 描述 |
          *     |------|------|
@@ -2083,108 +2125,107 @@ export interface components {
          *     | 14 | EqualNull |
          *     | 15 | InLike |
          *     | 16 | Range |
-         *
-         * @enum {integer}
          */
-        CustomConditionalType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16;
+        CustomConditionalType: number;
         /**
-         * Format: int32
-         * @description
+         * @description 排序类型
          *
          *     | 枚举值 | 描述 |
          *     |------|------|
          *     | 0 | Asc |
          *     | 1 | Desc |
-         *
-         * @enum {integer}
          */
-        CustomOrderByType: 0 | 1;
+        CustomOrderByType: number;
         /** @description 帧目标检测 */
         FrameDetection: {
             /**
              * Format: int64
              * @description ID
              */
-            Id?: number;
+            id?: number | string;
             /**
              * Format: int64
              * @description 摄像头ID
              */
-            CameraId?: number;
+            cameraId?: number | string;
             /**
              * Format: int64
              * @description 视频片段ID
              */
-            SegmentId?: number;
+            segmentId?: number | string;
             /** @description 帧路径 */
-            FramePath?: string | null;
+            framePath?: string;
             /**
              * Format: date-time
              * @description 帧时间
              */
-            FrameTime?: string;
+            frameTime?: string;
             /**
              * Format: int32
              * @description 目标ID
              */
-            TargetId?: number;
+            targetId?: number | string;
             /** @description 目标名称 */
-            TargetName?: string | null;
+            targetName?: string;
             /**
              * Format: double
              * @description 目标置信度
              */
-            TargetConfidence?: number;
+            targetConfidence?: number | string;
             /**
              * Format: int32
              * @description 目标坐标X
              */
-            TargetLocationX?: number;
+            targetLocationX?: number | string;
             /**
              * Format: int32
              * @description 目标坐标Y
              */
-            TargetLocationY?: number;
+            targetLocationY?: number | string;
             /**
              * Format: int32
              * @description 目标宽度
              */
-            TargetSizeWidth?: number;
+            targetSizeWidth?: number | string;
             /**
              * Format: int32
              * @description 目标高度
              */
-            TargetSizeHeight?: number;
+            targetSizeHeight?: number | string;
         };
+        /** Format: binary */
+        IFormFile: string;
         QueryCondition: {
             /** @description 字段名 */
-            FieldName?: string | null;
+            fieldName?: string;
             /** @description 字段值 */
-            FieldValue?: string | null;
-            ConditionalType?: components["schemas"]["CustomConditionalType"];
+            fieldValue?: string;
+            /** @description 条件类型 */
+            conditionalType?: components["schemas"]["CustomConditionalType"];
             /** @description CSharp类型名 */
-            CSharpTypeName?: string | null;
+            cSharpTypeName?: string;
         };
         QueryDto: {
             /**
              * Format: int32
              * @description 页数
              */
-            PageNumber?: number;
+            pageNumber?: number | string;
             /**
              * Format: int32
              * @description 每页大小
              */
-            PageSize?: number;
+            pageSize?: number | string;
             /** @description 查询条件 */
-            Condition?: components["schemas"]["QueryCondition"][] | null;
+            condition?: null | components["schemas"]["QueryCondition"][];
             /** @description 排序条件 */
-            Order?: components["schemas"]["QueryOrder"][] | null;
+            order?: null | components["schemas"]["QueryOrder"][];
         };
         QueryOrder: {
             /** @description 字段名 */
-            FieldName?: string | null;
-            OrderByType?: components["schemas"]["CustomOrderByType"];
+            fieldName?: string;
+            /** @description 排序类型 */
+            orderByType?: components["schemas"]["CustomOrderByType"];
         };
         /** @description 系统控制器 */
         SystemController: {
@@ -2192,11 +2233,11 @@ export interface components {
              * Format: int64
              * @description ID
              */
-            Id?: number;
+            id?: number | string;
             /** @description 控制器 */
-            Controller?: string | null;
+            controller?: string;
             /** @description 标题 */
-            Title?: string | null;
+            title?: string;
         };
         /** @description 系统角色 */
         SystemRole: {
@@ -2204,9 +2245,9 @@ export interface components {
              * Format: int64
              * @description ID
              */
-            Id?: number;
+            id?: number | string;
             /** @description 角色名 */
-            Name?: string | null;
+            name?: string;
         };
         /** @description 系统用户 */
         SystemUser: {
@@ -2214,15 +2255,15 @@ export interface components {
              * Format: int64
              * @description ID
              */
-            Id?: number;
+            id?: number | string;
             /** @description 邮箱 */
-            Email?: string | null;
+            email?: string;
             /** @description 昵称 */
-            NickName?: string | null;
+            nickName?: string;
             /** @description 密码 */
-            Password?: string | null;
+            password?: string;
             /** @description 角色 */
-            Role?: number[] | null;
+            role?: (number | string)[];
         };
         /** @description 时间轴 */
         Timeline: {
@@ -2230,108 +2271,103 @@ export interface components {
              * Format: date-time
              * @description 时间点
              */
-            Time?: string;
+            time: string;
             /** @description 标题 */
-            Title?: string | null;
-            /** @description 描述 */
-            Description?: string | null;
-            /** @description 级别 */
-            Level?: string | null;
+            title: string;
+            /**
+             * @description 描述
+             * @default
+             */
+            description: string;
+            /**
+             * @description 级别
+             * @default verbose
+             */
+            level: string;
         };
         /**
-         * Format: int32
-         * @description
-         *
-         *     | 枚举值 | 描述 |
+         * @description | 枚举值 | 描述 |
          *     |------|------|
          *     | 0 | 邮箱 |
-         *
-         * @enum {integer}
          */
-        UserVerifyType: 0;
+        UserVerifyType: number;
         /** @description 视频片段 */
         VideoSegment: {
             /**
              * Format: int64
              * @description ID
              */
-            Id?: number;
+            id?: number | string;
             /**
              * Format: int64
              * @description 摄像头ID
              */
-            CameraId?: number;
+            cameraId?: number | string;
             /**
              * Format: date-time
              * @description 同步时间
              */
-            SyncTime?: string;
+            syncTime?: string;
             /** @description 文件路径 */
-            Path?: string | null;
+            path?: string;
             /**
              * Format: double
              * @description 文件大小(MB)
              */
-            Size?: number;
+            size?: number | string;
             /**
              * Format: date-time
              * @description 录制开始时间
              */
-            StartTime?: string;
+            startTime?: string;
             /**
              * Format: date-time
              * @description 录制结束时间
              */
-            EndTime?: string;
-            /**
-             * Format: date-span
-             * @description 实际录制时长
-             */
-            DurationActual?: string;
-            /**
-             * Format: date-span
-             * @description 理论录制时长
-             */
-            DurationTheoretical?: string;
+            endTime?: string;
+            /** @description 实际录制时长 */
+            durationActual?: string;
+            /** @description 理论录制时长 */
+            durationTheoretical?: string;
             /** @description 视频编码器 */
-            VideoCodec?: string | null;
+            videoCodec?: string;
             /**
              * Format: int32
              * @description 视频宽度
              */
-            VideoWidth?: number;
+            videoWidth?: number | string;
             /**
              * Format: int32
              * @description 视频高度
              */
-            VideoHeight?: number;
+            videoHeight?: number | string;
             /**
              * Format: double
              * @description 视频帧率(fps)
              */
-            VideoFps?: number;
+            videoFps?: number | string;
             /**
              * Format: double
              * @description 视频比特率(Kbps)
              */
-            VideoBitrate?: number;
+            videoBitrate?: number | string;
             /** @description 音频编码器 */
-            AudioCodec?: string | null;
+            audioCodec?: string;
             /**
              * Format: double
              * @description 音频采样率(Hz)
              */
-            AudioSampleRate?: number;
+            audioSampleRate?: number | string;
             /**
              * Format: int32
              * @description 音频声道数
              */
-            AudioChannels?: number;
+            audioChannels?: number | string;
             /**
              * Format: double
              * @description 音频比特率(Kbps)
              */
-            AudioBitrate?: number;
+            audioBitrate?: number | string;
         };
     };
     responses: never;
