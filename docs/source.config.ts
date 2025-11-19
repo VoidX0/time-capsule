@@ -1,4 +1,7 @@
-import { rehypeCodeDefaultOptions } from 'fumadocs-core/mdx-plugins'
+import {
+  rehypeCodeDefaultOptions,
+  remarkMdxMermaid,
+} from 'fumadocs-core/mdx-plugins'
 import { transformerTwoslash } from 'fumadocs-twoslash'
 import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
@@ -15,6 +18,9 @@ import {
 export const docs = defineDocs({
   docs: {
     schema: frontmatterSchema,
+    postprocess: {
+      includeProcessedMarkdown: true,
+    },
   },
   meta: {
     schema: metaSchema,
@@ -23,8 +29,8 @@ export const docs = defineDocs({
 
 export default defineConfig({
   mdxOptions: {
+    remarkPlugins: [remarkMdxMermaid, remarkMath],
     // Katex
-    remarkPlugins: [remarkMath],
     rehypePlugins: (v) => [rehypeKatex, ...v],
     // Twoslash
     rehypeCodeOptions: {
