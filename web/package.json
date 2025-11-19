@@ -9,8 +9,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "upgrade": "next upgrade",
+    "lint": "eslint .",
     "prepare": "husky",
     "test:ts": "tsc --noEmit"
   },
@@ -46,7 +46,6 @@
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
     "@next/eslint-plugin-next": "16.0.3",
     "@tailwindcss/postcss": "^4.1.17",
     "@tsparticles/engine": "^3.9.1",
