@@ -1,4 +1,4 @@
-import { Dots } from '@/components/loader/dots'
+import { Circuit } from '@/components/loader/circuit'
 import { i18n } from '@/lib/i18n'
 import Link from 'next/link'
 
@@ -25,13 +25,13 @@ export default async function HomePage({
       <Link
         href={`/${lang}/docs/started`}
         className="text-fd-foreground font-semibold underline"
-        style={{
-          position: 'absolute',
-          bottom: '30%',
-          left: '50%',
-        }}
+        // style={{
+        //   position: 'absolute',
+        //   bottom: '30%',
+        //   left: '50%',
+        // }}
       >
-        <Dots />
+        <Circuit />
       </Link>
     </main>
   )
