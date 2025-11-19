@@ -96,11 +96,11 @@ export default function Page({
   // 初始化完成
   return (
     <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl p-8 md:w-2/3">
-      <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.Name || ''}</h1>
+      <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.name || ''}</h1>
       {/*播放器*/}
       <CameraPlayer
         ref={playerRef}
-        cameraId={cameraInfo?.Id?.toString() ?? ''}
+        cameraId={cameraInfo?.id?.toString() ?? ''}
         initialStartTime={initialTime}
         onPlayProgress={(ts) => {
           setProgress(ts) // 更新进度
@@ -219,7 +219,7 @@ export default function Page({
       {/*时间轴*/}
       <CameraTimeline
         ref={timelineRef}
-        cameraId={cameraInfo?.Id?.toString() ?? ''}
+        cameraId={cameraInfo?.id?.toString() ?? ''}
         initialTime={initialTime}
         onTimeChange={() => playerRef.current?.videoElement?.pause()}
         onTimeCommit={(ts) => {

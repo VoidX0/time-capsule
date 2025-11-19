@@ -6,8 +6,18 @@ import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatDate, rangeWeek } from '@/lib/date-time'
 import { openapi } from '@/lib/http'
@@ -51,28 +61,28 @@ export default function Page({
   useEffect(() => {
     const getSegments = async (cameraId: string) => {
       const body: QueryDto = {
-        PageNumber: 1,
-        PageSize: 10000,
-        Condition: [
+        pageNumber: 1,
+        pageSize: 10000,
+        condition: [
           {
-            FieldName: 'CameraId',
-            FieldValue: cameraId,
-            CSharpTypeName: 'long',
+            fieldName: 'CameraId',
+            fieldValue: cameraId,
+            cSharpTypeName: 'long',
           },
           {
-            FieldName: 'StartTime',
-            FieldValue: `${formatDate(date?.from ?? new Date())} 00:00:00`,
-            ConditionalType: 3,
-            CSharpTypeName: 'DateTimeOffset',
+            fieldName: 'StartTime',
+            fieldValue: `${formatDate(date?.from ?? new Date())} 00:00:00`,
+            conditionalType: 3,
+            cSharpTypeName: 'DateTimeOffset',
           },
           {
-            FieldName: 'EndTime',
-            FieldValue: `${formatDate(date?.to ?? new Date())} 23:59:59`,
-            ConditionalType: 5,
-            CSharpTypeName: 'DateTimeOffset',
+            fieldName: 'EndTime',
+            fieldValue: `${formatDate(date?.to ?? new Date())} 23:59:59`,
+            conditionalType: 5,
+            cSharpTypeName: 'DateTimeOffset',
           },
         ],
-        Order: [{ FieldName: 'StartTime', OrderByType: 1 }],
+        order: [{ fieldName: 'StartTime', orderByType: 1 }],
       }
       const { data } = await openapi.POST('/Segment/Query', { body })
       if ((data?.length ?? -1) <= 0) {
@@ -86,14 +96,14 @@ export default function Page({
       const grouped: Record<string, Segment[]> = {}
       data!.forEach((segment) => {
         const dateKey =
-          new Date(segment.StartTime!).toISOString().split('T')[0] ?? ''
+          new Date(segment.startTime!).toISOString().split('T')[0] ?? ''
         if (!grouped[dateKey]) grouped[dateKey] = []
         grouped[dateKey].push(segment)
       })
       setSegmentsByDate(grouped)
     }
     if (cameraInfo === undefined) return
-    getSegments(cameraInfo?.Id?.toString() ?? '').then()
+    getSegments(cameraInfo?.id?.toString() ?? '').then()
   }, [cameraInfo, date?.from, date?.to])
 
   /* 删除Segments */
@@ -105,9 +115,9 @@ export default function Page({
     setSegmentsByDate((prev) => {
       const copy = { ...prev }
       segmentsToDelete.forEach((seg) => {
-        const dateKey = new Date(seg.StartTime!).toISOString().split('T')[0]
+        const dateKey = new Date(seg.startTime!).toISOString().split('T')[0]
         if (copy[dateKey!]) {
-          copy[dateKey!] = copy[dateKey!]!.filter((s) => s.Id !== seg.Id)
+          copy[dateKey!] = copy[dateKey!]!.filter((s) => s.id !== seg.id)
           if (copy[dateKey!]!.length === 0) delete copy[dateKey!]
         }
       })
@@ -156,7 +166,7 @@ export default function Page({
   // 初始化完成
   return (
     <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl p-8">
-      <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.Name || ''}</h1>
+      <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.name || ''}</h1>
       <h2 className="mb-4 text-lg font-semibold">
         {date?.from?.toLocaleDateString() || ''} -{' '}
         {date?.to?.toLocaleDateString() || ''}
@@ -176,7 +186,7 @@ export default function Page({
                 {(
                   segments.reduce(
                     (sum, seg) =>
-                      sum + timeSpanToMilliseconds(seg.DurationActual!),
+                      sum + timeSpanToMilliseconds(seg.durationActual!),
                     0,
                   ) /
                   1000 /
@@ -237,7 +247,7 @@ export default function Page({
 
                 return (
                   <div
-                    key={segment.Id}
+                    key={segment.id}
                     onContextMenu={handleContextMenu}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
@@ -245,9 +255,9 @@ export default function Page({
                     <HeroVideoDialog
                       className="block"
                       animationStyle="from-center"
-                      videoSrc={`/api/Video/SegmentStream?segmentId=${segment.Id}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
-                      thumbnailSrc={`/api/Segment/GetThumbnail?cameraId=${cameraInfo.Id}&segmentId=${segment.Id}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
-                      thumbnailAlt={`${new Date(segment.StartTime!).toLocaleString()} - ${new Date(segment.EndTime!).toLocaleString()}`}
+                      videoSrc={`/api/Video/SegmentStream?segmentId=${segment.id}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                      thumbnailSrc={`/api/Segment/GetThumbnail?cameraId=${cameraInfo.id}&segmentId=${segment.id}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                      thumbnailAlt={`${new Date(segment.startTime!).toLocaleString()} - ${new Date(segment.endTime!).toLocaleString()}`}
                     />
                   </div>
                 )
@@ -275,89 +285,91 @@ export default function Page({
               </Button>
               {/*详情信息*/}
               <p>
-                <strong>ID:</strong> {selectedSegment.Id}
+                <strong>ID:</strong> {selectedSegment.id}
               </p>
               <p>
-                <strong>{t('cameraId')}:</strong> {selectedSegment.CameraId}
+                <strong>{t('cameraId')}:</strong> {selectedSegment.cameraId}
               </p>
               <p>
                 <strong>{t('syncTime')}:</strong>{' '}
-                {new Date(selectedSegment.SyncTime!).toLocaleString()}
+                {new Date(selectedSegment.syncTime!).toLocaleString()}
               </p>
               <p>
                 <strong>{t('fileSize')}:</strong>{' '}
-                {selectedSegment.Size ? selectedSegment.Size.toFixed(2) : 'N/A'}{' '}
+                {selectedSegment.size
+                  ? Number(selectedSegment.size).toFixed(2)
+                  : 'N/A'}{' '}
                 MB
               </p>
               <p>
                 <strong>{t('startTime')}:</strong>{' '}
-                {new Date(selectedSegment.StartTime!).toLocaleString()}
+                {new Date(selectedSegment.startTime!).toLocaleString()}
               </p>
               <p>
                 <strong>{t('endTime')}:</strong>{' '}
-                {new Date(selectedSegment.EndTime!).toLocaleString()}
+                {new Date(selectedSegment.endTime!).toLocaleString()}
               </p>
               <p>
                 <strong>{t('durationActual')}:</strong>{' '}
-                {selectedSegment.DurationActual
-                  ? selectedSegment.DurationActual
+                {selectedSegment.durationActual
+                  ? selectedSegment.durationActual
                   : 'N/A'}
               </p>
               <p>
                 <strong>{t('durationTheoretical')}:</strong>{' '}
-                {selectedSegment.DurationTheoretical
-                  ? selectedSegment.DurationTheoretical
+                {selectedSegment.durationTheoretical
+                  ? selectedSegment.durationTheoretical
                   : 'N/A'}
               </p>
               <p>
                 <strong>{t('videoCodec')}:</strong>{' '}
-                {selectedSegment.VideoCodec || 'N/A'}
+                {selectedSegment.videoCodec || 'N/A'}
               </p>
               <p>
                 <strong>{t('videoResolution')}:</strong>{' '}
-                {selectedSegment.VideoWidth
-                  ? selectedSegment.VideoWidth
+                {selectedSegment.videoWidth
+                  ? selectedSegment.videoWidth
                   : 'N/A'}{' '}
                 x{' '}
-                {selectedSegment.VideoHeight
-                  ? selectedSegment.VideoHeight
+                {selectedSegment.videoHeight
+                  ? selectedSegment.videoHeight
                   : 'N/A'}
               </p>
               <p>
                 <strong>{t('videoFps')}:</strong>{' '}
-                {selectedSegment.VideoFps
-                  ? selectedSegment.VideoFps.toFixed(2)
+                {selectedSegment.videoFps
+                  ? Number(selectedSegment.videoFps).toFixed(2)
                   : 'N/A'}{' '}
                 fps
               </p>
               <p>
                 <strong>{t('videoBitrate')}:</strong>{' '}
-                {selectedSegment.VideoBitrate
-                  ? selectedSegment.VideoBitrate.toFixed(2)
+                {selectedSegment.videoBitrate
+                  ? Number(selectedSegment.videoBitrate).toFixed(2)
                   : 'N/A'}{' '}
                 kbps
               </p>
               <p>
                 <strong>{t('audioCodec')}:</strong>{' '}
-                {selectedSegment.AudioCodec || 'N/A'}
+                {selectedSegment.audioCodec || 'N/A'}
               </p>
               <p>
                 <strong>{t('audioSampleRate')}:</strong>{' '}
-                {selectedSegment.AudioSampleRate
-                  ? selectedSegment.AudioSampleRate.toFixed(2)
+                {selectedSegment.audioSampleRate
+                  ? Number(selectedSegment.audioSampleRate).toFixed(2)
                   : 'N/A'}{' '}
                 Hz
               </p>
               <p>
                 <strong>{t('audioChannels')}:</strong>{' '}
-                {selectedSegment.AudioChannels
-                  ? selectedSegment.AudioChannels
+                {selectedSegment.audioChannels
+                  ? selectedSegment.audioChannels
                   : 'N/A'}
               </p>
               <p>
                 <strong>{t('audioBitrate')}:</strong>{' '}
-                {selectedSegment.AudioBitrate
-                  ? selectedSegment.AudioBitrate.toFixed(2)
+                {selectedSegment.audioBitrate
+                  ? Number(selectedSegment.audioBitrate).toFixed(2)
                   : 'N/A'}{' '}
                 kbps
               </p>

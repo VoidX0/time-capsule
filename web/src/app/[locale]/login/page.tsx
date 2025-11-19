@@ -3,7 +3,13 @@
 import { components } from '@/api/schema'
 import { MagicCard } from '@/components/magicui/magic-card'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { openapi } from '@/lib/http'
@@ -70,8 +76,8 @@ export default function Page() {
       return
     }
     const body: components['schemas']['SystemUser'] = {
-      Email: email,
-      Password: passwordEncrypted,
+      email: email,
+      password: passwordEncrypted,
     }
     const { data } = await openapi.POST('/Authentication/Login', {
       body: body,

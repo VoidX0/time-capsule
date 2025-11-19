@@ -7,8 +7,18 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import { formatDate, rangeWeek } from '@/lib/date-time'
@@ -54,7 +64,7 @@ export default function Page({
       if (!cameraId) return
       getCameraById(cameraId).then((camera) => {
         setCameraInfo(camera)
-        setMinConfidence(camera?.DetectionConfidence || 0.3)
+        setMinConfidence(Number(camera?.detectionConfidence) || 0.3)
       })
     })
   }, [params])
@@ -66,16 +76,16 @@ export default function Page({
     const filteredDetections =
       detections?.filter((detection) =>
         selectedCategory.length > 0
-          ? detection.TargetName &&
-            selectedCategory.includes(detection.TargetName)
+          ? detection.targetName &&
+            selectedCategory.includes(detection.targetName)
           : true,
       ) ?? []
     // 按日期与SegmentID + FramePath分组
     filteredDetections
-      .filter((d) => (d.TargetConfidence ?? 0) >= minConfidence) // 置信度过滤
+      .filter((d) => (Number(d.targetConfidence) ?? 0) >= minConfidence) // 置信度过滤
       .forEach((detection) => {
-        const dateKey = new Date(detection.FrameTime!).toLocaleDateString()
-        const segmentKey = `${detection.SegmentId}-${detection.FramePath}`
+        const dateKey = new Date(detection.frameTime!).toLocaleDateString()
+        const segmentKey = `${detection.segmentId}-${detection.framePath}`
         if (!grouped[dateKey]) {
           grouped[dateKey] = {}
         }
@@ -91,30 +101,30 @@ export default function Page({
   useEffect(() => {
     const getDetections = async (cameraId: string) => {
       const body: QueryDto = {
-        PageNumber: 1,
-        PageSize: 10000,
-        Condition: [
+        pageNumber: 1,
+        pageSize: 10000,
+        condition: [
           {
-            FieldName: 'CameraId',
-            FieldValue: cameraId,
-            CSharpTypeName: 'long',
+            fieldName: 'CameraId',
+            fieldValue: cameraId,
+            cSharpTypeName: 'long',
           },
           {
-            FieldName: 'FrameTime',
-            FieldValue: `${formatDate(date?.from ?? new Date())} 00:00:00`,
-            ConditionalType: 3,
-            CSharpTypeName: 'DateTimeOffset',
+            fieldName: 'FrameTime',
+            fieldValue: `${formatDate(date?.from ?? new Date())} 00:00:00`,
+            conditionalType: 3,
+            cSharpTypeName: 'DateTimeOffset',
           },
           {
-            FieldName: 'FrameTime',
-            FieldValue: `${formatDate(date?.to ?? new Date())} 23:59:59`,
-            ConditionalType: 5,
-            CSharpTypeName: 'DateTimeOffset',
+            fieldName: 'FrameTime',
+            fieldValue: `${formatDate(date?.to ?? new Date())} 23:59:59`,
+            conditionalType: 5,
+            cSharpTypeName: 'DateTimeOffset',
           },
         ],
-        Order: [
-          { FieldName: 'FrameTime', OrderByType: 1 },
-          { FieldName: 'TargetId', OrderByType: 0 },
+        order: [
+          { fieldName: 'FrameTime', orderByType: 1 },
+          { fieldName: 'TargetId', orderByType: 0 },
         ],
       }
       const { data } = await openapi.POST('/Detection/Query', { body })
@@ -129,8 +139,10 @@ export default function Page({
         new Map(
           data!
             .slice()
-            .sort((a, b) => (a.TargetId ?? 0) - (b.TargetId ?? 0)) // 按 TargetId 排序
-            .map((d) => [d.TargetName || 'Unknown', d.TargetId ?? 0]), // 保留 TargetId 做顺序参考
+            .sort(
+              (a, b) => (Number(a.targetId) ?? 0) - (Number(b.targetId) ?? 0),
+            ) // 按 TargetId 排序
+            .map((d) => [d.targetName || 'Unknown', d.targetId ?? 0]), // 保留 TargetId 做顺序参考
         ).keys(),
       )
       setCategories(cats)
@@ -145,7 +157,7 @@ export default function Page({
       })
     }
     if (cameraInfo === undefined) return
-    getDetections(cameraInfo?.Id?.toString() ?? '').then()
+    getDetections(cameraInfo?.id?.toString() ?? '').then()
   }, [cameraInfo, date?.from, date?.to])
 
   // 等待摄像头准备好
@@ -183,7 +195,7 @@ export default function Page({
   // 初始化完成
   return (
     <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl p-8">
-      <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.Name || ''}</h1>
+      <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.name || ''}</h1>
       <h2 className="mb-4 text-lg font-semibold">
         {date?.from?.toLocaleDateString() || ''} -{' '}
         {date?.to?.toLocaleDateString() || ''}
@@ -215,8 +227,8 @@ export default function Page({
                       ariaLabel="Zoom Area"
                     >
                       <Image
-                        src={`/api/Detection/GetImage?cameraId=${cameraInfo.Id}&segmentId=${detections[0]!.SegmentId}&framePath=${encodeURIComponent(detections[0]!.FramePath!)}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
-                        alt={`Detection ${firstDetection!.Id}`}
+                        src={`/api/Detection/GetImage?cameraId=${cameraInfo.id}&segmentId=${detections[0]!.segmentId}&framePath=${encodeURIComponent(detections[0]!.framePath!)}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                        alt={`Detection ${firstDetection!.id}`}
                         width={1920}
                         height={1080}
                         className="aspect-video w-full cursor-pointer object-cover hover:scale-105"
@@ -243,43 +255,43 @@ export default function Page({
             <div className="space-y-2">
               <div className="space-y-1 text-sm">
                 <p>
-                  <strong>{t('cameraId')}:</strong> {cameraInfo?.Id}
+                  <strong>{t('cameraId')}:</strong> {cameraInfo?.id}
                 </p>
                 <p>
                   <strong>{t('segmentId')}:</strong>{' '}
-                  {selectedDetection[0]?.SegmentId}
+                  {selectedDetection[0]?.segmentId}
                 </p>
                 <p>
                   <strong>{t('detectionTime')}:</strong>{' '}
-                  {new Date(selectedDetection[0]!.FrameTime!).toLocaleString()}
+                  {new Date(selectedDetection[0]!.frameTime!).toLocaleString()}
                 </p>
               </div>
               {selectedDetection.map((detection) => (
                 <div
-                  key={detection.Id}
+                  key={detection.id}
                   className="rounded-lg border p-4 shadow"
                 >
                   <div className="space-y-1 text-sm">
                     <p>
                       <strong>{t('category')}:</strong> (
-                      {tDetection(detection.TargetName! as never) || 'N/A'})
+                      {tDetection(detection.targetName! as never) || 'N/A'})
                     </p>
                     <p>
                       <strong>{t('confidence')}:</strong>{' '}
-                      {`${((detection.TargetConfidence ?? 0) * 100).toFixed(2)}%`}
+                      {`${((Number(detection.targetConfidence) ?? 0) * 100).toFixed(2)}%`}
                     </p>
                     <p>
                       <strong>{t('coordinates')}:</strong>{' '}
-                      {detection.TargetLocationX !== undefined &&
-                      detection.TargetLocationY !== undefined
-                        ? `${detection.TargetLocationX}, ${detection.TargetLocationY}`
+                      {detection.targetLocationX !== undefined &&
+                      detection.targetLocationY !== undefined
+                        ? `${detection.targetLocationX}, ${detection.targetLocationY}`
                         : 'N/A'}
                     </p>
                     <p>
                       <strong>{t('size')}:</strong>{' '}
-                      {detection.TargetSizeWidth !== undefined &&
-                      detection.TargetSizeHeight !== undefined
-                        ? `${detection.TargetSizeWidth} x ${detection.TargetSizeHeight}`
+                      {detection.targetSizeWidth !== undefined &&
+                      detection.targetSizeHeight !== undefined
+                        ? `${detection.targetSizeWidth} x ${detection.targetSizeHeight}`
                         : 'N/A'}
                     </p>
                   </div>
@@ -388,7 +400,7 @@ export default function Page({
             <Button
               variant="secondary"
               onClick={() => {
-                setMinConfidence(cameraInfo?.DetectionConfidence || 0.3)
+                setMinConfidence(Number(cameraInfo?.detectionConfidence) || 0.3)
                 setSelectedCategory(
                   categories.length > 0 ? [categories[0]!] : [],
                 )

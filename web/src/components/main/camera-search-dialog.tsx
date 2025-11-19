@@ -37,7 +37,7 @@ export function CameraSearchDialog({
       return
     }
     const filtered = cameras.filter((cam) =>
-      cam.Name?.toLowerCase().includes(query.toLowerCase()),
+      cam.name?.toLowerCase().includes(query.toLowerCase()),
     )
     setResults(filtered)
   }, [query, cameras])
@@ -63,11 +63,11 @@ export function CameraSearchDialog({
         <div className="max-h-60 overflow-y-auto">
           {results.map((cam) => (
             <div
-              key={cam.Id}
+              key={cam.id}
               className="hover:bg-muted cursor-pointer p-2"
-              onClick={() => handleClick(cam.Id?.toString())}
+              onClick={() => handleClick(cam.id?.toString())}
             >
-              {cam.Name}
+              {cam.name}
             </div>
           ))}
           {results.length === 0 && query && (

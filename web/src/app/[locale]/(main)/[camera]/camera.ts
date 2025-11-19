@@ -8,7 +8,7 @@ type Camera = components['schemas']['Camera']
  * 获取所有摄像头列表
  */
 export async function getCameras(): Promise<Camera[] | undefined> {
-  const body: QueryDto = { PageNumber: 1, PageSize: 1000 }
+  const body: QueryDto = { pageNumber: 1, pageSize: 1000 }
   const { data } = await openapi.POST('/Camera/Query', { body })
   return data
 }
@@ -19,9 +19,9 @@ export async function getCameras(): Promise<Camera[] | undefined> {
  */
 export async function getCameraById(id: string): Promise<Camera | undefined> {
   const body: QueryDto = {
-    PageNumber: 1,
-    PageSize: 1,
-    Condition: [{ FieldName: 'Id', FieldValue: id, CSharpTypeName: 'long' }],
+    pageNumber: 1,
+    pageSize: 1,
+    condition: [{ fieldName: 'Id', fieldValue: id, cSharpTypeName: 'long' }],
   }
   const { data } = await openapi.POST('/Camera/Query', { body })
   return data?.[0]

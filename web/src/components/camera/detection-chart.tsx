@@ -1,13 +1,38 @@
 'use client'
 
 import { components } from '@/api/schema'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { openapi } from '@/lib/http'
 import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
-import { CartesianGrid, Cell, Line, LineChart, Pie, PieChart, XAxis } from 'recharts'
+import {
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  XAxis,
+} from 'recharts'
 
 type FrameDetection = components['schemas']['FrameDetection']
 type QueryDto = components['schemas']['QueryDto']
@@ -23,7 +48,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export default function DetectionChart({ cameraId }: { cameraId: string | undefined }) {
+export default function DetectionChart({
+  cameraId,
+}: {
+  cameraId: string | undefined
+}) {
   const t = useTranslations('CameraDashboardPage')
   const tDetection = useTranslations('DetectionItem')
   const [activeChart, setActiveChart] =
@@ -54,16 +83,16 @@ export default function DetectionChart({ cameraId }: { cameraId: string | undefi
     const getDetections = async () => {
       if (!cameraId) return
       const body: QueryDto = {
-        PageNumber: 1,
-        PageSize: 1000 * 1000 * 1000,
-        Order: [{ FieldName: 'FrameTime', OrderByType: 0 }],
+        pageNumber: 1,
+        pageSize: 1000 * 1000 * 1000,
+        order: [{ fieldName: 'FrameTime', orderByType: 0 }],
       }
       if (cameraId != '0')
-        body.Condition = [
+        body.condition = [
           {
-            FieldName: 'CameraId',
-            FieldValue: cameraId,
-            CSharpTypeName: 'long',
+            fieldName: 'CameraId',
+            fieldValue: cameraId,
+            cSharpTypeName: 'long',
           },
         ]
 
@@ -78,7 +107,7 @@ export default function DetectionChart({ cameraId }: { cameraId: string | undefi
   useEffect(() => {
     const dailyGrouped: Record<string, number> = {}
     detections.forEach((d) => {
-      const dateKey = new Date(d.FrameTime!).toISOString().split('T')[0]
+      const dateKey = new Date(d.frameTime!).toISOString().split('T')[0]
       dailyGrouped[dateKey!] = (dailyGrouped[dateKey!] || 0) + 1
     })
     const dailyData = Object.entries(dailyGrouped).map(([date, count]) => ({
@@ -99,13 +128,13 @@ export default function DetectionChart({ cameraId }: { cameraId: string | undefi
     if (selectedDate !== 'all') {
       filtered = detections.filter(
         (d) =>
-          new Date(d.FrameTime!).toISOString().split('T')[0] === selectedDate,
+          new Date(d.frameTime!).toISOString().split('T')[0] === selectedDate,
       )
     }
 
     const categoryGrouped: Record<string, number> = {}
     filtered.forEach((d) => {
-      const name = d.TargetName || 'Unknown'
+      const name = d.targetName || 'Unknown'
       categoryGrouped[name] = (categoryGrouped[name] || 0) + 1
     })
     const total = Object.values(categoryGrouped).reduce((a, b) => a + b, 0)
