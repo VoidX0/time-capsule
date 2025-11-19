@@ -43,6 +43,7 @@ services:
       - "3000:3000" # web
     volumes:
       - ./Monitor:/camera # 挂载监控视频目录
+      - ./detection:/detection # 检测结果目录
       - ./cache:/cache #缓存目录
       - ./storage:/app/storage #存储
     depends_on:
