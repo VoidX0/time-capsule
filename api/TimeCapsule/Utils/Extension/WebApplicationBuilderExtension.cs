@@ -193,6 +193,7 @@ public static class WebApplicationBuilderExtension
                 });
                 x.AddDocumentTransformer<MarkdownDescriptionTransformer>();
                 x.AddDocumentTransformer<BearerSecurityTransformer>();
+                x.AddOperationTransformer<StatusCodeTransformer>();
                 x.AddSchemaTransformer<EnumDescriptionTransformer>();
                 x.AddSchemaTransformer<SugarTableDescriptionTransformer>();
                 x.AddSchemaTransformer<SugarColumnDescriptionTransformer>();

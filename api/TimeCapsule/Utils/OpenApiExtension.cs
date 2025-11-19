@@ -193,6 +193,26 @@ internal sealed class BearerSecurityTransformer(IAuthenticationSchemeProvider au
 }
 
 /// <summary>
+/// 状态码描述
+/// </summary>
+internal sealed class StatusCodeTransformer : IOpenApiOperationTransformer
+{
+    /// <summary>
+    /// TransformAsync
+    /// </summary>
+    public async Task TransformAsync(OpenApiOperation operation, OpenApiOperationTransformerContext context,
+        CancellationToken cancellationToken)
+    {
+        await Task.CompletedTask;
+        if (operation.Responses is null) return;
+        // 添加状态码描述
+        if (operation.Responses.TryGetValue("200", out var response200)) response200.Description = "OK";
+        if (operation.Responses.TryGetValue("400", out var response400)) response400.Description = "Bad Request";
+        if (operation.Responses.TryGetValue("401", out var response401)) response401.Description = "Unauthorized";
+    }
+}
+
+/// <summary>
 /// 枚举描述
 /// </summary>
 internal sealed class EnumDescriptionTransformer : IOpenApiSchemaTransformer
