@@ -114,6 +114,8 @@ export default function DetectionChart({
       date,
       count,
     }))
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDailyData(dailyData)
 
     // 默认选择最后一天
@@ -146,6 +148,7 @@ export default function DetectionChart({
       }))
       // 按数量从大到小排序
       .sort((a, b) => b.value - a.value)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCategoryData(categoryData)
   }, [detections, selectedDate, tDetection])
 

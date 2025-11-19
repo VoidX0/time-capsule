@@ -29,6 +29,7 @@ export function UserProfileDialog({
 }: UserProfileDialogProps) {
   const t = useTranslations('MainLayout')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [avatarToken, setAvatarToken] = useState<string>('')
 
   const [isEditing, setIsEditing] = useState(false) // 是否处于编辑模式
   const [form, setForm] = useState({
@@ -39,13 +40,17 @@ export function UserProfileDialog({
   })
 
   useEffect(() => {
-    setForm({
-      email: user?.email ?? '',
-      nickName: user?.nickName ?? '',
-      password: '',
-      confirmPassword: '',
-    })
-    setIsEditing(false) // 打开时默认查看模式
+    const load = () => {
+      setAvatarToken(rsaEncrypt(Date.now().toString()) || '') // 更新Token
+      setForm({
+        email: user?.email ?? '',
+        nickName: user?.nickName ?? '',
+        password: '',
+        confirmPassword: '',
+      })
+      setIsEditing(false) // 打开时默认查看模式
+    }
+    load()
   }, [user, open])
 
   const handleChange = (field: keyof typeof form, value: string) => {
@@ -110,7 +115,7 @@ export function UserProfileDialog({
             <Avatar className="h-20 w-20 rounded-full">
               <AvatarImage
                 id="user-avatar-img"
-                src={`/api/Authentication/GetAvatar?id=${user?.id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                src={`/api/Authentication/GetAvatar?id=${user?.id?.toString()}&token=${encodeURIComponent(avatarToken)}`}
                 alt={user?.nickName ?? ''}
               />
               <AvatarFallback className="rounded-full">

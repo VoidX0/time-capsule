@@ -46,7 +46,10 @@ export default function Page() {
   }
 
   useEffect(() => {
-    fetchList().then()
+    const load = async () => {
+      await fetchList()
+    }
+    load().then()
   }, [])
 
   const handleDelete = async (id: number | undefined) => {

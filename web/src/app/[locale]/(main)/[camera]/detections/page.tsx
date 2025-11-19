@@ -27,7 +27,7 @@ import { rsaEncrypt } from '@/lib/security'
 import { ArrowUp, CalendarIcon, Filter } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { DateRange } from 'react-day-picker'
 
 type QueryDto = components['schemas']['QueryDto']
@@ -43,9 +43,6 @@ export default function Page({
   const tDetection = useTranslations('DetectionItem')
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
   const [detections, setDetections] = useState<Detection[] | undefined>([]) // 检测结果列表
-  const [detectionsGroups, setDetectionsGroups] = useState<
-    Record<string, Record<string, Detection[]>>
-  >({}) // 按日期与SegmentID + FramePath分组的检测结果
   const [categories, setCategories] = useState<string[]>([]) // 目标类别列表
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]) // 当前选中的类别列表
   const [minConfidence, setMinConfidence] = useState(0.3) // 最小置信度过滤
@@ -70,7 +67,7 @@ export default function Page({
   }, [params])
 
   /* Detections分组 */
-  useEffect(() => {
+  const detectionsGroups = useMemo(() => {
     const grouped: Record<string, Record<string, Detection[]>> = {}
     // 选中的类别
     const filteredDetections =
@@ -94,7 +91,7 @@ export default function Page({
         }
         grouped[dateKey][segmentKey].push(detection)
       })
-    setDetectionsGroups(grouped)
+    return grouped
   }, [detections, minConfidence, selectedCategory])
 
   /* 加载Detections */

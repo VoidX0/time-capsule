@@ -31,7 +31,7 @@ import { rsaEncrypt } from '@/lib/security'
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type SystemUser = components['schemas']['SystemUser']
 export function NavUser({ user }: { user: SystemUser | undefined }) {
@@ -40,6 +40,14 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
   const [isDialogOpen, setIsDialogOpen] = useState(false) // 用户信息弹框
+  const [avatarToken, setAvatarToken] = useState<string>('')
+
+  useEffect(() => {
+    const refresh = () => {
+      setAvatarToken(rsaEncrypt(Date.now().toString()) || '') // 更新Token
+    }
+    refresh()
+  }, [])
 
   /* 用户登出 */
   const logout = async () => {
@@ -63,6 +71,9 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
     return `https://${owner}.github.io/${repo}/${locale}/docs/contribute/changelog#${version}`
   }
 
+  if (avatarToken === '') {
+    return null
+  }
   return (
     <>
       <SidebarMenu>
@@ -76,7 +87,7 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
                 <Avatar className="h-8 w-8 rounded-full">
                   {user && (
                     <AvatarImage
-                      src={`/api/Authentication/GetAvatar?id=${user?.id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                      src={`/api/Authentication/GetAvatar?id=${user?.id?.toString()}&token=${encodeURIComponent(avatarToken)}`}
                       alt={user?.nickName ?? ''}
                     />
                   )}
@@ -103,7 +114,7 @@ export function NavUser({ user }: { user: SystemUser | undefined }) {
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="h-8 w-8 rounded-full">
                     <AvatarImage
-                      src={`/api/Authentication/GetAvatar?id=${user?.id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                      src={`/api/Authentication/GetAvatar?id=${user?.id?.toString()}&token=${encodeURIComponent(avatarToken)}`}
                       alt={user?.nickName ?? ''}
                     />
                     <AvatarFallback className="rounded-full">

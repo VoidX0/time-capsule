@@ -19,7 +19,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function Page() {
@@ -28,14 +28,12 @@ export default function Page() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { resolvedTheme } = useTheme()
-  const [gradientColor, setGradientColor] = useState('#D9D9D955')
   const [oidcAddress, setOidcAddress] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  useEffect(() => {
-    // 设置渐变色
-    setGradientColor(resolvedTheme === 'dark' ? '#262626' : '#D9D9D955')
+  const gradientColor = useMemo(() => {
+    return resolvedTheme === 'dark' ? '#262626' : '#D9D9D955'
   }, [resolvedTheme])
 
   useEffect(() => {

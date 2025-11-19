@@ -68,9 +68,12 @@ export default function Page() {
   const [initialGrantedIds, setInitialGrantedIds] = useState<number[]>([])
   const [grantedCheckedIds, setGrantedCheckedIds] = useState<number[]>([]) // 已授权列表，当前勾选
   const [unGrantedCheckedIds, setUnGrantedCheckedIds] = useState<number[]>([]) // 未授权列表，当前勾选
+  const [avatarToken, setAvatarToken] = useState<string>('')
 
   /* 刷新数据 */
   const refresh = async () => {
+    setAvatarToken(rsaEncrypt(Date.now().toString()) || '') // 更新Token
+
     const { data: rolesData } = await openapi.GET('/Authentication/Roles')
     setRoles(rolesData ?? [])
     const { data: usersData } = await openapi.GET('/Authentication/Users')
@@ -78,7 +81,10 @@ export default function Page() {
   }
 
   useEffect(() => {
-    refresh().then()
+    const fetchData = async () => {
+      await refresh()
+    }
+    fetchData().then()
   }, [])
 
   /* 角色保存 */
@@ -290,7 +296,7 @@ export default function Page() {
                         <Avatar className="h-8 w-8 rounded-full">
                           {user && (
                             <AvatarImage
-                              src={`/api/Authentication/GetAvatar?id=${user?.id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
+                              src={`/api/Authentication/GetAvatar?id=${user?.id?.toString()}&token=${encodeURIComponent(avatarToken)}`}
                               alt={user?.nickName ?? ''}
                             />
                           )}

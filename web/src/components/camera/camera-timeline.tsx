@@ -16,6 +16,7 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react'
@@ -86,6 +87,7 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
   ({ cameraId, initialTime, onTimeChange, onTimeCommit }, ref) => {
     const [timeline, setTimeline] = useState<Timeline[]>([]) // 摄像头时间线数据
     const [currentTime, setCurrentTime] = useState(initialTime) // 当前时间戳
+    const [containerWidth, setContainerWidth] = useState(1)
 
     // viewport 表示事件区的展示窗口
     const [viewport, setViewport] = useState({
@@ -114,6 +116,18 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
       if (!cameraId) return
       getTimeline().then((data) => setTimeline(data ?? []))
     }, [cameraId])
+
+    /* 监听容器宽度变化 */
+    useLayoutEffect(() => {
+      const updateWidth = () => {
+        if (containerRef.current) {
+          setContainerWidth(containerRef.current.offsetWidth)
+        }
+      }
+      updateWidth()
+      window.addEventListener('resize', updateWidth)
+      return () => window.removeEventListener('resize', updateWidth)
+    }, [])
 
     /* currentTime 变化时，调整 viewport */
     useEffect(() => {
@@ -166,8 +180,6 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
         setCurrentTime(timestampMs)
       },
     }))
-
-    const containerWidth = containerRef.current?.offsetWidth ?? 1
 
     // 使用按像素聚类的方法
     const clusters = clusterTimeline(
@@ -228,6 +240,7 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
           {/* 中心线 */}
           <div className="absolute top-4 right-0 left-0 border-t-2" />
 
+          {/* eslint-disable-next-line react-hooks/refs */}
           {clusters.map((group, index) => {
             const first = group[0]
             if (!first) return null

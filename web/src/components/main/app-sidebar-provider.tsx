@@ -11,12 +11,15 @@ export default function AppSidebarProvider({
 
   /* 初始化侧边栏状态 */
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    // Check localStorage for sidebar state
-    const savedState = localStorage.getItem('sidebarOpen')
-    if (savedState) {
-      setSidebarOpen(JSON.parse(savedState))
+    const load = () => {
+      if (typeof window === 'undefined') return
+      // Check localStorage for sidebar state
+      const savedState = localStorage.getItem('sidebarOpen')
+      if (savedState) {
+        setSidebarOpen(JSON.parse(savedState))
+      }
     }
+    load()
   }, [])
 
   /* 存储侧边栏状态 */
