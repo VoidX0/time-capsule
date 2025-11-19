@@ -32,16 +32,16 @@ export default function Page({
   useEffect(() => {
     const getSegments = async (cameraId: string) => {
       const body: QueryDto = {
-        PageNumber: 1,
-        PageSize: 10000,
-        Condition: [
+        pageNumber: 1,
+        pageSize: 10000,
+        condition: [
           {
-            FieldName: 'CameraId',
-            FieldValue: cameraId,
-            CSharpTypeName: 'long',
+            fieldName: 'CameraId',
+            fieldValue: cameraId,
+            cSharpTypeName: 'long',
           },
         ],
-        Order: [{ FieldName: 'StartTime', OrderByType: 0 }],
+        order: [{ fieldName: 'StartTime', orderByType: 0 }],
       }
       const { data } = await openapi.POST('/Segment/Query', { body })
       if (!data?.length) return
@@ -50,18 +50,18 @@ export default function Page({
 
     const getDetectionCount = async (cameraId: string) => {
       const body: QueryDto = {
-        PageNumber: 1,
-        PageSize: 1,
-        Condition: [
+        pageNumber: 1,
+        pageSize: 1,
+        condition: [
           {
-            FieldName: 'CameraId',
-            FieldValue: cameraId,
-            CSharpTypeName: 'long',
+            fieldName: 'CameraId',
+            fieldValue: cameraId,
+            cSharpTypeName: 'long',
           },
         ],
       }
       const { data } = await openapi.POST('/Detection/Count', { body })
-      if (data) setDetectionCount(data)
+      if (data) setDetectionCount(Number(data))
     }
 
     params.then((p) => {
@@ -80,13 +80,13 @@ export default function Page({
   const storageUsed =
     segments.length == 0
       ? 0
-      : segments.reduce((sum, seg) => sum + (seg.Size || 0), 0) / 1024
+      : segments.reduce((sum, seg) => sum + (Number(seg.size) || 0), 0) / 1024
   // 总录制时长 h
   const totalDuration =
     segments.length == 0
       ? 0
       : segments.reduce((sum, seg) => {
-          return sum + timeSpanToMilliseconds(seg.DurationActual!)
+          return sum + timeSpanToMilliseconds(seg.durationActual!)
         }, 0) /
         1000 /
         60 /
@@ -97,7 +97,7 @@ export default function Page({
       ? 0
       : new Set(
           segments.map(
-            (seg) => new Date(seg.StartTime || '').toISOString().split('T')[0],
+            (seg) => new Date(seg.startTime || '').toISOString().split('T')[0],
           ),
         ).size
 
@@ -141,7 +141,7 @@ export default function Page({
 
   return (
     <div className="max-w-8xl mx-auto grid w-full gap-6 p-8">
-      <h1 className="text-3xl font-bold">{cameraInfo.Name}</h1>
+      <h1 className="text-3xl font-bold">{cameraInfo.name}</h1>
       {/* Camera Info Card */}
       <Card>
         <CardHeader>
@@ -156,18 +156,18 @@ export default function Page({
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <p>
-            <strong>ID:</strong> {cameraInfo.Id}
+            <strong>ID:</strong> {cameraInfo.id}
           </p>
           <p>
-            <strong>{t('basePath')}:</strong> {cameraInfo.BasePath}
+            <strong>{t('basePath')}:</strong> {cameraInfo.basePath}
           </p>
           <p>
             <strong>{t('firstOnline')}:</strong>{' '}
-            {new Date(firstSegment?.StartTime ?? '').toLocaleString()}
+            {new Date(firstSegment?.startTime ?? '').toLocaleString()}
           </p>
           <p>
             <strong>{t('lastOnline')}:</strong>{' '}
-            {new Date(lastSegment?.EndTime ?? '').toLocaleString()}
+            {new Date(lastSegment?.endTime ?? '').toLocaleString()}
           </p>
         </CardContent>
       </Card>
@@ -179,18 +179,18 @@ export default function Page({
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <p>
-              <strong>{t('videoCodec')}:</strong> {firstSegment?.VideoCodec}
+              <strong>{t('videoCodec')}:</strong> {firstSegment?.videoCodec}
             </p>
             <p>
-              <strong>{t('resolution')}:</strong> {firstSegment?.VideoWidth} x{' '}
-              {firstSegment?.VideoHeight}
+              <strong>{t('resolution')}:</strong> {firstSegment?.videoWidth} x{' '}
+              {firstSegment?.videoHeight}
             </p>
             <p>
               <strong>{t('avgFps')}:</strong>{' '}
               {segments.length > 0
                 ? (
                     segments.reduce(
-                      (sum, seg) => sum + (seg.VideoFps || 0),
+                      (sum, seg) => sum + (Number(seg.videoFps) || 0),
                       0,
                     ) / segments.length
                   ).toFixed(2)
@@ -202,7 +202,7 @@ export default function Page({
               {segments.length > 0
                 ? (
                     segments.reduce(
-                      (sum, seg) => sum + (seg.VideoBitrate || 0),
+                      (sum, seg) => sum + (Number(seg.videoBitrate) || 0),
                       0,
                     ) / segments.length
                   ).toFixed(2)
@@ -218,21 +218,21 @@ export default function Page({
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <p>
-              <strong>{t('audioCodec')}:</strong> {firstSegment?.AudioCodec}
+              <strong>{t('audioCodec')}:</strong> {firstSegment?.audioCodec}
             </p>
             <p>
-              <strong>{t('sampleRate')}</strong> {firstSegment?.AudioSampleRate}{' '}
+              <strong>{t('sampleRate')}</strong> {firstSegment?.audioSampleRate}{' '}
               Hz
             </p>
             <p>
-              <strong>{t('channels')}:</strong> {firstSegment?.AudioChannels}
+              <strong>{t('channels')}:</strong> {firstSegment?.audioChannels}
             </p>
             <p>
               <strong>{t('avgBitrate')}:</strong>{' '}
               {segments.length > 0
                 ? (
                     segments.reduce(
-                      (sum, seg) => sum + (seg.AudioBitrate || 0),
+                      (sum, seg) => sum + (Number(seg.audioBitrate) || 0),
                       0,
                     ) / segments.length
                   ).toFixed(2)
@@ -259,7 +259,7 @@ export default function Page({
             <CardTitle>
               <div className="flex items-center justify-between">
                 {t('detections')}
-                <Link href={`/${locale}/${cameraInfo.Id}/detections`}>
+                <Link href={`/${locale}/${cameraInfo.id}/detections`}>
                   <ArrowUpRight />
                 </Link>
               </div>
@@ -289,7 +289,7 @@ export default function Page({
             <CardTitle>
               <div className="flex items-center justify-between">
                 {t('recordDuration')}
-                <Link href={`/${locale}/${cameraInfo.Id}/playback`}>
+                <Link href={`/${locale}/${cameraInfo.id}/playback`}>
                   <ArrowUpRight />
                 </Link>
               </div>
@@ -322,7 +322,7 @@ export default function Page({
             <CardTitle>
               <div className="flex items-center justify-between">
                 {t('segmentCount')}
-                <Link href={`/${locale}/${cameraInfo.Id}/segments`}>
+                <Link href={`/${locale}/${cameraInfo.id}/segments`}>
                   <ArrowUpRight />
                 </Link>
               </div>
@@ -376,8 +376,8 @@ export default function Page({
       </div>
       {/*chart*/}
       <div className="space-y-6">
-        <CameraChart cameraId={cameraInfo.Id?.toString()} />
-        <DetectionChart cameraId={cameraInfo.Id?.toString()} />
+        <CameraChart cameraId={cameraInfo.id?.toString()} />
+        <DetectionChart cameraId={cameraInfo.id?.toString()} />
       </div>
     </div>
   )

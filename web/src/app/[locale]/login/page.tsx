@@ -3,7 +3,13 @@
 import { components } from '@/api/schema'
 import { MagicCard } from '@/components/magicui/magic-card'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { openapi } from '@/lib/http'
@@ -13,7 +19,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 export default function Page() {
@@ -22,14 +28,12 @@ export default function Page() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { resolvedTheme } = useTheme()
-  const [gradientColor, setGradientColor] = useState('#D9D9D955')
   const [oidcAddress, setOidcAddress] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  useEffect(() => {
-    // 设置渐变色
-    setGradientColor(resolvedTheme === 'dark' ? '#262626' : '#D9D9D955')
+  const gradientColor = useMemo(() => {
+    return resolvedTheme === 'dark' ? '#262626' : '#D9D9D955'
   }, [resolvedTheme])
 
   useEffect(() => {
@@ -70,8 +74,8 @@ export default function Page() {
       return
     }
     const body: components['schemas']['SystemUser'] = {
-      Email: email,
-      Password: passwordEncrypted,
+      email: email,
+      password: passwordEncrypted,
     }
     const { data } = await openapi.POST('/Authentication/Login', {
       body: body,

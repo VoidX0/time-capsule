@@ -5,7 +5,6 @@ using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Grafana.Loki;
@@ -185,27 +184,19 @@ public static class WebApplicationBuilderExtension
         {
             var app = builder.Environment.ApplicationName;
             var version = Assembly.GetEntryAssembly()?.GetName().Version;
-            builder.Services.AddSwaggerGen(x =>
+            builder.Services.AddOpenApi(x =>
             {
-                // 添加版本
-                x.SwaggerDoc("v1", new OpenApiInfo { Title = app, Version = version?.ToString() });
-                // 添加注释
-                var basePath = Path.GetDirectoryName(typeof(Program).Assembly.Location) ?? "";
-                var xmlPath = Path.Combine(basePath, $"{app}.xml");
-                x.IncludeXmlComments(xmlPath);
-                // 添加描述
-                x.SchemaFilter<EnumDescriptionFilter>();
-                x.SchemaFilter<SugarTableDescriptionFilter>();
-                x.SchemaFilter<SugarColumnDescriptionFilter>();
-                // 添加文档
-                x.DocumentFilter<MarkdownDocumentFilter>();
-                // 添加授权
-                x.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                x.AddDocumentTransformer((document, _, _) =>
                 {
-                    In = ParameterLocation.Header,
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
+                    document.Info = new() { Title = app, Version = version?.ToString() };
+                    return Task.CompletedTask;
                 });
+                x.AddDocumentTransformer<MarkdownDescriptionTransformer>();
+                x.AddDocumentTransformer<BearerSecurityTransformer>();
+                x.AddOperationTransformer<StatusCodeTransformer>();
+                x.AddSchemaTransformer<EnumDescriptionTransformer>();
+                x.AddSchemaTransformer<SugarTableDescriptionTransformer>();
+                x.AddSchemaTransformer<SugarColumnDescriptionTransformer>();
             });
         }
 

@@ -44,17 +44,15 @@ export default function Page({
   const playerRef = useRef<CameraPlayerHandle>(null) // 播放器引用
   const timelineRef = useRef<CameraTimelineHandle>(null) // 时间轴引用
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
-  const [initialTime, setInitialTime] = useState(0) // 初始时间
-  const [progress, setProgress] = useState(0) // 播放进度
+  // 初始时间
+  const [initialTime] = useState(() => {
+    return Date.now() - 2 * 24 * 60 * 60 * 1000
+  })
+  const [progress, setProgress] = useState(initialTime) // 播放进度
   const [playbackRate, setPlaybackRate] = useState(1) // 播放速率
   const [calendarOpen, setCalendarOpen] = useState(false) // 日历弹窗状态
-
-  /* 初始化时间 */
-  useEffect(() => {
-    const ts = Date.now() - 2 * 24 * 60 * 60 * 1000
-    setInitialTime(ts) // 设置初始时间
-    setProgress(ts) // 设置进度为初始时间
-  }, [])
+  const [isPaused, setIsPaused] = useState(false) // 播放器暂停状态
+  const [isMuted, setIsMuted] = useState(true) // 播放器静音状态
 
   /* 加载摄像头信息 */
   useEffect(() => {
@@ -96,15 +94,17 @@ export default function Page({
   // 初始化完成
   return (
     <div className="max-w-8xl mx-auto grid w-full gap-4 rounded-xl p-8 md:w-2/3">
-      <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.Name || ''}</h1>
+      <h1 className="mb-6 text-3xl font-bold">{cameraInfo?.name || ''}</h1>
       {/*播放器*/}
       <CameraPlayer
         ref={playerRef}
-        cameraId={cameraInfo?.Id?.toString() ?? ''}
+        cameraId={cameraInfo?.id?.toString() ?? ''}
         initialStartTime={initialTime}
         onPlayProgress={(ts) => {
           setProgress(ts) // 更新进度
           timelineRef.current?.seekTo(ts) // 同步到时间轴
+          const video = playerRef.current?.videoElement
+          if (video) setIsPaused(video.paused)
         }}
         onStartTimeChange={() => {
           if (!playerRef.current?.videoElement?.playbackRate) return
@@ -125,18 +125,19 @@ export default function Page({
               variant="outline"
               size="icon"
               onClick={() => {
-                if (playerRef.current?.videoElement?.paused) {
-                  playerRef.current?.videoElement?.play().catch(console.warn)
+                const video = playerRef.current?.videoElement
+                if (!video) return
+
+                if (isPaused) {
+                  video.play().catch(console.warn)
+                  setIsPaused(false)
                 } else {
-                  playerRef.current?.videoElement?.pause()
+                  video.pause()
+                  setIsPaused(true)
                 }
               }}
             >
-              {playerRef.current?.videoElement?.paused ? (
-                <CirclePlay />
-              ) : (
-                <CirclePause />
-              )}
+              {isPaused ? <CirclePlay /> : <CirclePause />}
             </Button>
             {/*全屏*/}
             <Button
@@ -156,13 +157,10 @@ export default function Page({
                 if (playerRef.current?.videoElement == null) return
                 playerRef.current.videoElement.muted =
                   !playerRef.current.videoElement.muted
+                setIsMuted(playerRef.current.videoElement.muted) // 更新静音状态
               }}
             >
-              {playerRef.current?.videoElement?.muted ? (
-                <VolumeOff />
-              ) : (
-                <Volume2 />
-              )}
+              {isMuted ? <VolumeOff /> : <Volume2 />}
             </Button>
             {/*音量控制*/}
             <Slider
@@ -170,7 +168,7 @@ export default function Page({
               defaultValue={[0]}
               max={100}
               step={1}
-              disabled={playerRef.current?.videoElement?.muted} // 静音时禁用
+              disabled={isMuted} // 静音时禁用
               onValueChange={(value) => {
                 if (!playerRef.current?.videoElement) return
                 playerRef.current.videoElement.volume = value[0]! / 100
@@ -219,7 +217,7 @@ export default function Page({
       {/*时间轴*/}
       <CameraTimeline
         ref={timelineRef}
-        cameraId={cameraInfo?.Id?.toString() ?? ''}
+        cameraId={cameraInfo?.id?.toString() ?? ''}
         initialTime={initialTime}
         onTimeChange={() => playerRef.current?.videoElement?.pause()}
         onTimeCommit={(ts) => {

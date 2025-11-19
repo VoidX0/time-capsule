@@ -22,7 +22,6 @@ public static class JsonOptions
     /// <returns>配置后的JsonSerializerOptions</returns>
     public static JsonSerializerOptions ConfigureOptions(this JsonSerializerOptions options)
     {
-        options.PropertyNamingPolicy = null; //属性名称不转换
         options.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All); //中文不转义
         options.Converters.Add(new DateTimeOffsetJsonConverter()); //DateTimeOffset处理为时间戳
         options.Converters.Add(new LongJsonConverter()); //long处理为字符串

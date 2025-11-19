@@ -10,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 type Camera = components['schemas']['Camera']
 
@@ -28,18 +28,15 @@ export function CameraSearchDialog({
   const t = useTranslations('MainLayout')
   const locale = useLocale()
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<Camera[]>([])
   const router = useRouter()
 
-  useEffect(() => {
+  const results: Camera[] = useMemo(() => {
     if (!query) {
-      setResults([])
-      return
+      return []
     }
-    const filtered = cameras.filter((cam) =>
-      cam.Name?.toLowerCase().includes(query.toLowerCase()),
+    return cameras.filter((cam) =>
+      cam.name?.toLowerCase().includes(query.toLowerCase()),
     )
-    setResults(filtered)
   }, [query, cameras])
 
   const handleClick = (cameraId: string | undefined) => {
@@ -63,11 +60,11 @@ export function CameraSearchDialog({
         <div className="max-h-60 overflow-y-auto">
           {results.map((cam) => (
             <div
-              key={cam.Id}
+              key={cam.id}
               className="hover:bg-muted cursor-pointer p-2"
-              onClick={() => handleClick(cam.Id?.toString())}
+              onClick={() => handleClick(cam.id?.toString())}
             >
-              {cam.Name}
+              {cam.name}
             </div>
           ))}
           {results.length === 0 && query && (

@@ -9,7 +9,7 @@ import { openapi } from '@/lib/http'
 import { rsaEncrypt } from '@/lib/security'
 import { Pencil } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 type SystemUser = components['schemas']['SystemUser']
@@ -29,23 +29,28 @@ export function UserProfileDialog({
 }: UserProfileDialogProps) {
   const t = useTranslations('MainLayout')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [avatarToken, setAvatarToken] = useState<string>('')
 
   const [isEditing, setIsEditing] = useState(false) // 是否处于编辑模式
   const [form, setForm] = useState({
-    Email: user?.Email ?? '',
-    NickName: user?.NickName ?? '',
-    Password: '',
-    ConfirmPassword: '',
+    email: user?.email ?? '',
+    nickName: user?.nickName ?? '',
+    password: '',
+    confirmPassword: '',
   })
 
   useEffect(() => {
-    setForm({
-      Email: user?.Email ?? '',
-      NickName: user?.NickName ?? '',
-      Password: '',
-      ConfirmPassword: '',
-    })
-    setIsEditing(false) // 打开时默认查看模式
+    const load = () => {
+      setAvatarToken(rsaEncrypt(Date.now().toString()) || '') // 更新Token
+      setForm({
+        email: user?.email ?? '',
+        nickName: user?.nickName ?? '',
+        password: '',
+        confirmPassword: '',
+      })
+      setIsEditing(false) // 打开时默认查看模式
+    }
+    load()
   }, [user, open])
 
   const handleChange = (field: keyof typeof form, value: string) => {
@@ -53,22 +58,22 @@ export function UserProfileDialog({
   }
 
   const handleSave = () => {
-    if (form.Password && form.Password !== form.ConfirmPassword) {
+    if (form.password && form.password !== form.confirmPassword) {
       toast.error(t('passwordNotMatch'))
       return
     }
 
     if (onSave) {
       const password =
-        form.Password.length > 0
-          ? rsaEncrypt(form.Password)
-          : rsaEncrypt(user!.Password ?? '***')
+        form.password.length > 0
+          ? rsaEncrypt(form.password)
+          : rsaEncrypt(user!.password ?? '***')
 
       onSave({
         ...user!,
-        Email: form.Email,
-        NickName: form.NickName,
-        Password: password == false ? user!.Password : password,
+        email: form.email,
+        nickName: form.nickName,
+        password: password == false ? user!.password : password,
       })
     }
     setIsEditing(false)
@@ -94,7 +99,7 @@ export function UserProfileDialog({
       'user-avatar-img',
     ) as HTMLImageElement
     if (avatarImg) {
-      avatarImg.src = `/api/Authentication/GetAvatar?id=${user?.Id}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}&t=${Date.now()}`
+      avatarImg.src = `/api/Authentication/GetAvatar?id=${user?.id}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}&t=${Date.now()}`
     }
   }
 
@@ -110,12 +115,12 @@ export function UserProfileDialog({
             <Avatar className="h-20 w-20 rounded-full">
               <AvatarImage
                 id="user-avatar-img"
-                src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
-                alt={user?.NickName ?? ''}
+                src={`/api/Authentication/GetAvatar?id=${user?.id?.toString()}&token=${encodeURIComponent(avatarToken)}`}
+                alt={user?.nickName ?? ''}
               />
               <AvatarFallback className="rounded-full">
-                {(user?.NickName?.length ?? -1) > 0
-                  ? user?.NickName![0]!.toUpperCase()
+                {(user?.nickName?.length ?? -1) > 0
+                  ? user?.nickName![0]!.toUpperCase()
                   : ' '}
               </AvatarFallback>
             </Avatar>
@@ -144,8 +149,8 @@ export function UserProfileDialog({
                   {t('changeEmail')}
                 </label>
                 <Input
-                  value={form.Email}
-                  onChange={(e) => handleChange('Email', e.target.value)}
+                  value={form.email}
+                  onChange={(e) => handleChange('email', e.target.value)}
                 />
               </div>
               <div className="grid gap-1">
@@ -153,8 +158,8 @@ export function UserProfileDialog({
                   {t('changeNickname')}
                 </label>
                 <Input
-                  value={form.NickName}
-                  onChange={(e) => handleChange('NickName', e.target.value)}
+                  value={form.nickName}
+                  onChange={(e) => handleChange('nickName', e.target.value)}
                 />
               </div>
               <div className="grid gap-1">
@@ -163,15 +168,15 @@ export function UserProfileDialog({
                 </label>
                 <Input
                   type="password"
-                  value={form.Password}
-                  onChange={(e) => handleChange('Password', e.target.value)}
+                  value={form.password}
+                  onChange={(e) => handleChange('password', e.target.value)}
                 />
                 <Input
                   type="password"
                   placeholder={t('confirmPassword')}
-                  value={form.ConfirmPassword}
+                  value={form.confirmPassword}
                   onChange={(e) =>
-                    handleChange('ConfirmPassword', e.target.value)
+                    handleChange('confirmPassword', e.target.value)
                   }
                 />
               </div>
@@ -186,13 +191,13 @@ export function UserProfileDialog({
             <>
               <div className="grid gap-1">
                 <span className="text-sm font-medium">{t('changeEmail')}</span>
-                <span>{user?.Email}</span>
+                <span>{user?.email}</span>
               </div>
               <div className="grid gap-1">
                 <span className="text-sm font-medium">
                   {t('changeNickname')}
                 </span>
-                <span>{user?.NickName}</span>
+                <span>{user?.nickName}</span>
               </div>
               <Button className="mt-2" onClick={() => setIsEditing(true)}>
                 {t('editProfile')}

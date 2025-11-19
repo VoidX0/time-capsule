@@ -3,7 +3,12 @@
 import { components } from '@/api/schema'
 import { getCameras } from '@/app/[locale]/(main)/[camera]/camera'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { useLocale, useTranslations } from 'next-intl'
@@ -43,16 +48,16 @@ export default function Page() {
         // 查询该摄像头的切片
         const { data: segs } = await openapi.POST('/Segment/Query', {
           body: {
-            PageNumber: 1,
-            PageSize: 10000,
-            Condition: [
+            pageNumber: 1,
+            pageSize: 10000,
+            condition: [
               {
-                FieldName: 'CameraId',
-                FieldValue: cam.Id?.toString(),
-                CSharpTypeName: 'long',
+                fieldName: 'CameraId',
+                fieldValue: cam.id?.toString(),
+                cSharpTypeName: 'long',
               },
             ],
-            Order: [{ FieldName: 'StartTime', OrderByType: 0 }],
+            order: [{ fieldName: 'StartTime', orderByType: 0 }],
           },
         })
         const segments: Segment[] = segs || []
@@ -64,14 +69,14 @@ export default function Page() {
             : new Set(
                 segments.map(
                   (s) =>
-                    new Date(s.StartTime || '').toISOString().split('T')[0],
+                    new Date(s.startTime || '').toISOString().split('T')[0],
                 ),
               ).size
         const totalStorage =
-          segments.reduce((sum, s) => sum + (s.Size || 0), 0) / 1024
+          segments.reduce((sum, s) => sum + (Number(s.size) || 0), 0) / 1024
         const totalDuration =
           segments.reduce(
-            (sum, s) => sum + timeSpanToMilliseconds(s.DurationActual!),
+            (sum, s) => sum + timeSpanToMilliseconds(s.durationActual!),
             0,
           ) /
           1000 /
@@ -79,9 +84,9 @@ export default function Page() {
         const chartData: { date: string; storage: number }[] = []
         const grouped: Record<string, { storage: number }> = {}
         segments.forEach((seg) => {
-          const key = new Date(seg.StartTime!).toISOString().split('T')[0]
+          const key = new Date(seg.startTime!).toISOString().split('T')[0]
           if (!grouped[key!]) grouped[key!] = { storage: 0 }
-          grouped[key!]!.storage += (seg.Size || 0) / 1024
+          grouped[key!]!.storage += (Number(seg.size) || 0) / 1024
         })
         for (const [date, val] of Object.entries(grouped)) {
           chartData.push({ date, storage: val.storage })
@@ -106,11 +111,11 @@ export default function Page() {
   return (
     <div className="max-w-8xl mx-auto grid grid-cols-1 gap-6 p-8 sm:grid-cols-2 lg:grid-cols-3">
       {summaries.map((s) => (
-        <Card key={s.camera.Id}>
+        <Card key={s.camera.id}>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              {s.camera.Name}
-              <Link href={`/${locale}/${s.camera.Id}/dashboard`}>
+              {s.camera.name}
+              <Link href={`/${locale}/${s.camera.id}/dashboard`}>
                 {t('details')}
               </Link>
             </CardTitle>

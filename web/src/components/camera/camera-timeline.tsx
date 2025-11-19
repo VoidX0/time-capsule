@@ -2,11 +2,24 @@
 
 import { components, paths } from '@/api/schema'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
 import { openapi } from '@/lib/http'
 import { CircleAlert, CircleDot, CircleX, Info } from 'lucide-react'
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 
 type GetTimelineQuery =
   paths['/Camera/GetTimeline']['get']['parameters']['query']
@@ -35,7 +48,7 @@ function clusterTimeline(
   maxPointPx = 40, // 最大像素间隔，低于该值归为同一类
 ) {
   const sorted = [...events].sort(
-    (a, b) => new Date(a.Time!).getTime() - new Date(b.Time!).getTime(),
+    (a, b) => new Date(a.time!).getTime() - new Date(b.time!).getTime(),
   )
   const clusters: Timeline[][] = []
   let cluster: Timeline[] = []
@@ -49,11 +62,11 @@ function clusterTimeline(
 
       // 计算当前事件与上一个事件在屏幕上的像素距离
       const lastX =
-        ((new Date(last.Time!).getTime() - viewport.min) /
+        ((new Date(last.time!).getTime() - viewport.min) /
           (viewport.max - viewport.min)) *
         containerWidth
       const currentX =
-        ((new Date(item.Time!).getTime() - viewport.min) /
+        ((new Date(item.time!).getTime() - viewport.min) /
           (viewport.max - viewport.min)) *
         containerWidth
 
@@ -74,6 +87,7 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
   ({ cameraId, initialTime, onTimeChange, onTimeCommit }, ref) => {
     const [timeline, setTimeline] = useState<Timeline[]>([]) // 摄像头时间线数据
     const [currentTime, setCurrentTime] = useState(initialTime) // 当前时间戳
+    const [containerWidth, setContainerWidth] = useState(1)
 
     // viewport 表示事件区的展示窗口
     const [viewport, setViewport] = useState({
@@ -102,6 +116,18 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
       if (!cameraId) return
       getTimeline().then((data) => setTimeline(data ?? []))
     }, [cameraId])
+
+    /* 监听容器宽度变化 */
+    useLayoutEffect(() => {
+      const updateWidth = () => {
+        if (containerRef.current) {
+          setContainerWidth(containerRef.current.offsetWidth)
+        }
+      }
+      updateWidth()
+      window.addEventListener('resize', updateWidth)
+      return () => window.removeEventListener('resize', updateWidth)
+    }, [])
 
     /* currentTime 变化时，调整 viewport */
     useEffect(() => {
@@ -155,14 +181,12 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
       },
     }))
 
-    const containerWidth = containerRef.current?.offsetWidth ?? 1
-
     // 使用按像素聚类的方法
     const clusters = clusterTimeline(
       (timeline ?? []).filter(
         (item) =>
-          new Date(item.Time!).getTime() >= viewport.min &&
-          new Date(item.Time!).getTime() <= viewport.max,
+          new Date(item.time!).getTime() >= viewport.min &&
+          new Date(item.time!).getTime() <= viewport.max,
       ),
       containerWidth,
       viewport,
@@ -216,18 +240,19 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
           {/* 中心线 */}
           <div className="absolute top-4 right-0 left-0 border-t-2" />
 
+          {/* eslint-disable-next-line react-hooks/refs */}
           {clusters.map((group, index) => {
             const first = group[0]
             if (!first) return null
 
             // 计算事件在屏幕上的百分比位置
             const positionPercent =
-              ((new Date(first.Time!).getTime() - viewport.min) /
+              ((new Date(first.time!).getTime() - viewport.min) /
                 (viewport.max - viewport.min)) *
               100
 
             const isActive =
-              Math.abs(currentTime - new Date(first.Time!).getTime()) <
+              Math.abs(currentTime - new Date(first.time!).getTime()) <
               30 * 1000
 
             const pointWidth = 120 // 子元素 max-width，px
@@ -247,9 +272,9 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
                 onClick={() => {
                   if (group.length === 1) {
                     // 单个事件，直接跳转
-                    onTimeChange?.(new Date(first.Time!).getTime())
-                    setCurrentTime(new Date(first.Time!).getTime())
-                    onTimeCommit?.(new Date(first.Time!).getTime())
+                    onTimeChange?.(new Date(first.time!).getTime())
+                    setCurrentTime(new Date(first.time!).getTime())
+                    onTimeCommit?.(new Date(first.time!).getTime())
                   } else {
                     // 聚类事件，显示聚类详情
                     setSelectedCluster(group)
@@ -281,28 +306,28 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
                 <div className="mt-8 max-w-[120px] space-y-2 text-xs sm:max-w-[160px] sm:text-sm">
                   <div className="flex flex-col items-center gap-2">
                     <div className="bg-accent flex h-9 w-9 items-center justify-center rounded-full">
-                      {first.Level === 'verbose' && (
+                      {first.level === 'verbose' && (
                         <CircleDot className="text-muted-foreground h-5 w-5" />
                       )}
-                      {first.Level === 'info' && (
+                      {first.level === 'info' && (
                         <Info className="h-5 w-5 text-blue-500" />
                       )}
-                      {first.Level === 'warning' && (
+                      {first.level === 'warning' && (
                         <CircleAlert className="h-5 w-5 text-yellow-500" />
                       )}
-                      {first.Level === 'error' && (
+                      {first.level === 'error' && (
                         <CircleX className="h-5 w-5 text-red-500" />
                       )}
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold">{first.Title}</h3>
+                    <h3 className="text-base font-semibold">{first.title}</h3>
                     <div className="mt-1 flex rotate-45 items-center justify-center gap-2 text-sm">
-                      <span>{new Date(first.Time!).toLocaleTimeString()}</span>
+                      <span>{new Date(first.time!).toLocaleTimeString()}</span>
                     </div>
                   </div>
                   <p className="text-muted-foreground text-sm">
-                    {first.Description}
+                    {first.description}
                   </p>
                 </div>
               </div>
@@ -324,48 +349,48 @@ const CameraTimeline = forwardRef<CameraTimelineHandle, CameraTimelineProps>(
                   key={idx}
                   className="hover:bg-muted/10 cursor-pointer rounded border-b p-2 pb-2 last:border-b-0"
                   onClick={() => {
-                    onTimeChange?.(new Date(item.Time!).getTime())
-                    setCurrentTime(new Date(item.Time!).getTime())
-                    onTimeCommit?.(new Date(item.Time!).getTime())
+                    onTimeChange?.(new Date(item.time!).getTime())
+                    setCurrentTime(new Date(item.time!).getTime())
+                    onTimeCommit?.(new Date(item.time!).getTime())
                     setSelectedCluster(undefined)
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold">{item.Title}</span>
+                    <span className="font-semibold">{item.title}</span>
                     <span className="text-muted-foreground text-sm">
-                      {new Date(item.Time!).toLocaleString()}
+                      {new Date(item.time!).toLocaleString()}
                     </span>
                   </div>
                   <p className="text-muted-foreground text-sm">
-                    {item.Description}
+                    {item.description}
                   </p>
-                  {item.Level === 'verbose' && (
+                  {item.level === 'verbose' && (
                     <Badge variant="secondary" className="mt-1 rounded-full">
-                      {item.Level}
+                      {item.level}
                     </Badge>
                   )}
-                  {item.Level === 'info' && (
+                  {item.level === 'info' && (
                     <Badge
                       variant="secondary"
                       className="mt-1 rounded-full text-blue-500"
                     >
-                      {item.Level}
+                      {item.level}
                     </Badge>
                   )}
-                  {item.Level === 'warning' && (
+                  {item.level === 'warning' && (
                     <Badge
                       variant="secondary"
                       className="mt-1 rounded-full text-yellow-500"
                     >
-                      {item.Level}
+                      {item.level}
                     </Badge>
                   )}
-                  {item.Level === 'error' && (
+                  {item.level === 'error' && (
                     <Badge
                       variant="secondary"
                       className="mt-1 rounded-full text-red-500"
                     >
-                      {item.Level}
+                      {item.level}
                     </Badge>
                   )}
                 </div>

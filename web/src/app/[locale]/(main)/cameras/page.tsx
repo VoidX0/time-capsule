@@ -5,7 +5,13 @@ import { getCameras } from '@/app/[locale]/(main)/[camera]/camera'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { openapi } from '@/lib/http'
 import { Plus, RefreshCcw, SquarePen, Trash2 } from 'lucide-react'
@@ -40,12 +46,15 @@ export default function Page() {
   }
 
   useEffect(() => {
-    fetchList().then()
+    const load = async () => {
+      await fetchList()
+    }
+    load().then()
   }, [])
 
   const handleDelete = async (id: number | undefined) => {
     if (!id) return
-    const body = cameras.find((c) => c.Id === id)
+    const body = cameras.find((c) => c.id === id)
     if (!body) return
     await openapi.DELETE('/Camera/Delete', {
       body: [body],
@@ -74,12 +83,12 @@ export default function Page() {
       await openapi.POST('/Camera/Insert', {
         body: [
           {
-            Name: newName,
-            BasePath: newBasePath,
-            SegmentTemplate: newTemplate,
-            EnableDetection: newEnableDetection,
-            DetectionInterval: newDetectionInterval,
-            DetectionConfidence: newDetectionConfidence,
+            name: newName,
+            basePath: newBasePath,
+            segmentTemplate: newTemplate,
+            enableDetection: newEnableDetection,
+            detectionInterval: newDetectionInterval,
+            detectionConfidence: newDetectionConfidence,
           },
         ],
       })
@@ -97,12 +106,12 @@ export default function Page() {
 
   const startEdit = (cam: Camera) => {
     setEditCam(cam)
-    setNewName(cam.Name || '')
-    setNewBasePath(cam.BasePath || '')
-    setNewTemplate(cam.SegmentTemplate || '')
-    setNewEnableDetection(cam.EnableDetection || false)
-    setNewDetectionInterval(cam.DetectionInterval || 30)
-    setNewDetectionConfidence(cam.DetectionConfidence || 0.3)
+    setNewName(cam.name || '')
+    setNewBasePath(cam.basePath || '')
+    setNewTemplate(cam.segmentTemplate || '')
+    setNewEnableDetection(cam.enableDetection || false)
+    setNewDetectionInterval(Number(cam.detectionInterval) || 30)
+    setNewDetectionConfidence(Number(cam.detectionConfidence) || 0.3)
     setDialogOpen(true)
   }
 
@@ -119,7 +128,7 @@ export default function Page() {
 
   const syncAndCache = async (cam: Camera) => {
     const { error } = await openapi.POST('/Camera/SyncAndCache', {
-      params: { query: { cameraId: cam.Id?.toString() } },
+      params: { query: { cameraId: cam.id?.toString() } },
     })
     if (error) toast.error(`${t('syncFail')}: ${error}`)
     else toast.success(t('syncSuccess'))
@@ -127,7 +136,7 @@ export default function Page() {
 
   const clearDetection = async (cam: Camera) => {
     const { error } = await openapi.DELETE('/Camera/ClearDetections', {
-      params: { query: { cameraId: cam.Id?.toString() } },
+      params: { query: { cameraId: cam.id?.toString() } },
     })
     if (error) toast.error(`${t('clearDetectionFail')}: ${error}`)
     else toast.success(t('clearDetectionSuccess'))
@@ -144,18 +153,18 @@ export default function Page() {
       </Button>
 
       {cameras.map((cam) => (
-        <Card key={cam.Id}>
+        <Card key={cam.id}>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              {cam.Name}
-              <Link href={`/${locale}/${cam.Id}/dashboard`}>
+              {cam.name}
+              <Link href={`/${locale}/${cam.id}/dashboard`}>
                 {t('details')}
               </Link>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <p>
-              ID: <strong>{cam.Id}</strong>
+              ID: <strong>{cam.id}</strong>
             </p>
             <div className="flex gap-2">
               <Button onClick={() => syncAndCache(cam)} variant="outline">
@@ -175,12 +184,12 @@ export default function Page() {
                     <DialogTitle>{t('deleteConfirm')}</DialogTitle>
                   </DialogHeader>
                   <p className="py-2">
-                    {t('deleteConfirmText', { param: cam.Name ?? '' })}
+                    {t('deleteConfirmText', { param: cam.name ?? '' })}
                   </p>
                   <div className="mt-4 flex justify-end gap-2">
                     <Button
                       variant="destructive"
-                      onClick={() => handleDelete(cam.Id)}
+                      onClick={() => handleDelete(Number(cam.id))}
                     >
                       {t('delete')}
                     </Button>

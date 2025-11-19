@@ -1,6 +1,17 @@
 import { components } from '@/api/schema'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { useTranslations } from 'next-intl'
@@ -26,7 +37,11 @@ const chartConfig = {
 } satisfies ChartConfig
 type QueryDto = components['schemas']['QueryDto']
 type Segment = components['schemas']['VideoSegment']
-export default function CameraChart({ cameraId }: { cameraId: string | undefined }) {
+export default function CameraChart({
+  cameraId,
+}: {
+  cameraId: string | undefined
+}) {
   const t = useTranslations('CameraDashboardPage')
   const [activeChart, setActiveChart] =
     useState<keyof typeof chartConfig>('storage') // 激活的图表
@@ -51,23 +66,23 @@ export default function CameraChart({ cameraId }: { cameraId: string | undefined
     const getSegments = async () => {
       if (!cameraId) return
       const body: QueryDto = {
-        PageNumber: 1,
-        PageSize: 1000 * 1000 * 1000,
-        Order: [{ FieldName: 'StartTime', OrderByType: 0 }],
+        pageNumber: 1,
+        pageSize: 1000 * 1000 * 1000,
+        order: [{ fieldName: 'StartTime', orderByType: 0 }],
       }
       if (cameraId != '0')
-        body.Condition = [
+        body.condition = [
           {
-            FieldName: 'CameraId',
-            FieldValue: cameraId,
-            CSharpTypeName: 'long',
+            fieldName: 'CameraId',
+            fieldValue: cameraId,
+            cSharpTypeName: 'long',
           },
         ]
       const { data } = await openapi.POST('/Segment/Query', { body })
       // 按天分组
       const segmentsByDay: Record<string, Segment[]> = {}
       data?.forEach((segment: Segment) => {
-        const date = new Date(segment.StartTime!).toISOString().split('T')[0]
+        const date = new Date(segment.startTime!).toISOString().split('T')[0]
         if (!segmentsByDay[date!]) {
           segmentsByDay[date!] = []
         }
@@ -82,14 +97,14 @@ export default function CameraChart({ cameraId }: { cameraId: string | undefined
         { storage: number; segment: number; duration: number }
       > = {}
       segments.forEach((seg) => {
-        const dateKey = new Date(seg.StartTime!).toISOString().split('T')[0]
+        const dateKey = new Date(seg.startTime!).toISOString().split('T')[0]
         if (!groupedData[dateKey!]) {
           groupedData[dateKey!] = { storage: 0, segment: 0, duration: 0 }
         }
-        groupedData[dateKey!]!.storage += (seg.Size || 0) / 1024 // 转换为 GB
+        groupedData[dateKey!]!.storage += (Number(seg.size) || 0) / 1024 // 转换为 GB
         groupedData[dateKey!]!.segment += 1
         groupedData[dateKey!]!.duration +=
-          timeSpanToMilliseconds(seg.DurationActual!) / 1000 / 60 / 60 // 转换为小时
+          timeSpanToMilliseconds(seg.durationActual!) / 1000 / 60 / 60 // 转换为小时
       })
       const chartData = Object.entries(groupedData).map(([date, values]) => ({
         date,

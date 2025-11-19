@@ -9,14 +9,32 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { openapi } from '@/lib/http'
 import { rsaEncrypt } from '@/lib/security'
-import { Check, Pen, Shield, ShieldPlus, ShieldX, UserRoundPen, UserRoundPlus, UserRoundX } from 'lucide-react'
+import {
+  Check,
+  Pen,
+  Shield,
+  ShieldPlus,
+  ShieldX,
+  UserRoundPen,
+  UserRoundPlus,
+  UserRoundX,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 
@@ -50,9 +68,12 @@ export default function Page() {
   const [initialGrantedIds, setInitialGrantedIds] = useState<number[]>([])
   const [grantedCheckedIds, setGrantedCheckedIds] = useState<number[]>([]) // 已授权列表，当前勾选
   const [unGrantedCheckedIds, setUnGrantedCheckedIds] = useState<number[]>([]) // 未授权列表，当前勾选
+  const [avatarToken, setAvatarToken] = useState<string>('')
 
   /* 刷新数据 */
   const refresh = async () => {
+    setAvatarToken(rsaEncrypt(Date.now().toString()) || '') // 更新Token
+
     const { data: rolesData } = await openapi.GET('/Authentication/Roles')
     setRoles(rolesData ?? [])
     const { data: usersData } = await openapi.GET('/Authentication/Users')
@@ -60,14 +81,17 @@ export default function Page() {
   }
 
   useEffect(() => {
-    refresh().then()
+    const fetchData = async () => {
+      await refresh()
+    }
+    fetchData().then()
   }, [])
 
   /* 角色保存 */
   const saveRole = async () => {
     if (!editRole) return
     let failed = undefined
-    if (editRole.Id) {
+    if (editRole.id) {
       const { error } = await openapi.PUT('/Authentication/ModifyRole', {
         body: editRole,
       })
@@ -88,10 +112,10 @@ export default function Page() {
   const saveUser = async () => {
     if (!editUser) return
     const password =
-      rsaEncrypt(editUser.Password?.toString() ?? '') || undefined
+      rsaEncrypt(editUser.password?.toString() ?? '') || undefined
     const body = { ...editUser, Role: selectedRoles, Password: password }
     let failed = undefined
-    if (editUser?.Id) {
+    if (editUser?.id) {
       const { error } = await openapi.PUT('/Authentication/ModifyUser', {
         body,
       })
@@ -121,7 +145,7 @@ export default function Page() {
         ? await openapi.GET('/Authentication/UserControllers', {
             params: {
               query: {
-                userId: (target as User).Id?.toString(),
+                userId: (target as User).id?.toString(),
                 isGranted: true,
               },
             },
@@ -129,7 +153,7 @@ export default function Page() {
         : await openapi.GET('/Authentication/RoleControllers', {
             params: {
               query: {
-                roleId: (target as Role).Id?.toString(),
+                roleId: (target as Role).id?.toString(),
                 isGranted: true,
               },
             },
@@ -141,7 +165,7 @@ export default function Page() {
         ? await openapi.GET('/Authentication/UserControllers', {
             params: {
               query: {
-                userId: (target as User).Id?.toString(),
+                userId: (target as User).id?.toString(),
                 isGranted: false,
               },
             },
@@ -149,7 +173,7 @@ export default function Page() {
         : await openapi.GET('/Authentication/RoleControllers', {
             params: {
               query: {
-                roleId: (target as Role).Id?.toString(),
+                roleId: (target as Role).id?.toString(),
                 isGranted: false,
               },
             },
@@ -159,10 +183,10 @@ export default function Page() {
     setUnGrantedControllers(unGrantedList ?? []) // 未授权控制器列表
 
     // 记录初始的授权ID数据
-    const ids = (grantedList ?? []).map((c) => c.Id!)
-    setInitialGrantedIds(ids)
+    const ids = (grantedList ?? []).map((c) => c.id!)
+    setInitialGrantedIds(ids.map((id) => Number(id)))
     // 打开时默认已授权全部选中，可供用户取消选择
-    setGrantedCheckedIds(ids)
+    setGrantedCheckedIds(ids.map((id) => Number(id)))
     // 未授权列表初始为空
     setUnGrantedCheckedIds([])
     // 打开对话框
@@ -183,13 +207,13 @@ export default function Page() {
       if (authorizeType === 'user') {
         await openapi.POST('/Authentication/AddUserGrant', {
           params: {
-            query: { userId: (authorizeTarget as User).Id, controllerId: id },
+            query: { userId: (authorizeTarget as User).id, controllerId: id },
           },
         })
       } else {
         await openapi.POST('/Authentication/AddRoleGrant', {
           params: {
-            query: { roleId: (authorizeTarget as Role).Id, controllerId: id },
+            query: { roleId: (authorizeTarget as Role).id, controllerId: id },
           },
         })
       }
@@ -199,13 +223,13 @@ export default function Page() {
       if (authorizeType === 'user') {
         await openapi.DELETE('/Authentication/DeleteUserGrant', {
           params: {
-            query: { userId: (authorizeTarget as User).Id, controllerId: id },
+            query: { userId: (authorizeTarget as User).id, controllerId: id },
           },
         })
       } else {
         await openapi.DELETE('/Authentication/DeleteRoleGrant', {
           params: {
-            query: { roleId: (authorizeTarget as Role).Id, controllerId: id },
+            query: { roleId: (authorizeTarget as Role).id, controllerId: id },
           },
         })
       }
@@ -267,30 +291,30 @@ export default function Page() {
                 </thead>
                 <tbody>
                   {users.map((user) => (
-                    <tr key={user.Id} className="border-b">
+                    <tr key={user.id} className="border-b">
                       <td className="p-2">
                         <Avatar className="h-8 w-8 rounded-full">
                           {user && (
                             <AvatarImage
-                              src={`/api/Authentication/GetAvatar?id=${user?.Id?.toString()}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
-                              alt={user?.NickName ?? ''}
+                              src={`/api/Authentication/GetAvatar?id=${user?.id?.toString()}&token=${encodeURIComponent(avatarToken)}`}
+                              alt={user?.nickName ?? ''}
                             />
                           )}
                           <AvatarFallback className="rounded-full">
-                            {(user?.NickName?.length ?? -1) > 0
-                              ? user?.NickName![0]!.toUpperCase()
+                            {(user?.nickName?.length ?? -1) > 0
+                              ? user?.nickName![0]!.toUpperCase()
                               : ' '}
                           </AvatarFallback>
                         </Avatar>
                       </td>
-                      <td className="p-2">{user.Id}</td>
-                      <td className="p-2">{user.Email}</td>
-                      <td className="p-2">{user.NickName}</td>
+                      <td className="p-2">{user.id}</td>
+                      <td className="p-2">{user.email}</td>
+                      <td className="p-2">{user.nickName}</td>
                       <td className="flex-wrap gap-2 overflow-x-auto p-2">
-                        {user.Role?.map((id) => {
-                          const role = roles.find((r) => r.Id === id)
+                        {user.role?.map((id) => {
+                          const role = roles.find((r) => r.id === id)
                           return role ? (
-                            <Badge key={id}>{role.Name}</Badge>
+                            <Badge key={id}>{role.name}</Badge>
                           ) : null
                         })}
                       </td>
@@ -299,7 +323,9 @@ export default function Page() {
                           variant="outline"
                           onClick={() => {
                             setEditUser(user)
-                            setSelectedRoles(user.Role || [])
+                            setSelectedRoles(
+                              user.role?.map((v) => Number(v)) || [],
+                            )
                             setUserDialogOpen(true)
                           }}
                         >
@@ -329,7 +355,7 @@ export default function Page() {
                                   await openapi.DELETE(
                                     '/Authentication/DeleteUser',
                                     {
-                                      params: { query: { userId: user.Id } },
+                                      params: { query: { userId: user.id } },
                                     },
                                   )
                                   refresh().then()
@@ -375,9 +401,9 @@ export default function Page() {
                 </thead>
                 <tbody>
                   {roles.map((role) => (
-                    <tr key={role.Id} className="border-b">
-                      <td className="p-2">{role.Id}</td>
-                      <td className="p-2">{role.Name}</td>
+                    <tr key={role.id} className="border-b">
+                      <td className="p-2">{role.id}</td>
+                      <td className="p-2">{role.name}</td>
                       <td className="flex gap-2 p-2">
                         <Button
                           variant="outline"
@@ -412,7 +438,7 @@ export default function Page() {
                                   await openapi.DELETE(
                                     '/Authentication/DeleteRole',
                                     {
-                                      params: { query: { roleId: role.Id } },
+                                      params: { query: { roleId: role.id } },
                                     },
                                   )
                                   refresh().then()
@@ -438,15 +464,15 @@ export default function Page() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>
-              {editRole?.Id ? t('editRole') : t('addRole')}
+              {editRole?.id ? t('editRole') : t('addRole')}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Label>{t('role')}</Label>
             <Input
-              value={editRole?.Name || ''}
+              value={editRole?.name || ''}
               onChange={(e) =>
-                setEditRole({ ...editRole!, Name: e.target.value })
+                setEditRole({ ...editRole!, name: e.target.value })
               }
             />
             <Button variant="outline" onClick={saveRole}>
@@ -461,52 +487,52 @@ export default function Page() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>
-              {editUser?.Id ? t('editUser') : t('addUser')}
+              {editUser?.id ? t('editUser') : t('addUser')}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Label>{t('email')}</Label>
             <Input
-              value={editUser?.Email || ''}
+              value={editUser?.email || ''}
               onChange={(e) =>
-                setEditUser({ ...editUser!, Email: e.target.value })
+                setEditUser({ ...editUser!, email: e.target.value })
               }
             />
 
             <Label>{t('nickname')}</Label>
             <Input
-              value={editUser?.NickName || ''}
+              value={editUser?.nickName || ''}
               onChange={(e) =>
-                setEditUser({ ...editUser!, NickName: e.target.value })
+                setEditUser({ ...editUser!, nickName: e.target.value })
               }
             />
 
             <Label>{t('password')}</Label>
             <Input
               type="password"
-              value={editUser?.Password || ''}
+              value={editUser?.password || ''}
               onChange={(e) =>
-                setEditUser({ ...editUser!, Password: e.target.value })
+                setEditUser({ ...editUser!, password: e.target.value })
               }
             />
 
             <Label>{t('role')}</Label>
             <div className="flex max-h-40 flex-col gap-2 overflow-y-auto rounded border p-2">
               {roles.map((role) => (
-                <label key={role.Id} className="flex items-center gap-2">
+                <label key={role.id} className="flex items-center gap-2">
                   <Checkbox
-                    checked={selectedRoles.includes(role.Id!)}
+                    checked={selectedRoles.includes(Number(role.id!))}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setSelectedRoles([...selectedRoles, role.Id!])
+                        setSelectedRoles([...selectedRoles, Number(role.id!)])
                       } else {
                         setSelectedRoles(
-                          selectedRoles.filter((id) => id !== role.Id),
+                          selectedRoles.filter((id) => id !== role.id),
                         )
                       }
                     }}
                   />
-                  <span>{role.Name}</span>
+                  <span>{role.name}</span>
                 </label>
               ))}
             </div>
@@ -535,8 +561,8 @@ export default function Page() {
               {authorizeType === 'user'
                 ? t('authorizeUser') +
                   '：' +
-                  (authorizeTarget as User)?.NickName
-                : t('authorizeRole') + '：' + (authorizeTarget as Role)?.Name}
+                  (authorizeTarget as User)?.nickName
+                : t('authorizeRole') + '：' + (authorizeTarget as Role)?.name}
             </DialogTitle>
           </DialogHeader>
 
@@ -544,20 +570,23 @@ export default function Page() {
           <Label className="mt-2">{t('unauthorized')}</Label>
           <div className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded border p-2">
             {unGrantedControllers.map((ctrl) => (
-              <label key={ctrl.Id} className="flex items-center gap-2">
+              <label key={ctrl.id} className="flex items-center gap-2">
                 <Checkbox
-                  checked={unGrantedCheckedIds.includes(ctrl.Id!)}
+                  checked={unGrantedCheckedIds.includes(Number(ctrl.id!))}
                   onCheckedChange={(checked) => {
                     if (checked) {
-                      setUnGrantedCheckedIds([...unGrantedCheckedIds, ctrl.Id!])
+                      setUnGrantedCheckedIds([
+                        ...unGrantedCheckedIds,
+                        Number(ctrl.id!),
+                      ])
                     } else {
                       setUnGrantedCheckedIds(
-                        unGrantedCheckedIds.filter((id) => id !== ctrl.Id),
+                        unGrantedCheckedIds.filter((id) => id !== ctrl.id),
                       )
                     }
                   }}
                 />
-                <span>{ctrl.Title}</span>
+                <span>{ctrl.title}</span>
               </label>
             ))}
           </div>
@@ -566,20 +595,23 @@ export default function Page() {
           <Label className="mt-2">{t('authorized')}</Label>
           <div className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded border p-2">
             {grantedControllers.map((ctrl) => (
-              <label key={ctrl.Id} className="flex items-center gap-2">
+              <label key={ctrl.id} className="flex items-center gap-2">
                 <Checkbox
-                  checked={grantedCheckedIds.includes(ctrl.Id!)}
+                  checked={grantedCheckedIds.includes(Number(ctrl.id!))}
                   onCheckedChange={(checked) => {
                     if (checked) {
-                      setGrantedCheckedIds([...grantedCheckedIds, ctrl.Id!])
+                      setGrantedCheckedIds([
+                        ...grantedCheckedIds,
+                        Number(ctrl.id!),
+                      ])
                     } else {
                       setGrantedCheckedIds(
-                        grantedCheckedIds.filter((id) => id !== ctrl.Id),
+                        grantedCheckedIds.filter((id) => id !== ctrl.id),
                       )
                     }
                   }}
                 />
-                <span>{ctrl.Title}</span>
+                <span>{ctrl.title}</span>
               </label>
             ))}
           </div>
