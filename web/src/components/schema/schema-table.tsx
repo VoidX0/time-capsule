@@ -39,6 +39,10 @@ interface SchemaTableProps<T extends Record<string, unknown>> {
   onCancel?: () => void
   /** label 映射 */
   labelMap?: Partial<Record<keyof T, string>>
+  /** 新增：Header 插槽 */
+  headerSlot?: React.ReactNode
+  /** 新增：Footer 插槽 */
+  footerSlot?: React.ReactNode
 }
 
 /**
@@ -52,6 +56,8 @@ export default function SchemaTable<T extends Record<string, unknown>>({
   onConfirm,
   onCancel,
   labelMap = {},
+  headerSlot,
+  footerSlot,
 }: SchemaTableProps<T>) {
   const { resolvedTheme } = useTheme()
   const gradientColor = useMemo(() => {
@@ -89,6 +95,9 @@ export default function SchemaTable<T extends Record<string, unknown>>({
   return (
     <Card className="w-full overflow-auto border-none p-0 shadow-none">
       <MagicCard gradientColor={gradientColor} className="p-4">
+        {/*Header 插槽*/}
+        {headerSlot && <div className="mb-4">{headerSlot}</div>}
+        {/*表格区域*/}
         <div>
           <Table className="min-w-full">
             <TableHeader>
@@ -169,6 +178,8 @@ export default function SchemaTable<T extends Record<string, unknown>>({
               ))}
             </TableBody>
           </Table>
+          {/*Footer 插槽*/}
+          {footerSlot && <div className="mt-4">{footerSlot}</div>}
 
           {/* 操作按钮 */}
           {!readOnly && (
