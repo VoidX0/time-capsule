@@ -7,18 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import { formatDate, rangeWeek } from '@/lib/date-time'
@@ -26,7 +16,6 @@ import { openapi } from '@/lib/http'
 import { rsaEncrypt } from '@/lib/security'
 import { ArrowUp, CalendarIcon, Filter } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import { DateRange } from 'react-day-picker'
 
@@ -223,7 +212,7 @@ export default function Page({
                       isStatic={false}
                       ariaLabel="Zoom Area"
                     >
-                      <Image
+                      <img
                         src={`/api/Detection/GetImage?cameraId=${cameraInfo.id}&segmentId=${detections[0]!.segmentId}&framePath=${encodeURIComponent(detections[0]!.framePath!)}&token=${encodeURIComponent(rsaEncrypt(Date.now().toString()))}`}
                         alt={`Detection ${firstDetection!.id}`}
                         width={1920}
