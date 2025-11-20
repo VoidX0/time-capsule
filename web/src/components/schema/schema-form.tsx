@@ -179,16 +179,17 @@ export default function SchemaForm<T extends Record<string, unknown>>({
           })}
         </div>
 
-        {!readOnly && (
-          <div className="mt-6 flex justify-end gap-4">
-            <Button variant="outline" onClick={onCancel}>
-              <X />
-            </Button>
+        {/*操作*/}
+        <div className="mt-6 flex justify-end gap-4">
+          <Button variant="outline" onClick={onCancel}>
+            <X />
+          </Button>
+          {!readOnly && (
             <Button onClick={() => onConfirm?.(formData)}>
               <Check />
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </MagicCard>
     </Card>
   )
