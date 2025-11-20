@@ -1,15 +1,12 @@
 import { schemas } from '@/api/generatedSchemas'
 import { MagicCard } from '@/components/magicui/magic-card'
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDate, formatTime } from '@/lib/date-time'
 import { schemaDefaultValue } from '@/lib/schema'
-import { Check, X } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 /** schema 字段类型 */
 interface SchemaField {
@@ -29,14 +26,6 @@ interface SchemaTableProps<T extends Record<string, unknown>> {
   typeName: keyof typeof schemas
   /** 表格数据列表 */
   data?: T[]
-  /** 是否只读 */
-  readOnly?: boolean
-  /** 数据变更回调 */
-  onChange?: (data: T[]) => void
-  /** 点击确认 */
-  onConfirm?: (data: T[]) => void
-  /** 点击取消 */
-  onCancel?: () => void
   /** label 映射 */
   labelMap?: Partial<Record<keyof T, string>>
   /** 新增：Header 插槽 */
@@ -51,10 +40,6 @@ interface SchemaTableProps<T extends Record<string, unknown>> {
 export default function SchemaTable<T extends Record<string, unknown>>({
   typeName,
   data = [],
-  readOnly = false,
-  onChange,
-  onConfirm,
-  onCancel,
   labelMap = {},
   headerSlot,
   footerSlot,
@@ -65,32 +50,24 @@ export default function SchemaTable<T extends Record<string, unknown>>({
   }, [resolvedTheme])
 
   const schema = schemas[typeName] as SchemaType
-  // 初始化表格数据
-  const initialData = data.map((row) => ({
-    ...row,
-    ...Object.fromEntries(
-      Object.keys(schema)
-        .filter((key) => !(key in row))
-        .map((key) => {
-          const field = schema[key] as SchemaField
-          const defaultValue = schemaDefaultValue(
-            field.type,
-            field.format ?? '',
-          )
-          return [key, defaultValue]
-        }),
-    ),
-  })) as T[]
-
-  const [tableData, setTableData] = useState<T[]>(initialData)
-
-  /** 更新单元格数据 */
-  const updateCell = (rowIndex: number, key: keyof T, value: unknown) => {
-    const newData = [...tableData]
-    newData[rowIndex] = { ...newData[rowIndex], [key]: value } as T
-    setTableData(newData)
-    onChange?.(newData)
-  }
+  // 初始化显示数据
+  const tableData = useMemo(() => {
+    return data.map((row) => ({
+      ...row,
+      ...Object.fromEntries(
+        Object.keys(schema)
+          .filter((key) => !(key in row))
+          .map((key) => {
+            const field = schema[key] as SchemaField
+            const defaultValue = schemaDefaultValue(
+              field.type,
+              field.format ?? '',
+            )
+            return [key, defaultValue]
+          }),
+      ),
+    })) as T[]
+  }, [data, schema])
 
   return (
     <Card className="w-full overflow-auto border-none p-0 shadow-none">
@@ -121,56 +98,20 @@ export default function SchemaTable<T extends Record<string, unknown>>({
 
                     const isDateTime = field.format?.includes('date-time')
                     const isBoolean = field.type.includes('boolean')
-                    const isNumber =
-                      field.type.includes('number') ||
-                      field.type.includes('int') ||
-                      field.type.includes('double')
 
                     return (
                       <TableCell key={key}>
-                        {readOnly ? (
-                          <span>
-                            {isDateTime ? (
-                              formatDate(new Date(value as number)) +
-                              ' ' +
-                              formatTime(new Date(value as number))
-                            ) : isBoolean ? (
-                              <Checkbox checked={value as boolean} disabled />
-                            ) : (
-                              String(value)
-                            )}
-                          </span>
-                        ) : isBoolean ? (
-                          <Checkbox
-                            checked={value as boolean}
-                            onCheckedChange={(v) =>
-                              updateCell(rowIndex, fieldKey, v)
-                            }
-                          />
-                        ) : (
-                          <Input
-                            type={
-                              isDateTime
-                                ? 'datetime-local'
-                                : isNumber
-                                  ? 'number'
-                                  : 'text'
-                            }
-                            value={
-                              isDateTime
-                                ? `${formatDate(new Date(value as number))}T${formatTime(new Date(value as number))}`
-                                : String(value ?? '')
-                            }
-                            onChange={(e) => {
-                              let newValue: unknown = e.target.value
-                              if (isDateTime)
-                                newValue = new Date(e.target.value).getTime()
-                              else if (isNumber)
-                                newValue = Number(e.target.value)
-                              updateCell(rowIndex, fieldKey, newValue)
-                            }}
-                          />
-                        )}
+                        <span>
+                          {isDateTime ? (
+                            formatDate(new Date(value as number)) +
+                            ' ' +
+                            formatTime(new Date(value as number))
+                          ) : isBoolean ? (
+                            <Checkbox checked={value as boolean} disabled />
+                          ) : (
+                            String(value)
+                          )}
+                        </span>
                       </TableCell>
                     )
                   })}
@@ -180,18 +121,6 @@ export default function SchemaTable<T extends Record<string, unknown>>({
           </Table>
           {/*Footer 插槽*/}
           {footerSlot && <div className="mt-4">{footerSlot}</div>}
-
-          {/* 操作按钮 */}
-          {!readOnly && (
-            <div className="mt-4 flex justify-end gap-2">
-              <Button variant="outline" onClick={onCancel}>
-                <X />
-              </Button>
-              <Button onClick={() => onConfirm?.(tableData)}>
-                <Check />
-              </Button>
-            </div>
-          )}
         </div>
       </MagicCard>
     </Card>
