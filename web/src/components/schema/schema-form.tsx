@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { formatDate, formatTime } from '@/lib/date-time'
+import { schemaDefaultValue } from '@/lib/schema'
 import { Check, X } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useMemo, useState } from 'react'
@@ -61,23 +62,6 @@ export default function SchemaForm<T extends Record<string, unknown>>({
     return resolvedTheme === 'dark' ? '#262626' : '#D9D9D955'
   }, [resolvedTheme])
 
-  /**
-   * 获取字段的默认值
-   * @param typeStr
-   * @param formatStr
-   */
-  const getDefaultValue = (typeStr: string, formatStr: string): unknown => {
-    if (formatStr.includes('date-time')) return new Date().getTime()
-    if (typeStr.includes('boolean')) return false
-    if (
-      typeStr.includes('number') ||
-      typeStr.includes('int') ||
-      typeStr.includes('double')
-    )
-      return 0
-    return ''
-  }
-
   const schema = schemas[typeName] as SchemaType
   // 初始化 formData，补全缺失字段
   const initialFormData = {
@@ -87,7 +71,10 @@ export default function SchemaForm<T extends Record<string, unknown>>({
         .filter((key) => !(key in (data ?? {})))
         .map((key) => [
           key,
-          getDefaultValue(schema[key]?.type || '', schema[key]?.format || ''),
+          schemaDefaultValue(
+            schema[key]?.type || '',
+            schema[key]?.format || '',
+          ),
         ]),
     ) as Record<string, unknown>),
   } as T
