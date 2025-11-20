@@ -90,7 +90,7 @@ export default function SchemaTable<T extends Record<string, unknown>>({
     <Card className="w-full overflow-auto border-none p-0 shadow-none">
       <MagicCard gradientColor={gradientColor} className="p-4">
         <div>
-          <Table className="min-w-full border">
+          <Table className="min-w-full">
             <TableHeader>
               <TableRow>
                 {Object.keys(schema).map((key) => (
@@ -121,11 +121,15 @@ export default function SchemaTable<T extends Record<string, unknown>>({
                       <TableCell key={key}>
                         {readOnly ? (
                           <span>
-                            {isDateTime
-                              ? formatDate(new Date(value as number)) +
-                                ' ' +
-                                formatTime(new Date(value as number))
-                              : String(value)}
+                            {isDateTime ? (
+                              formatDate(new Date(value as number)) +
+                              ' ' +
+                              formatTime(new Date(value as number))
+                            ) : isBoolean ? (
+                              <Checkbox checked={value as boolean} disabled />
+                            ) : (
+                              String(value)
+                            )}
                           </span>
                         ) : isBoolean ? (
                           <Checkbox
