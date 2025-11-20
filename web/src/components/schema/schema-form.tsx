@@ -46,8 +46,8 @@ interface SchemaFormProps<T extends Record<string, unknown>> {
 export default function SchemaForm<T extends Record<string, unknown>>({
   typeName,
   data = undefined,
-  columns = 1,
-  labelPosition = 'top',
+  columns = 0,
+  labelPosition = 'left',
   readOnly = false,
   onChange,
   onConfirm,
@@ -106,7 +106,10 @@ export default function SchemaForm<T extends Record<string, unknown>>({
           className="gap-4"
           style={{
             display: 'grid',
-            gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+            gridTemplateColumns:
+              columns > 0
+                ? `repeat(${columns}, minmax(0, 1fr))`
+                : `repeat(auto-fit, minmax(250px, max-content))`,
           }}
         >
           {Object.keys(schema).map((key) => {
