@@ -32,6 +32,8 @@ interface SchemaFormProps<T extends Record<string, unknown>> {
   columns?: number
   /** label 位置：top | left */
   labelPosition?: 'top' | 'left'
+  /** label 映射 */
+  labelMap?: Partial<Record<keyof T, string>>
   /** 只读模式 */
   readOnly?: boolean
   /** 数据变更回调 */
@@ -48,6 +50,7 @@ export default function SchemaForm<T extends Record<string, unknown>>({
   data = undefined,
   columns = 0,
   labelPosition = 'left',
+  labelMap = {},
   readOnly = false,
   onChange,
   onConfirm,
@@ -116,7 +119,8 @@ export default function SchemaForm<T extends Record<string, unknown>>({
             const fieldKey = key as keyof T
             const schemaField = schema[key]
             const value = formData[fieldKey]
-            const labelText = schemaField?.description ?? key
+            const labelText =
+              labelMap[fieldKey] ?? schemaField?.description ?? key
 
             const isDateTime = schemaField?.format?.includes('date-time')
             const isBoolean = schemaField?.type.includes('boolean')
