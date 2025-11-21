@@ -19,6 +19,15 @@ const errorMiddleware: Middleware = {
     const clone = response.clone() // 克隆响应以便读取内容
     let message = await clone.text()
     if (message.length == 0) message = clone.statusText
+    // 尝试解析为 JSON
+    try {
+      const data = JSON.parse(message)
+      if (data && data.title) {
+        message = data.title
+      }
+    } catch {
+      // 不是 JSON，忽略
+    }
     toast.warning(message)
     // 返回原始响应
     return response
