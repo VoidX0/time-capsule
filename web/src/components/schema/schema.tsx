@@ -177,7 +177,7 @@ export default function Schema<T extends Record<string, unknown>>({
     } else {
       // @ts-expect-error 动态调用接口
       const { error } = await openapi.PUT(`/${controller}/Update`, {
-        body: item,
+        body: [item],
       })
       if (!error) setQueryDto({ ...queryDto }) // 重新加载数据
       return !error
@@ -194,7 +194,7 @@ export default function Schema<T extends Record<string, unknown>>({
     } else {
       // @ts-expect-error 动态调用接口
       const { error } = await openapi.DELETE(`/${controller}/Delete`, {
-        body: items,
+        body: [items],
       })
       if (!error) setQueryDto({ ...queryDto }) // 重新加载数据
       return !error
