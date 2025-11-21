@@ -117,7 +117,7 @@ export default function Schema<T extends Record<string, unknown>>({
     /** 获取数据总数 */
     const fetch = async (): Promise<number> => {
       // 获取数据总数
-      const totalCount = 1000
+      const totalCount = 955
 
       return totalCount
     }
@@ -133,8 +133,8 @@ export default function Schema<T extends Record<string, unknown>>({
     /** 获取分页数据 */
     const fetch = async (page: number): Promise<T[]> => {
       // 获取分页数据
-      const currentDataCount = 3
-      const mockData: T[] = Array(currentDataCount).fill({ id: 999 })
+      const currentDataCount = page != 96 ? 10 : 5
+      const mockData: T[] = Array(currentDataCount).fill({ id: page })
 
       return mockData
     }
