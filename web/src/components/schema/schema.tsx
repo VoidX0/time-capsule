@@ -43,6 +43,8 @@ export function schemaDefaultValue(
 interface SchemaProps<T extends Record<string, unknown>> {
   /** 类型名 */
   typeName: keyof typeof schemas
+  /** 表格标题 */
+  title?: string
   /** 每页数量 */
   pageSize?: number
   /** label 映射 */
@@ -54,6 +56,7 @@ interface SchemaProps<T extends Record<string, unknown>> {
  */
 export default function Schema<T extends Record<string, unknown>>({
   typeName,
+  title,
   pageSize = 10,
   labelMap = {},
 }: SchemaProps<T>) {
@@ -167,7 +170,7 @@ export default function Schema<T extends Record<string, unknown>>({
         {/*Header区域*/}
         <div className="mb-4">
           <SchemaTableHeader
-            title={typeName}
+            title={title || ''}
             typeName={typeName}
             labelMap={labelMap}
             visibleColumns={visibleColumns as (keyof T)[]}
