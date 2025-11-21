@@ -97,6 +97,21 @@ export default function Schema<T extends Record<string, unknown>>({
     setSelectedKeys(newSelectedKeys)
   }
 
+  /** 全选按钮点击回调 */
+  const handleSelectAllClick = () => {
+    // 获取所有已加载的数据索引
+    const allKeys = data
+      .map((item, index) => (Object.keys(item).length > 0 ? index : -1))
+      .filter((index) => index !== -1)
+    // 全部已选，取消全选
+    if (selectedKeys.length === allKeys.length) {
+      setSelectedKeys([])
+    } else {
+      // 未全部选中，执行全选
+      setSelectedKeys(allKeys)
+    }
+  }
+
   /** 初始化加载数据 */
   useEffect(() => {
     /** 获取数据总数 */
@@ -160,6 +175,7 @@ export default function Schema<T extends Record<string, unknown>>({
             total={data.length}
             selectedKeys={selectedKeys}
             onPageChange={(page) => setCurrentPage(page)}
+            onSelectAllClick={handleSelectAllClick}
           />
         </div>
       </MagicCard>

@@ -22,6 +22,8 @@ interface SchemaTableFooterProps {
   selectedKeys?: number[]
   /** 页码变更回调 */
   onPageChange: (page: number) => void
+  /** 全选回调 */
+  onSelectAllClick?: () => void
 }
 
 /** 表格底部组件 */
@@ -31,6 +33,7 @@ export function SchemaTableFooter({
   total,
   selectedKeys,
   onPageChange,
+  onSelectAllClick,
 }: SchemaTableFooterProps) {
   // 最大页码按钮数
   const maxButtons = 5
@@ -73,7 +76,10 @@ export function SchemaTableFooter({
   return (
     <div className="mt-4 flex w-full flex-col items-center gap-3 md:flex-row md:items-center md:justify-between">
       {/* 已选数量 */}
-      <div className="text-muted-foreground flex items-center gap-1 text-sm whitespace-nowrap">
+      <div
+        className="text-muted-foreground flex items-center gap-1 text-sm whitespace-nowrap"
+        onClick={onSelectAllClick}
+      >
         <CircleCheckBig />
         {selectedKeys?.length || 0} / {total}
       </div>
