@@ -35,11 +35,11 @@ interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   /** 列显示/隐藏变化回调 */
   onVisibleColumnsChange: (columns: (keyof T)[]) => void
   /** 新增回调 */
-  onAdd?: (item: T) => void
+  onAdd?: (item: T) => Promise<boolean>
   /** 编辑回调 */
-  onEdit?: (item: T) => void
+  onEdit?: (item: T) => Promise<boolean>
   /** 删除回调 */
-  onDelete?: (items: T[]) => void
+  onDelete?: (items: T[]) => Promise<boolean>
   /** 查询参数变化回调 */
   onQueryDtoChange?: (queryDto: QueryDto) => void
 }
@@ -185,9 +185,15 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
             labelPosition={isMobile ? 'top' : 'left'}
             columns={isMobile ? 1 : 2}
             onConfirm={(item) => {
-              if (detailMode === 'add') onAdd?.(item)
-              else if (detailMode === 'edit') onEdit?.(item)
-              setDetailOpen(false)
+              if (detailMode === 'add') {
+                onAdd?.(item).then((success) => {
+                  if (success) setDetailOpen(false)
+                })
+              } else if (detailMode === 'edit') {
+                onEdit?.(item).then((success) => {
+                  if (success) setDetailOpen(false)
+                })
+              }
             }}
           />
         </DialogContent>

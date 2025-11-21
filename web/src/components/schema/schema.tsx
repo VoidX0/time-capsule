@@ -61,6 +61,12 @@ interface SchemaProps<T extends Record<string, unknown>> {
     page: number,
     pageSize: number,
   ) => Promise<T[]>
+  /** 新增回调 */
+  onAdd?: (item: T) => Promise<boolean>
+  /** 编辑回调 */
+  onEdit?: (item: T) => Promise<boolean>
+  /** 删除回调 */
+  onDelete?: (items: T[]) => Promise<boolean>
 }
 
 type QueryDto = components['schemas']['QueryDto']
@@ -75,6 +81,9 @@ export default function Schema<T extends Record<string, unknown>>({
   labelMap = {},
   fetchTotalCount,
   fetchPageData,
+  onAdd,
+  onEdit,
+  onDelete,
 }: SchemaProps<T>) {
   // 生成动态颜色
   const { resolvedTheme } = useTheme()
@@ -138,6 +147,40 @@ export default function Schema<T extends Record<string, unknown>>({
     } else {
       // 未全部选中，执行全选
       setSelectedKeys(allKeys)
+    }
+  }
+
+  /** 新增回调 */
+  const handleAdd = async (item: T): Promise<boolean> => {
+    if (onAdd) {
+      // 使用自定义回调
+      const result = await onAdd(item)
+      if (result) setQueryDto({ ...queryDto }) // 重新加载数据
+      return result
+    } else {
+      // @ts-expect-error 动态调用接口
+      const { error } = await openapi.POST(`/${controller}/Insert`, {
+        body: [item],
+      })
+      if (!error) setQueryDto({ ...queryDto }) // 重新加载数据
+      return !error
+    }
+  }
+
+  /** 编辑回调 */
+  const handleEdit = async (item: T): Promise<boolean> => {
+    if (onEdit) {
+      // 使用自定义回调
+      const result = await onEdit(item)
+      if (result) setQueryDto({ ...queryDto }) // 重新加载数据
+      return result
+    } else {
+      // @ts-expect-error 动态调用接口
+      const { error } = await openapi.PUT(`/${controller}/Update`, {
+        body: item,
+      })
+      if (!error) setQueryDto({ ...queryDto }) // 重新加载数据
+      return !error
     }
   }
 
@@ -216,15 +259,16 @@ export default function Schema<T extends Record<string, unknown>>({
             onVisibleColumnsChange={(cols) =>
               setVisibleColumns(cols as string[])
             }
-            onAdd={(item) => {
-              console.log('Add item:', item)
-            }}
-            onEdit={(item) => {
-              console.log('Edit item:', item)
-            }}
-            onDelete={(items) => {
-              console.log('Delete items:', items)
-            }}
+            onAdd={(item) => handleAdd(item)}
+            onEdit={(item) => handleEdit(item)}
+            // onEdit={(item) => {
+            //   console.log('Edit item:', item)
+            //   return true
+            // }}
+            // onDelete={(items) => {
+            //   console.log('Delete items:', items)
+            //   return true
+            // }}
             onQueryDtoChange={(dto) => setQueryDto(dto)}
           />
         </div>
