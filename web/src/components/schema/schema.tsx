@@ -184,6 +184,23 @@ export default function Schema<T extends Record<string, unknown>>({
     }
   }
 
+  /** 删除回调 */
+  const handleDelete = async (items: T[]): Promise<boolean> => {
+    if (onDelete) {
+      // 使用自定义回调
+      const result = await onDelete(items)
+      if (result) setQueryDto({ ...queryDto }) // 重新加载数据
+      return result
+    } else {
+      // @ts-expect-error 动态调用接口
+      const { error } = await openapi.DELETE(`/${controller}/Delete`, {
+        body: items,
+      })
+      if (!error) setQueryDto({ ...queryDto }) // 重新加载数据
+      return !error
+    }
+  }
+
   /** 初始化加载数据 */
   useEffect(() => {
     /** 控制器API获取总数 */
@@ -261,14 +278,7 @@ export default function Schema<T extends Record<string, unknown>>({
             }
             onAdd={(item) => handleAdd(item)}
             onEdit={(item) => handleEdit(item)}
-            // onEdit={(item) => {
-            //   console.log('Edit item:', item)
-            //   return true
-            // }}
-            // onDelete={(items) => {
-            //   console.log('Delete items:', items)
-            //   return true
-            // }}
+            onDelete={(items) => handleDelete(items)}
             onQueryDtoChange={(dto) => setQueryDto(dto)}
           />
         </div>
