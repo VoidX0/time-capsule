@@ -194,7 +194,7 @@ export default function Schema<T extends Record<string, unknown>>({
     } else {
       // @ts-expect-error 动态调用接口
       const { error } = await openapi.DELETE(`/${controller}/Delete`, {
-        body: [items],
+        body: items,
       })
       if (!error) setQueryDto({ ...queryDto }) // 重新加载数据
       return !error
@@ -247,6 +247,7 @@ export default function Schema<T extends Record<string, unknown>>({
         ? fetch(currentPage) // 使用控制器API
         : Promise.resolve([])
 
+    if (currentPage <= 0) return // 不加载数据
     loader.then((pageData) => {
       const start = (currentPage - 1) * pageSize // 找到开始索引
       const end = start + pageData.length // 找到结束索引
