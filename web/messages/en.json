@@ -6,6 +6,11 @@
     "dark": "Dark",
     "system": "System"
   },
+  "Schema": {
+    "delete": "Delete",
+    "deleteConfirm": "Confirm Deletion",
+    "deleteConfirmText": "Are you sure you want to delete {param} items?"
+  },
   "DetectionItem": {
     "person": "Person",
     "bicycle": "Bicycle",

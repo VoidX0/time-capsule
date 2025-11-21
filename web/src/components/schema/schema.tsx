@@ -172,11 +172,18 @@ export default function Schema<T extends Record<string, unknown>>({
           <SchemaTableHeader
             title={title || ''}
             typeName={typeName}
-            labelMap={labelMap}
             visibleColumns={visibleColumns as (keyof T)[]}
+            labelMap={labelMap}
+            selectedData={selectedData as T[]}
             onVisibleColumnsChange={(cols) =>
               setVisibleColumns(cols as string[])
             }
+            onEdit={(item) => {
+              console.log('Edit item:', item)
+            }}
+            onDelete={(items) => {
+              console.log('Delete items:', items)
+            }}
           />
         </div>
         {/*表格区域*/}
