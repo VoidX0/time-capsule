@@ -5,6 +5,7 @@ import SchemaTable from '@/components/schema/schema-table'
 import { SchemaTableFooter } from '@/components/schema/schema-table-footer'
 import { SchemaTableHeader } from '@/components/schema/schema-table-header'
 import { Card } from '@/components/ui/card'
+import { openapi } from '@/lib/http'
 import { useTheme } from 'next-themes'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -44,12 +45,22 @@ export function schemaDefaultValue(
 interface SchemaProps<T extends Record<string, unknown>> {
   /** 类型名 */
   typeName: keyof typeof schemas
+  /** 后端控制器名称 */
+  controller?: string
   /** 表格标题 */
   title?: string
   /** 每页数量 */
   pageSize?: number
   /** label 映射 */
   labelMap?: Partial<Record<keyof T, string>>
+  /** 查询总数回调 */
+  fetchTotalCount?: (queryDto: QueryDto) => Promise<number>
+  /** 查询分页数据回调 */
+  fetchPageData?: (
+    queryDto: QueryDto,
+    page: number,
+    pageSize: number,
+  ) => Promise<T[]>
 }
 
 type QueryDto = components['schemas']['QueryDto']
@@ -58,9 +69,12 @@ type QueryDto = components['schemas']['QueryDto']
  */
 export default function Schema<T extends Record<string, unknown>>({
   typeName,
+  controller,
   title,
   pageSize = 10,
   labelMap = {},
+  fetchTotalCount,
+  fetchPageData,
 }: SchemaProps<T>) {
   // 生成动态颜色
   const { resolvedTheme } = useTheme()
@@ -129,32 +143,51 @@ export default function Schema<T extends Record<string, unknown>>({
 
   /** 初始化加载数据 */
   useEffect(() => {
-    /** 获取数据总数 */
+    /** 控制器API获取总数 */
     const fetch = async (): Promise<number> => {
-      // 获取数据总数
-      const totalCount = 955
-
-      return totalCount
+      const body: QueryDto = {
+        ...queryDto,
+        pageNumber: 0,
+        pageSize: 0,
+      }
+      // @ts-expect-error 动态调用接口
+      const { data } = await openapi.POST(`/${controller}/Count`, { body })
+      return data ? Number(data) : 0
     }
 
-    fetch().then((total) => {
+    const loader = fetchTotalCount
+      ? fetchTotalCount(queryDto) // 使用自定义回调
+      : controller
+        ? fetch() // 使用控制器API
+        : null
+
+    loader?.then((total) => {
       setData(Array(total).fill({})) // 设置总行数占位
       setSelectedKeys([]) // 清空已选择项
     })
-  }, [])
+  }, [controller, fetchTotalCount, queryDto])
 
   /** 加载当前页数据 */
   useEffect(() => {
     /** 获取分页数据 */
     const fetch = async (page: number): Promise<T[]> => {
-      // 获取分页数据
-      const currentDataCount = page != 96 ? 10 : 5
-      const mockData: T[] = Array(currentDataCount).fill({ id: page })
-
-      return mockData
+      const body: QueryDto = {
+        ...queryDto,
+        pageNumber: page,
+        pageSize: pageSize,
+      }
+      // @ts-expect-error 动态调用接口
+      const { data } = await openapi.POST(`/${controller}/Query`, { body })
+      return data ? (data as unknown as T[]) : []
     }
 
-    fetch(currentPage).then((pageData) => {
+    const loader = fetchPageData
+      ? fetchPageData(queryDto, currentPage, pageSize) // 使用自定义回调
+      : controller
+        ? fetch(currentPage) // 使用控制器API
+        : Promise.resolve([])
+
+    loader.then((pageData) => {
       const start = (currentPage - 1) * pageSize // 找到开始索引
       const end = start + pageData.length // 找到结束索引
       // 更新数据
@@ -166,7 +199,7 @@ export default function Schema<T extends Record<string, unknown>>({
         ]
       })
     })
-  }, [currentPage, pageSize])
+  }, [controller, currentPage, fetchPageData, pageSize, queryDto])
 
   return (
     <Card className="w-full overflow-auto border-none p-0 shadow-none">
