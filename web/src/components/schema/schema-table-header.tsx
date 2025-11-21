@@ -32,6 +32,8 @@ interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   queryDto?: QueryDto
   /** 选中的数据 */
   selectedData?: T[]
+  /** 只读模式 */
+  readOnly?: boolean
   /** 列显示/隐藏变化回调 */
   onVisibleColumnsChange: (columns: (keyof T)[]) => void
   /** 新增回调 */
@@ -52,6 +54,7 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
   labelMap,
   queryDto,
   selectedData = [],
+  readOnly = false,
   onVisibleColumnsChange,
   onAdd,
   onEdit,
@@ -86,7 +89,7 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
     <div className="mb-4 flex w-full items-center justify-between">
       {/* 左侧区域 */}
       <div className="flex flex-1 items-center gap-2">
-        {onAdd && (
+        {!readOnly && onAdd && (
           <Button
             variant="outline"
             size="icon"
@@ -99,7 +102,7 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
             <Plus />
           </Button>
         )}
-        {selectedData?.length === 1 && onEdit && (
+        {!readOnly && onEdit && selectedData?.length === 1 && (
           <Button
             variant="outline"
             size="icon"
@@ -112,7 +115,7 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
             <Edit />
           </Button>
         )}
-        {selectedData?.length >= 1 && onDelete && (
+        {!readOnly && onDelete && selectedData?.length >= 1 && (
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="destructive" size="icon">

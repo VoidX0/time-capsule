@@ -53,6 +53,8 @@ interface SchemaProps<T extends Record<string, unknown>> {
   pageSize?: number
   /** label 映射 */
   labelMap?: Partial<Record<keyof T, string>>
+  /** 只读模式 */
+  readOnly?: boolean
   /** 查询总数回调 */
   fetchTotalCount?: (queryDto: QueryDto) => Promise<number>
   /** 查询分页数据回调 */
@@ -79,6 +81,7 @@ export default function Schema<T extends Record<string, unknown>>({
   title,
   pageSize = 10,
   labelMap = {},
+  readOnly = false,
   fetchTotalCount,
   fetchPageData,
   onAdd,
@@ -274,6 +277,7 @@ export default function Schema<T extends Record<string, unknown>>({
             labelMap={labelMap}
             queryDto={queryDto}
             selectedData={selectedData as T[]}
+            readOnly={readOnly}
             onVisibleColumnsChange={(cols) =>
               setVisibleColumns(cols as string[])
             }
