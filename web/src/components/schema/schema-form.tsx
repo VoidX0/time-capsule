@@ -1,25 +1,15 @@
 import { schemas } from '@/api/generatedSchemas'
 import { MagicCard } from '@/components/magicui/magic-card'
+import { schemaDefaultValue, SchemaType } from '@/components/schema/schema'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { formatDate, formatTime } from '@/lib/date-time'
-import { schemaDefaultValue } from '@/lib/schema'
 import { Check, X } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useMemo, useState } from 'react'
-
-/** schema 字段类型 */
-interface SchemaField {
-  type: string
-  description?: string
-  format?: string
-}
-
-/** schema 类型 */
-type SchemaType = Record<string, SchemaField>
 
 /**
  * 根据数据结构自动生成表单
