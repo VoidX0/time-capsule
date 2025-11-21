@@ -1,4 +1,5 @@
 import { schemas } from '@/api/generatedSchemas'
+import { components } from '@/api/schema'
 import { SchemaType } from '@/components/schema/schema'
 import SchemaForm from '@/components/schema/schema-form'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,7 @@ import { Check, Columns3Cog, Edit, Plus, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 
+type QueryDto = components['schemas']['QueryDto']
 interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   /** 表格标题 */
   title: string
@@ -26,6 +28,8 @@ interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   visibleColumns: (keyof T)[]
   /** label 映射 */
   labelMap?: Partial<Record<keyof T, string>>
+  /** 查询参数 */
+  queryDto?: QueryDto
   /** 选中的数据 */
   selectedData?: T[]
   /** 列显示/隐藏变化回调 */
@@ -36,6 +40,8 @@ interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   onEdit?: (item: T) => void
   /** 删除回调 */
   onDelete?: (items: T[]) => void
+  /** 查询参数变化回调 */
+  onQueryDtoChange?: (queryDto: QueryDto) => void
 }
 
 /** 表格头部组件 */
@@ -44,11 +50,13 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
   typeName,
   visibleColumns,
   labelMap,
+  queryDto,
   selectedData = [],
   onVisibleColumnsChange,
   onAdd,
   onEdit,
   onDelete,
+  onQueryDtoChange,
 }: SchemaTableHeaderProps<T>) {
   const isMobile = useIsMobile()
   const t = useTranslations('Schema')

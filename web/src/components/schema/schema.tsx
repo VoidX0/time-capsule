@@ -1,4 +1,5 @@
 import { schemas } from '@/api/generatedSchemas'
+import { components } from '@/api/schema'
 import { MagicCard } from '@/components/magicui/magic-card'
 import SchemaTable from '@/components/schema/schema-table'
 import { SchemaTableFooter } from '@/components/schema/schema-table-footer'
@@ -51,6 +52,7 @@ interface SchemaProps<T extends Record<string, unknown>> {
   labelMap?: Partial<Record<keyof T, string>>
 }
 
+type QueryDto = components['schemas']['QueryDto']
 /**
  * Schema表格管理组件
  */
@@ -68,6 +70,8 @@ export default function Schema<T extends Record<string, unknown>>({
 
   // 当前页码
   const [currentPage, setCurrentPage] = useState(1)
+  // 查询参数
+  const [queryDto, setQueryDto] = useState<QueryDto>({})
   // 所有数据
   const [data, setData] = useState<T[]>([])
   // 当前显示列
@@ -174,6 +178,7 @@ export default function Schema<T extends Record<string, unknown>>({
             typeName={typeName}
             visibleColumns={visibleColumns as (keyof T)[]}
             labelMap={labelMap}
+            queryDto={queryDto}
             selectedData={selectedData as T[]}
             onVisibleColumnsChange={(cols) =>
               setVisibleColumns(cols as string[])
@@ -187,6 +192,7 @@ export default function Schema<T extends Record<string, unknown>>({
             onDelete={(items) => {
               console.log('Delete items:', items)
             }}
+            onQueryDtoChange={(dto) => setQueryDto(dto)}
           />
         </div>
         {/*表格区域*/}
