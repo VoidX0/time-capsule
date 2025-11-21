@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { formatDate, formatTime } from '@/lib/date-time'
-import { Check, X } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useMemo, useState } from 'react'
 
@@ -31,8 +31,6 @@ interface SchemaFormProps<T extends Record<string, unknown>> {
   onChange?: (value: T) => void
   /** 点击确认 */
   onConfirm?: (value: T) => void
-  /** 点击取消 */
-  onCancel?: () => void
 }
 
 /** SchemaForm 组件 */
@@ -45,7 +43,6 @@ export default function SchemaForm<T extends Record<string, unknown>>({
   readOnly = false,
   onChange,
   onConfirm,
-  onCancel,
 }: SchemaFormProps<T>) {
   const { resolvedTheme } = useTheme()
   const gradientColor = useMemo(() => {
@@ -166,9 +163,6 @@ export default function SchemaForm<T extends Record<string, unknown>>({
         {/*操作*/}
         {!readOnly && (
           <div className="mt-6 flex justify-end gap-4">
-            <Button variant="outline" onClick={onCancel}>
-              <X />
-            </Button>
             <Button onClick={() => onConfirm?.(formData)}>
               <Check />
             </Button>

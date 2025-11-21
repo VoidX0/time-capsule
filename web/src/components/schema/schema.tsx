@@ -26,7 +26,7 @@ export function schemaDefaultValue(
   typeStr: string,
   formatStr: string,
 ): unknown {
-  if (formatStr.includes('date-time')) return new Date('1970-01-01').getTime()
+  if (formatStr.includes('date-time')) return new Date().getTime()
   if (typeStr.includes('boolean')) return false
   if (
     typeStr.includes('number') ||
@@ -178,6 +178,9 @@ export default function Schema<T extends Record<string, unknown>>({
             onVisibleColumnsChange={(cols) =>
               setVisibleColumns(cols as string[])
             }
+            onAdd={(item) => {
+              console.log('Add item:', item)
+            }}
             onEdit={(item) => {
               console.log('Edit item:', item)
             }}
