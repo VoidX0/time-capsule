@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { openapi } from '@/lib/http'
@@ -52,7 +54,7 @@ export default function Page() {
     load().then()
   }, [])
 
-  const handleDelete = async (id: number | undefined) => {
+  const handleDelete = async (id: number | string | undefined) => {
     if (!id) return
     const body = cameras.find((c) => c.id === id)
     if (!body) return
@@ -182,17 +184,19 @@ export default function Page() {
                 <DialogContent className="max-w-sm">
                   <DialogHeader>
                     <DialogTitle>{t('deleteConfirm')}</DialogTitle>
+                    <DialogDescription>
+                      {t('deleteConfirmText', { param: cam.name ?? '' })}
+                    </DialogDescription>
                   </DialogHeader>
-                  <p className="py-2">
-                    {t('deleteConfirmText', { param: cam.name ?? '' })}
-                  </p>
                   <div className="mt-4 flex justify-end gap-2">
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleDelete(Number(cam.id))}
-                    >
-                      {t('delete')}
-                    </Button>
+                    <DialogClose asChild>
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleDelete(cam.id)}
+                      >
+                        {t('delete')}
+                      </Button>
+                    </DialogClose>
                   </div>
                 </DialogContent>
               </Dialog>

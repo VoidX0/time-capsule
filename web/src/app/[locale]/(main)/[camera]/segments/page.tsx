@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -205,19 +207,23 @@ export default function Page({
                 <DialogContent className="max-w-sm">
                   <DialogHeader>
                     <DialogTitle>{t('confirmDeleteTitle')}</DialogTitle>
+                    <DialogDescription>
+                      {t('confirmDeleteMessage', {
+                        param: segments.length || 0,
+                      })}
+                    </DialogDescription>
                   </DialogHeader>
-                  <p className="py-2">
-                    {t('confirmDeleteMessage', { param: segments.length || 0 })}
-                  </p>
                   <div className="mt-4 flex justify-end gap-2">
-                    <Button
-                      variant="destructive"
-                      onClick={() => {
-                        deleteSegments(segments).then()
-                      }}
-                    >
-                      {t('deleteButton')}
-                    </Button>
+                    <DialogClose>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          deleteSegments(segments).then()
+                        }}
+                      >
+                        {t('deleteButton')}
+                      </Button>
+                    </DialogClose>
                   </div>
                 </DialogContent>
               </Dialog>
