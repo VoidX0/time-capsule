@@ -26,6 +26,8 @@ interface SchemaTableProps<T extends Record<string, unknown>> {
   data?: T[]
   /** label 映射 */
   labelMap?: Partial<Record<keyof T, string>>
+  /** 当前显示的列 */
+  visibleColumns?: (keyof T)[]
   /** 选中行索引数组 */
   selectedKeys?: number[]
   /** 选中行变化回调 */
@@ -39,10 +41,17 @@ export default function SchemaTable<T extends Record<string, unknown>>({
   typeName,
   data = [],
   labelMap = {},
+  visibleColumns,
   selectedKeys = [],
   onSelectedChanged,
 }: SchemaTableProps<T>) {
-  const schema = schemas[typeName] as SchemaType
+  const schema = useMemo(() => schemas[typeName] as SchemaType, [typeName])
+  const columns = useMemo(() => {
+    // 如果 visibleColumns 有值，就用它，否则显示所有列
+    return visibleColumns?.length
+      ? visibleColumns
+      : (Object.keys(schema) as (keyof T)[])
+  }, [schema, visibleColumns])
   // 初始化显示数据
   const tableData = useMemo(() => {
     return data.map((row) => ({
@@ -89,9 +98,11 @@ export default function SchemaTable<T extends Record<string, unknown>>({
               }}
             />
           </TableHead>
-          {Object.keys(schema).map((key) => (
-            <TableHead key={key}>
-              {labelMap[key as keyof T] ?? schema[key]?.description ?? key}
+          {columns.map((col) => (
+            <TableHead key={String(col)}>
+              {labelMap[col] ??
+                schema[col as string]?.description ??
+                String(col)}
             </TableHead>
           ))}
         </TableRow>
@@ -104,25 +115,20 @@ export default function SchemaTable<T extends Record<string, unknown>>({
                 checked={selectedSet.has(rowIndex)}
                 onCheckedChange={() => {
                   const newSelected = new Set(selectedSet)
-                  if (newSelected.has(rowIndex)) {
-                    newSelected.delete(rowIndex)
-                  } else {
-                    newSelected.add(rowIndex)
-                  }
+                  if (newSelected.has(rowIndex)) newSelected.delete(rowIndex)
+                  else newSelected.add(rowIndex)
                   onSelectedChanged?.([...newSelected])
                 }}
               />
             </TableCell>
-            {Object.keys(schema).map((key) => {
-              const fieldKey = key as keyof T
+            {columns.map((col) => {
+              const fieldKey = col as keyof T
               const value = row[fieldKey]
-              const field = schema[key] as SchemaField
-
-              const isDateTime = field.format?.includes('date-time')
-              const isBoolean = field.type.includes('boolean')
-
+              const field = schema[col as string]
+              const isDateTime = field?.format?.includes('date-time')
+              const isBoolean = field?.type.includes('boolean')
               return (
-                <TableCell key={key}>
+                <TableCell key={String(col)}>
                   <span>
                     {isDateTime ? (
                       formatDate(new Date(value as number)) +

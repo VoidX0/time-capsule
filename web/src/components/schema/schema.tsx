@@ -2,6 +2,7 @@ import { schemas } from '@/api/generatedSchemas'
 import { MagicCard } from '@/components/magicui/magic-card'
 import SchemaTable from '@/components/schema/schema-table'
 import { SchemaTableFooter } from '@/components/schema/schema-table-footer'
+import { SchemaTableHeader } from '@/components/schema/schema-table-header'
 import { Card } from '@/components/ui/card'
 import { useTheme } from 'next-themes'
 import { useEffect, useMemo, useState } from 'react'
@@ -44,6 +45,8 @@ interface SchemaProps<T extends Record<string, unknown>> {
   typeName: keyof typeof schemas
   /** 每页数量 */
   pageSize?: number
+  /** label 映射 */
+  labelMap?: Partial<Record<keyof T, string>>
 }
 
 /**
@@ -52,6 +55,7 @@ interface SchemaProps<T extends Record<string, unknown>> {
 export default function Schema<T extends Record<string, unknown>>({
   typeName,
   pageSize = 10,
+  labelMap = {},
 }: SchemaProps<T>) {
   // 生成动态颜色
   const { resolvedTheme } = useTheme()
@@ -63,6 +67,10 @@ export default function Schema<T extends Record<string, unknown>>({
   const [currentPage, setCurrentPage] = useState(1)
   // 所有数据
   const [data, setData] = useState<T[]>([])
+  // 当前显示列
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(
+    Object.keys(schemas[typeName] || {}),
+  )
   // 显示的数据
   const displayData = useMemo(() => {
     const start = (currentPage - 1) * pageSize
@@ -157,12 +165,24 @@ export default function Schema<T extends Record<string, unknown>>({
     <Card className="w-full overflow-auto border-none p-0 shadow-none">
       <MagicCard gradientColor={gradientColor} className="p-4">
         {/*Header区域*/}
-        <div className="mb-4">Schema Table Header Slot</div>
+        <div className="mb-4">
+          <SchemaTableHeader
+            title={typeName}
+            typeName={typeName}
+            labelMap={labelMap}
+            visibleColumns={visibleColumns as (keyof T)[]}
+            onVisibleColumnsChange={(cols) =>
+              setVisibleColumns(cols as string[])
+            }
+          />
+        </div>
         {/*表格区域*/}
         <div>
           <SchemaTable
             typeName={typeName}
             data={displayData}
+            labelMap={labelMap}
+            visibleColumns={visibleColumns}
             selectedKeys={currentKeys}
             onSelectedChanged={handleSelectedChanged}
           />
