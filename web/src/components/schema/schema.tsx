@@ -98,6 +98,8 @@ export default function Schema<T extends Record<string, unknown>>({
   const [currentPage, setCurrentPage] = useState(1)
   // 查询参数
   const [queryDto, setQueryDto] = useState<QueryDto>({})
+  // 数据初始化完成
+  const [initialized, setInitialized] = useState(false)
   // 所有数据
   const [data, setData] = useState<T[]>([])
   // 当前显示列
@@ -224,10 +226,15 @@ export default function Schema<T extends Record<string, unknown>>({
         ? fetch() // 使用控制器API
         : null
 
-    loader?.then((total) => {
-      setData(Array(total).fill({})) // 设置总行数占位
-      setSelectedKeys([]) // 清空已选择项
-    })
+    const load = () => {
+      setInitialized(false)
+      loader?.then((total) => {
+        setData(Array(total).fill({})) // 设置总行数占位
+        setSelectedKeys([]) // 清空已选择项
+        setInitialized(true) // 标记初始化完成
+      })
+    }
+    load()
   }, [controller, fetchTotalCount, queryDto])
 
   /** 加载当前页数据 */
@@ -250,6 +257,7 @@ export default function Schema<T extends Record<string, unknown>>({
         ? fetch(currentPage) // 使用控制器API
         : Promise.resolve([])
 
+    if (!initialized) return // 未初始化完成不加载数据
     if (currentPage <= 0) return // 不加载数据
     loader.then((pageData) => {
       const start = (currentPage - 1) * pageSize // 找到开始索引
@@ -263,7 +271,7 @@ export default function Schema<T extends Record<string, unknown>>({
         ]
       })
     })
-  }, [controller, currentPage, fetchPageData, pageSize, queryDto])
+  }, [controller, currentPage, fetchPageData, initialized, pageSize, queryDto])
 
   return (
     <Card className="w-full overflow-auto border-none p-0 shadow-none">
