@@ -4,13 +4,7 @@ import { SchemaType } from '@/components/schema/schema'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatDate, formatDateTime, formatTime } from '@/lib/date-time'
 import { Check, Trash2 } from 'lucide-react'
 import { useMemo } from 'react'
@@ -45,6 +39,35 @@ export function SchemaFilter<T extends Record<string, unknown>>({
     return labelMap?.[col] ?? schema[col as string]?.description ?? String(col)
   }
 
+  /** 提交条件 */
+  const submit = (conditions: QueryCondition[]) => {
+    const cond = conditions
+      .filter((c) => c.fieldValue !== undefined)
+      .map((c) => {
+        // 处理范围数据
+        if (Array.isArray(c.fieldValue)) {
+          return {
+            ...c,
+            fieldValue: c.fieldValue
+              .map(
+                (v) =>
+                  c.cSharpTypeName == 'DateTimeOffset'
+                    ? formatDateTime(new Date(v)) // 转换为时间范围
+                    : String(v), // 转换为数值范围
+              )
+              .join(','),
+          }
+        }
+        // value统一转为string
+        return {
+          ...c,
+          fieldValue: String(c.fieldValue),
+        }
+      })
+
+    onSubmit?.(cond) // 调用提交回调
+  }
+
   return (
     <>
       <div className="mb-2 flex justify-end gap-2">
@@ -53,48 +76,28 @@ export function SchemaFilter<T extends Record<string, unknown>>({
           size="icon"
           variant="outline"
           onClick={() => {
-            const cond = conditions
-              .filter((c) => c.fieldValue !== undefined)
-              .map((c) => {
-                // 处理范围数据
-                if (Array.isArray(c.fieldValue)) {
-                  return {
-                    ...c,
-                    fieldValue: c.fieldValue
-                      .map(
-                        (v) =>
-                          c.cSharpTypeName == 'DateTimeOffset'
-                            ? formatDateTime(new Date(v)) // 转换为时间范围
-                            : String(v), // 转换为数值范围
-                      )
-                      .join(','),
-                  }
-                }
-                // value统一转为string
-                return {
-                  ...c,
-                  fieldValue: String(c.fieldValue),
-                }
-              })
-            onSubmit?.(cond)
+            submit(conditions)
           }}
         >
           <Check className="h-4 w-4" />
         </Button>
         {/* 重置按钮 */}
-        <Button
-          size="icon"
-          variant="outline"
-          onClick={() => {
-            const resetConditions = conditions.map((c) => ({
-              ...c,
-              fieldValue: undefined,
-            }))
-            onConditionChange?.(resetConditions)
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {conditions.some((c) => c.fieldValue !== undefined) && (
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => {
+              const resetConditions = conditions.map((c) => ({
+                ...c,
+                fieldValue: undefined,
+              }))
+              onConditionChange?.(resetConditions)
+              submit(resetConditions)
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* 条件列表 */}
