@@ -190,7 +190,14 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
           onOpenChange={setConditionSetOpen}
         >
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button
+              variant={
+                conditions.some((o) => o.fieldValue !== undefined)
+                  ? 'default'
+                  : 'outline'
+              }
+              size="icon"
+            >
               <ListFilter />
             </Button>
           </DropdownMenuTrigger>
@@ -210,7 +217,14 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
         {/*排序控制*/}
         <DropdownMenu open={orderSetOpen} onOpenChange={setOrderSetOpen}>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button
+              variant={
+                orders.some((o) => o.orderByType !== undefined)
+                  ? 'default'
+                  : 'outline'
+              }
+              size="icon"
+            >
               <ListOrdered />
             </Button>
           </DropdownMenuTrigger>
