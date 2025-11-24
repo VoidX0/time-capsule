@@ -1,6 +1,7 @@
 import { schemas } from '@/api/generatedSchemas'
 import { components } from '@/api/schema'
 import { SchemaType } from '@/components/schema/schema'
+import { SchemaFilter } from '@/components/schema/schema-filter'
 import SchemaForm from '@/components/schema/schema-form'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,11 +15,12 @@ import {
 } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { Check, Columns3Cog, Edit, Plus, Trash2 } from 'lucide-react'
+import { Check, Columns3Cog, Edit, ListFilter, ListOrdered, Plus, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 
-type QueryDto = components['schemas']['QueryDto']
+type QueryCondition = components['schemas']['QueryCondition']
+type QueryOrder = components['schemas']['QueryOrder']
 interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   /** 表格标题 */
   title: string
@@ -28,8 +30,6 @@ interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   visibleColumns: (keyof T)[]
   /** label 映射 */
   labelMap?: Partial<Record<keyof T, string>>
-  /** 查询参数 */
-  queryDto?: QueryDto
   /** 选中的数据 */
   selectedData?: T[]
   /** 只读模式 */
@@ -42,8 +42,10 @@ interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   onEdit?: (item: T) => Promise<boolean>
   /** 删除回调 */
   onDelete?: (items: T[]) => Promise<boolean>
-  /** 查询参数变化回调 */
-  onQueryDtoChange?: (queryDto: QueryDto) => void
+  /** 查询条件变化回调 */
+  onConditionChange?: (conditions: QueryCondition[]) => void
+  /** 排序变化回调 */
+  onOrderChange?: (orders: QueryOrder[]) => void
 }
 
 /** 表格头部组件 */
@@ -52,17 +54,19 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
   typeName,
   visibleColumns,
   labelMap,
-  queryDto,
   selectedData = [],
   readOnly = false,
   onVisibleColumnsChange,
   onAdd,
   onEdit,
   onDelete,
-  onQueryDtoChange,
+  onConditionChange,
+  onOrderChange,
 }: SchemaTableHeaderProps<T>) {
   const isMobile = useIsMobile()
   const t = useTranslations('Schema')
+  const [conditionSetOpen, setConditionSetOpen] = useState(false) // 过滤条件下拉菜单打开状态
+  const [orderSetOpen, setOrderSetOpen] = useState(false) // 排序下拉菜单打开状态
   const [columnSetOpen, setColumnSetOpen] = useState(false) // 列名设置下拉菜单打开状态
   const [detailOpen, setDetailOpen] = useState(false) // 详情对话框打开状态
   const [detailData, setDetailData] = useState<T | null>(null) // 详情数据
@@ -70,6 +74,20 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
 
   const schema = useMemo(() => schemas[typeName] as SchemaType, [typeName])
   const columns = useMemo(() => Object.keys(schema) as (keyof T)[], [schema])
+
+  // 筛选条件
+  const [conditions, setConditions] = useState<QueryCondition[]>(
+    columns.map((col) => ({
+      fieldName: String(col),
+      fieldValue: undefined,
+      conditionalType: schema[String(col)]?.format?.includes('date-time')
+        ? 16
+        : 0,
+      cSharpTypeName: schema[String(col)]?.format?.includes('date-time')
+        ? 'DateTimeOffset'
+        : (schema[String(col)]?.format ?? ''),
+    })),
+  )
 
   /** 切换列显示/隐藏 */
   const toggleColumn = (col: keyof T) => {
@@ -148,7 +166,43 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
       <div className="flex-1 text-center text-lg font-semibold">{title}</div>
 
       {/* 右侧区域 */}
-      <div className="flex flex-1 justify-end">
+      <div className="flex flex-1 justify-end gap-2">
+        {/*过滤控制*/}
+        <DropdownMenu
+          open={conditionSetOpen}
+          onOpenChange={setConditionSetOpen}
+        >
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon">
+              <ListFilter />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-72 p-2 md:w-110">
+            <SchemaFilter
+              typeName={typeName}
+              conditions={conditions}
+              labelMap={labelMap}
+              onConditionChange={(conditions) => setConditions(conditions)}
+              onSubmit={(conditions) => {
+                onConditionChange?.(conditions)
+                setConditionSetOpen(false)
+              }}
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {/*排序控制*/}
+        <DropdownMenu open={orderSetOpen} onOpenChange={setOrderSetOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon">
+              <ListOrdered />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-56"
+          ></DropdownMenuContent>
+        </DropdownMenu>
+        {/*显示列控制*/}
         <DropdownMenu open={columnSetOpen} onOpenChange={setColumnSetOpen}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon">

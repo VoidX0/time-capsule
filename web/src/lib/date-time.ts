@@ -49,3 +49,11 @@ export function formatTime(date: Date) {
   const seconds = String(date.getSeconds()).padStart(2, '0')
   return `${hours}:${minutes}:${seconds}`
 }
+
+/**
+ * 格式化日期时间为 YYYY-MM-DD HH:MM:SS
+ * @param date
+ */
+export function formatDateTime(date: Date) {
+  return `${formatDate(date)} ${formatTime(date)}`
+}

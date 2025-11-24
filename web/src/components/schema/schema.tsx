@@ -283,7 +283,6 @@ export default function Schema<T extends Record<string, unknown>>({
             typeName={typeName}
             visibleColumns={visibleColumns as (keyof T)[]}
             labelMap={labelMap}
-            queryDto={queryDto}
             selectedData={selectedData as T[]}
             readOnly={readOnly}
             onVisibleColumnsChange={(cols) =>
@@ -292,7 +291,12 @@ export default function Schema<T extends Record<string, unknown>>({
             onAdd={(item) => handleAdd(item)}
             onEdit={(item) => handleEdit(item)}
             onDelete={(items) => handleDelete(items)}
-            onQueryDtoChange={(dto) => setQueryDto(dto)}
+            onConditionChange={(conditions) =>
+              setQueryDto({ ...queryDto, condition: conditions })
+            }
+            onOrderChange={(orders) =>
+              setQueryDto({ ...queryDto, order: orders })
+            }
           />
         </div>
         {/*表格区域*/}
