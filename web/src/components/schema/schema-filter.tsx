@@ -56,6 +56,7 @@ export function SchemaFilter<T extends Record<string, unknown>>({
             const cond = conditions
               .filter((c) => c.fieldValue !== undefined)
               .map((c) => {
+                // 处理范围数据
                 if (Array.isArray(c.fieldValue)) {
                   return {
                     ...c,
@@ -69,7 +70,11 @@ export function SchemaFilter<T extends Record<string, unknown>>({
                       .join(','),
                   }
                 }
-                return c
+                // value统一转为string
+                return {
+                  ...c,
+                  fieldValue: String(c.fieldValue),
+                }
               })
             onSubmit?.(cond)
           }}
@@ -160,7 +165,7 @@ export function SchemaFilter<T extends Record<string, unknown>>({
                       </span>
                     </SelectItem>
                   )}
-                  {(isBoolean || isNumber || isString) && (
+                  {(isNumber || isString) && (
                     <SelectItem value="10">
                       <span className="mr-2">!=</span>
                       <span className="text-muted-foreground text-xs">
@@ -185,11 +190,9 @@ export function SchemaFilter<T extends Record<string, unknown>>({
                   checked={Boolean(value)}
                   onCheckedChange={(v) => {
                     const newConditions = conditions.map((c) =>
-                      c.fieldName === col
-                        ? { ...c, fieldValue: v ? 'true' : 'false' }
-                        : c,
+                      c.fieldName === col ? { ...c, fieldValue: v } : c,
                     )
-                    onConditionChange?.(newConditions)
+                    onConditionChange?.(newConditions as QueryCondition[])
                   }}
                 />
               ) : conditionalType === 16 ? (
@@ -215,7 +218,7 @@ export function SchemaFilter<T extends Record<string, unknown>>({
                         ? [...value]
                         : [undefined, undefined]
                       newValue[0] = isNumber
-                        ? Number(e.target.value)
+                        ? String(e.target.value) // 使用string避免int64越界
                         : isDateTime
                           ? new Date(e.target.value).getTime()
                           : e.target.value
@@ -248,7 +251,7 @@ export function SchemaFilter<T extends Record<string, unknown>>({
                         ? [...value]
                         : [undefined, undefined]
                       newValue[1] = isNumber
-                        ? Number(e.target.value)
+                        ? String(e.target.value) // 使用string避免int64越界
                         : isDateTime
                           ? new Date(e.target.value).getTime()
                           : e.target.value
@@ -275,12 +278,12 @@ export function SchemaFilter<T extends Record<string, unknown>>({
                   }
                   onChange={(e) => {
                     let v: string | number | undefined = e.target.value
-                    if (isNumber) v = Number(e.target.value)
+                    if (isNumber) v = String(e.target.value) // 使用string避免int64越界
                     if (isDateTime) v = new Date(e.target.value).getTime()
                     const newConditions = conditions.map((c) =>
-                      c.fieldName === col ? { ...c, fieldValue: String(v) } : c,
+                      c.fieldName === col ? { ...c, fieldValue: v } : c,
                     )
-                    onConditionChange?.(newConditions)
+                    onConditionChange?.(newConditions as QueryCondition[])
                   }}
                   placeholder="Value"
                 />

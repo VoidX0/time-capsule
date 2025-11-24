@@ -48,6 +48,13 @@ interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   onOrderChange?: (orders: QueryOrder[]) => void
 }
 
+/** 根据 format 获取 C# 类型名 */
+function getCSharpTypeName(typeStr: string, formatStr: string): string {
+  if (formatStr.includes('date-time')) return 'DateTimeOffset'
+  if (typeStr.includes('boolean')) return 'Bool'
+  return formatStr
+}
+
 /** 表格头部组件 */
 export function SchemaTableHeader<T extends Record<string, unknown>>({
   title,
@@ -83,9 +90,10 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
       conditionalType: schema[String(col)]?.format?.includes('date-time')
         ? 16
         : 0,
-      cSharpTypeName: schema[String(col)]?.format?.includes('date-time')
-        ? 'DateTimeOffset'
-        : (schema[String(col)]?.format ?? ''),
+      cSharpTypeName: getCSharpTypeName(
+        schema[String(col)]?.type ?? '',
+        schema[String(col)]?.format ?? '',
+      ),
     })),
   )
 
