@@ -244,7 +244,12 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
         {/*显示列控制*/}
         <DropdownMenu open={columnSetOpen} onOpenChange={setColumnSetOpen}>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button
+              variant={
+                columns.length !== visibleColumns.length ? 'default' : 'outline'
+              }
+              size="icon"
+            >
               <Columns3Cog />
             </Button>
           </DropdownMenuTrigger>
