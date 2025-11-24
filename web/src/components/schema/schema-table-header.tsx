@@ -3,6 +3,7 @@ import { components } from '@/api/schema'
 import { SchemaType } from '@/components/schema/schema'
 import { SchemaFilter } from '@/components/schema/schema-filter'
 import SchemaForm from '@/components/schema/schema-form'
+import { SchemaOrder } from '@/components/schema/schema-order'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -94,6 +95,14 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
         schema[String(col)]?.type ?? '',
         schema[String(col)]?.format ?? '',
       ),
+    })),
+  )
+
+  // 排序条件
+  const [orders, setOrders] = useState<QueryOrder[]>(
+    columns.map((col) => ({
+      fieldName: String(col),
+      orderByType: undefined,
     })),
   )
 
@@ -205,10 +214,18 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
               <ListOrdered />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="w-56"
-          ></DropdownMenuContent>
+          <DropdownMenuContent align="end" className="w-72 p-2">
+            <SchemaOrder
+              typeName={typeName}
+              orders={orders}
+              labelMap={labelMap}
+              onOrderChange={(orders) => setOrders(orders)}
+              onSubmit={(orders) => {
+                onOrderChange?.(orders)
+                setOrderSetOpen(false)
+              }}
+            />
+          </DropdownMenuContent>
         </DropdownMenu>
         {/*显示列控制*/}
         <DropdownMenu open={columnSetOpen} onOpenChange={setColumnSetOpen}>
