@@ -11,6 +11,7 @@ builder.InitConfiguration(); // 初始化配置源
 // Add services to the container.
 builder.Services.AddControllers(x => { x.Filters.Add<ApiAuthorizationFilter>(); })
     .AddJsonOptions(options => options.JsonSerializerOptions.ConfigureOptions()); // Controller
+builder.Services.AddValidation(); // 数据验证
 builder.Services.AddEndpointsApiExplorer();
 builder.InitOptions(); // 初始化Options
 builder.InitEncryption(); // 初始化加密信息
