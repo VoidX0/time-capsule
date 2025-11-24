@@ -2,6 +2,7 @@
 using SqlSugar;
 using SqlSugar.IOC;
 using TimeCapsule.Core.Models.Common;
+using TimeCapsule.Utils;
 
 namespace TimeCapsule.Controllers;
 
@@ -20,6 +21,46 @@ public abstract class OrmController<T> : ControllerBase where T : class, new()
     /// DbClient
     /// </summary>
     protected ISqlSugarClient Db { get; } = DbScoped.SugarScope;
+
+    /// <summary>
+    /// 查询列表
+    /// </summary>
+    /// <param name="dto">查询条件</param>
+    /// <param name="conditions">条件列表</param>
+    /// <param name="orders">排序列表</param>
+    /// <param name="pagination">是否进行分页</param>
+    /// <returns></returns>
+    protected virtual async Task<DbResult<List<T>>> Query(QueryDto dto, List<IConditionalModel> conditions,
+        List<OrderByModel> orders, bool pagination)
+    {
+        // Range条件
+        var rangeConditions = conditions
+            .Where(x => x is ConditionalModel { ConditionalType: ConditionalType.Range }).ToList();
+        // 其他条件
+        var otherConditions = conditions.Except(rangeConditions).ToList();
+        // 查询(Range条件 需要单独处理where)
+        var result = await Db.AsTenant().UseTranAsync(() =>
+        {
+            var query = Db.Queryable<T>().Where(otherConditions); //其他条件
+            // Range条件
+            query = rangeConditions.Aggregate(query, (current, condition) => current.Where([condition]));
+            if (IsSplitTable)
+            {
+                // 分表查询
+                return pagination
+                    ? query.SplitTable().OrderBy(orders).ToOffsetPageAsync(dto.PageNumber, dto.PageSize) //分页
+                    : query.SplitTable().OrderBy(orders).ToListAsync(); //不分页
+            }
+            else
+            {
+                // 普通查询
+                return pagination
+                    ? query.OrderBy(orders).ToOffsetPageAsync(dto.PageNumber, dto.PageSize) //分页
+                    : query.OrderBy(orders).ToListAsync(); //不分页
+            }
+        });
+        return result;
+    }
 
     /// <summary>
     /// 添加数据
@@ -86,21 +127,7 @@ public abstract class OrmController<T> : ControllerBase where T : class, new()
         var orders = dto.GetOrders(Db);
         if (!conditions.IsSuccess || !orders.IsSuccess || conditions.Content is null || orders.Content is null)
             return BadRequest($"参数错误：{conditions.Message} {orders.Message}");
-        // Range条件
-        var rangeConditions = conditions.Content
-            .Where(x => x is ConditionalModel { ConditionalType: ConditionalType.Range }).ToList();
-        // 其他条件
-        var otherConditions = conditions.Content.Except(rangeConditions).ToList();
-        // 查询(Range条件 需要单独处理where)
-        var result = await Db.AsTenant().UseTranAsync(() =>
-        {
-            var query = Db.Queryable<T>().Where(otherConditions); //其他条件
-            // Range条件
-            query = rangeConditions.Aggregate(query, (current, condition) => current.Where([condition]));
-            return IsSplitTable
-                ? query.SplitTable().OrderBy(orders.Content).ToOffsetPageAsync(dto.PageNumber, dto.PageSize)
-                : query.OrderBy(orders.Content).ToOffsetPageAsync(dto.PageNumber, dto.PageSize);
-        });
+        var result = await Query(dto, conditions.Content, orders.Content, true);
         return result.IsSuccess ? Ok(result.Data) : BadRequest(result.ErrorMessage);
     }
 
@@ -130,5 +157,35 @@ public abstract class OrmController<T> : ControllerBase where T : class, new()
             return IsSplitTable ? query.SplitTable().CountAsync() : query.CountAsync();
         });
         return result.IsSuccess ? Ok(result.Data) : BadRequest(result.ErrorMessage);
+    }
+
+    /// <summary>
+    /// 下载Excel
+    /// </summary>
+    /// <param name="dto">查询条件</param>
+    /// <returns></returns>
+    [EndpointSummary("下载Excel")]
+    [EndpointDescription("按照条件和排序方式将数据导出为Excel文件")]
+    [HttpPost]
+    public virtual async Task<ActionResult> DownloadExcel(QueryDto dto)
+    {
+        var conditions = dto.GetConditions(Db);
+        var orders = dto.GetOrders(Db);
+        if (!conditions.IsSuccess || !orders.IsSuccess || conditions.Content is null || orders.Content is null)
+            return BadRequest($"参数错误：{conditions.Message} {orders.Message}");
+        var result = await Query(dto, conditions.Content, orders.Content, false);
+        if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
+        // 导出Excel
+        using var stream = ExcelOperation.Serialize(result.Data);
+        if (stream is null) return BadRequest("没有数据可导出");
+        try
+        {
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"{typeof(T).Name}_Export_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }
