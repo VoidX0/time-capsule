@@ -10,6 +10,7 @@ import { useMemo, useState } from 'react'
 import { closestCenter, DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { GripVertical } from 'lucide-react'
 
 interface SchemaTableProps<T extends Record<string, unknown>> {
   /** 类型名 */
@@ -96,12 +97,21 @@ export default function SchemaTable<T extends Record<string, unknown>>({
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
-      cursor: 'grab',
     }
 
     return (
-      <TableHead ref={setNodeRef} style={style} {...attributes} {...listeners}>
-        {children}
+      <TableHead
+        ref={setNodeRef}
+        style={style}
+        className="select-none"
+        {...attributes}
+      >
+        <div className="flex items-center gap-2">
+          <span {...listeners} className="inline-flex items-center">
+            <GripVertical className="text-muted-foreground h-4 w-4 cursor-grab" />
+          </span>
+          {children}
+        </div>
       </TableHead>
     )
   }
@@ -159,7 +169,10 @@ export default function SchemaTable<T extends Record<string, unknown>>({
 
           <TableBody>
             {tableData.map((row, rowIndex) => (
-              <TableRow key={rowIndex}>
+              <TableRow
+                key={rowIndex}
+                className="odd:bg-muted/50 even:bg-background"
+              >
                 {/*选中列*/}
                 <TableCell>
                   <Checkbox
