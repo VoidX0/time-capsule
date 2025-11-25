@@ -12,7 +12,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { openapi } from '@/lib/http'
@@ -69,12 +69,12 @@ export default function Page() {
         body: [
           {
             ...editCam,
-            Name: newName,
-            BasePath: newBasePath,
-            SegmentTemplate: newTemplate,
-            EnableDetection: newEnableDetection,
-            DetectionInterval: newDetectionInterval,
-            DetectionConfidence: newDetectionConfidence,
+            name: newName,
+            basePath: newBasePath,
+            segmentTemplate: newTemplate,
+            enableDetection: newEnableDetection,
+            detectionInterval: newDetectionInterval,
+            detectionConfidence: newDetectionConfidence,
           },
         ],
       })

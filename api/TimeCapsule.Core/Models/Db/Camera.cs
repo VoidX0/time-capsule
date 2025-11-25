@@ -10,11 +10,11 @@ public class Camera
     public long Id { get; set; }
 
     [SugarColumn(ColumnDescription = "摄像头名称")]
-    [Required, Range(1, 50)]
+    [Required, MinLength(1), MaxLength(50)]
     public string Name { get; set; } = string.Empty;
 
     [SugarColumn(ColumnDescription = "基础路径")]
-    [Required, Range(1, 200)]
+    [Required, MinLength(1), MaxLength(200)]
     public string BasePath { get; set; } = string.Empty;
 
     [SugarColumn(ColumnDescription = "Segment解析模板", DefaultValue = " ")]
