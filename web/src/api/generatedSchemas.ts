@@ -10,11 +10,11 @@ export const schemas = {
       format: 'int64',
     },
     name: {
-      type: 'string | undefined',
+      type: 'string',
       description: '摄像头名称',
     },
     basePath: {
-      type: 'string | undefined',
+      type: 'string',
       description: '基础路径',
     },
     segmentTemplate: {
@@ -292,6 +292,108 @@ export const schemas = {
     },
     '__@iterator@115': {
       type: '() => StringIterator<string>',
+    },
+  },
+  PagedResultOfCamera: {
+    items: {
+      type: '{ id?: string | number | undefined; name: string; basePath: string; segmentTemplate?: string | undefined; enableDetection?: boolean | undefined; detectionInterval?: string | number | undefined; detectionConfidence?: string | number | undefined; }[]',
+      description: '当前页的数据列表',
+    },
+    totalCount: {
+      type: 'string | number',
+      description: '数据总条数',
+      format: 'int32',
+    },
+    pageNumber: {
+      type: 'string | number',
+      description: '当前页码',
+      format: 'int32',
+    },
+    pageSize: {
+      type: 'string | number',
+      description: '每页大小',
+      format: 'int32',
+    },
+    totalPages: {
+      type: 'string | number | undefined',
+      description: '总页数',
+      format: 'int32',
+    },
+    hasPreviousPage: {
+      type: 'boolean | undefined',
+      description: '是否有上一页',
+    },
+    hasNextPage: {
+      type: 'boolean | undefined',
+      description: '是否有下一页',
+    },
+  },
+  PagedResultOfFrameDetection: {
+    items: {
+      type: '{ id?: string | number | undefined; cameraId?: string | number | undefined; segmentId?: string | number | undefined; framePath?: string | undefined; frameTime?: string | undefined; targetId?: string | number | undefined; targetName?: string | undefined; targetConfidence?: string | number | undefined; targetLocationX?: string | number | undefined; targetLocationY?: string | number | undefined; targetSizeWidth?: string | number | undefined; targetSizeHeight?: string | number | undefined; }[]',
+      description: '当前页的数据列表',
+    },
+    totalCount: {
+      type: 'string | number',
+      description: '数据总条数',
+      format: 'int32',
+    },
+    pageNumber: {
+      type: 'string | number',
+      description: '当前页码',
+      format: 'int32',
+    },
+    pageSize: {
+      type: 'string | number',
+      description: '每页大小',
+      format: 'int32',
+    },
+    totalPages: {
+      type: 'string | number | undefined',
+      description: '总页数',
+      format: 'int32',
+    },
+    hasPreviousPage: {
+      type: 'boolean | undefined',
+      description: '是否有上一页',
+    },
+    hasNextPage: {
+      type: 'boolean | undefined',
+      description: '是否有下一页',
+    },
+  },
+  PagedResultOfVideoSegment: {
+    items: {
+      type: '{ id?: string | number | undefined; cameraId?: string | number | undefined; syncTime?: string | undefined; path?: string | undefined; size?: string | number | undefined; startTime?: string | undefined; endTime?: string | undefined; durationActual?: string | undefined; durationTheoretical?: string | undefined; videoCodec?: string | undefined; videoWidth?: string | number | undefined; videoHeight?: string | number | undefined; videoFps?: string | number | undefined; videoBitrate?: string | number | undefined; audioCodec?: string | undefined; audioSampleRate?: string | number | undefined; audioChannels?: string | number | undefined; audioBitrate?: string | number | undefined; }[]',
+      description: '当前页的数据列表',
+    },
+    totalCount: {
+      type: 'string | number',
+      description: '数据总条数',
+      format: 'int32',
+    },
+    pageNumber: {
+      type: 'string | number',
+      description: '当前页码',
+      format: 'int32',
+    },
+    pageSize: {
+      type: 'string | number',
+      description: '每页大小',
+      format: 'int32',
+    },
+    totalPages: {
+      type: 'string | number | undefined',
+      description: '总页数',
+      format: 'int32',
+    },
+    hasPreviousPage: {
+      type: 'boolean | undefined',
+      description: '是否有上一页',
+    },
+    hasNextPage: {
+      type: 'boolean | undefined',
+      description: '是否有下一页',
     },
   },
   QueryCondition: {
