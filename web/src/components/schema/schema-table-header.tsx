@@ -25,6 +25,8 @@ import {
   Ellipsis,
   ListFilter,
   ListOrdered,
+  Loader,
+  Loader2,
   Plus,
   Trash2
 } from 'lucide-react'
@@ -46,6 +48,8 @@ interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   selectedData?: T[]
   /** 只读模式 */
   readOnly?: boolean
+  /** 正在加载所有数据 */
+  isLoadingAllData?: boolean
   /** 列显示/隐藏变化回调 */
   onVisibleColumnsChange: (columns: (keyof T)[]) => void
   /** 新增回调 */
@@ -58,6 +62,8 @@ interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   onConditionChange?: (conditions: QueryCondition[]) => void
   /** 排序变化回调 */
   onOrderChange?: (orders: QueryOrder[]) => void
+  /** 加载全部数据回调 */
+  onLoadAllData?: () => void
   /** 导出回调 */
   onDownload?: () => void
 }
@@ -78,12 +84,14 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
   data = [],
   selectedData = [],
   readOnly = false,
+  isLoadingAllData = false,
   onVisibleColumnsChange,
   onAdd,
   onEdit,
   onDelete,
   onConditionChange,
   onOrderChange,
+  onLoadAllData,
   onDownload,
 }: SchemaTableHeaderProps<T>) {
   const isMobile = useIsMobile()
@@ -212,6 +220,16 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
 
       {/* 右侧区域 */}
       <div className="flex flex-1 justify-end gap-2">
+        {/* 加载状态指示 */}
+        {isLoadingAllData && (
+          <div className="bg-muted/50 text-muted-foreground animate-in fade-in zoom-in-95 flex items-center gap-2 rounded-md px-3 py-2 text-sm duration-300">
+            <Loader2 className="text-primary h-4 w-4 animate-spin" />
+            <span className="hidden text-xs font-medium sm:inline">
+              Loading...
+            </span>
+          </div>
+        )}
+
         {/*过滤控制*/}
         <DropdownMenu
           open={conditionSetOpen}
@@ -306,10 +324,18 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
+            {/*加载全部数据*/}
+            <DropdownMenuItem
+              disabled={isLoadingAllData}
+              onClick={() => onLoadAllData?.()}
+            >
+              <Loader />
+              <span>{t('loadAllData')}</span>
+            </DropdownMenuItem>
             {/*导出Excel*/}
             <DropdownMenuItem onClick={() => onDownload?.()}>
               <Download />
-              <span>Excel</span>
+              <span>{t('downloadExcel')}</span>
             </DropdownMenuItem>
             {/* 图表分析 */}
             <DropdownMenuItem onClick={() => setChartOpen(true)}>

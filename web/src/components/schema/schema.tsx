@@ -109,7 +109,8 @@ const Schema = forwardRef(function Schema<T extends Record<string, unknown>>(
     onEdit,
     onDelete,
   } = props
-
+  // 正在加载所有数据
+  const [isLoadingAllData, setIsLoadingAllData] = useState(false)
   // 当前页码
   const [currentPage, setCurrentPage] = useState(1)
   // 查询参数
@@ -275,9 +276,70 @@ const Schema = forwardRef(function Schema<T extends Record<string, unknown>>(
     load().then()
   }, [controller, currentPage, fetchPageData, pageSize, queryDto])
 
-  /**
-   * 导出 Excel
-   */
+  /** 加载所有数据 */
+  const handleLoadAllData = async () => {
+    setIsLoadingAllData(true)
+
+    try {
+      const totalPages = Math.ceil(data.length / pageSize)
+      const requests: Promise<{ page: number; items: T[] } | null>[] = []
+
+      // 定义纯粹的获取数据函数 (不操作 State)
+      const fetchPage = async (page: number) => {
+        const body: QueryDto = {
+          ...queryDto,
+          pageNumber: page,
+          pageSize: pageSize,
+        }
+
+        try {
+          if (fetchPageData) {
+            const res = await fetchPageData(queryDto, page, pageSize)
+            return { page, items: res.items }
+          } else if (controller) {
+            // @ts-expect-error 动态调用
+            const { data: res } = await openapi.POST(`/${controller}/Query`, {
+              body,
+            })
+            if (res) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              return { page, items: (res as any).items || [] }
+            }
+          }
+        } catch (err) {
+          console.error(`Page ${page} load failed`, err)
+        }
+        return null
+      }
+
+      // 准备所有请求 (并发)
+      for (let page = 1; page <= totalPages; page++) {
+        requests.push(fetchPage(page))
+      }
+      // 等待所有请求完成
+      const results = await Promise.all(requests)
+      // 组装数据 & 一次性更新 State
+      setData((prevData) => {
+        // 创建一个新的数组副本
+        const nextData = [...prevData]
+        results.forEach((res) => {
+          if (res && res.items) {
+            const start = (res.page - 1) * pageSize
+            // 使用 splice 高效替换数据
+            nextData.splice(start, res.items.length, ...res.items)
+          }
+        })
+
+        return nextData
+      })
+    } catch (error) {
+      console.error('Load all data failed', error)
+    } finally {
+      setIsLoadingAllData(false)
+    }
+  }
+
+  /** 导出 Excel */
   const handleDownload = async () => {
     // 发起请求
     const { data, response } = await openapi.POST(
@@ -339,6 +401,7 @@ const Schema = forwardRef(function Schema<T extends Record<string, unknown>>(
             data={data}
             selectedData={selectedData as T[]}
             readOnly={readOnly}
+            isLoadingAllData={isLoadingAllData}
             onVisibleColumnsChange={(cols) =>
               setVisibleColumns(cols as string[])
             }
@@ -351,6 +414,7 @@ const Schema = forwardRef(function Schema<T extends Record<string, unknown>>(
             onOrderChange={(orders) =>
               setQueryDto({ ...queryDto, order: orders })
             }
+            onLoadAllData={handleLoadAllData}
             onDownload={handleDownload}
           />
         </div>
