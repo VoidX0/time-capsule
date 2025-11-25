@@ -1,13 +1,15 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { Camera } from '@/api/generatedSchemas'
 import { getCameras } from '@/app/[locale]/(main)/[camera]/camera'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -19,8 +21,6 @@ import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-
-type Camera = components['schemas']['Camera']
 
 export default function Page() {
   const t = useTranslations('CamerasPage')
@@ -52,7 +52,7 @@ export default function Page() {
     load().then()
   }, [])
 
-  const handleDelete = async (id: number | undefined) => {
+  const handleDelete = async (id: number | string | undefined) => {
     if (!id) return
     const body = cameras.find((c) => c.id === id)
     if (!body) return
@@ -182,17 +182,19 @@ export default function Page() {
                 <DialogContent className="max-w-sm">
                   <DialogHeader>
                     <DialogTitle>{t('deleteConfirm')}</DialogTitle>
+                    <DialogDescription>
+                      {t('deleteConfirmText', { param: cam.name ?? '' })}
+                    </DialogDescription>
                   </DialogHeader>
-                  <p className="py-2">
-                    {t('deleteConfirmText', { param: cam.name ?? '' })}
-                  </p>
                   <div className="mt-4 flex justify-end gap-2">
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleDelete(Number(cam.id))}
-                    >
-                      {t('delete')}
-                    </Button>
+                    <DialogClose asChild>
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleDelete(cam.id)}
+                      >
+                        {t('delete')}
+                      </Button>
+                    </DialogClose>
                   </div>
                 </DialogContent>
               </Dialog>

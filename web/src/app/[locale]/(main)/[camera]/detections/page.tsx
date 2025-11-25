@@ -1,14 +1,24 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { Camera, FrameDetection, QueryDto } from '@/api/generatedSchemas'
 import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
 import { Lens } from '@/components/magicui/lens'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import { formatDate, rangeWeek } from '@/lib/date-time'
@@ -19,10 +29,6 @@ import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 import { DateRange } from 'react-day-picker'
 
-type QueryDto = components['schemas']['QueryDto']
-type Camera = components['schemas']['Camera']
-type Detection = components['schemas']['FrameDetection']
-
 export default function Page({
   params,
 }: Readonly<{
@@ -31,7 +37,7 @@ export default function Page({
   const t = useTranslations('CameraDetectionsPage')
   const tDetection = useTranslations('DetectionItem')
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
-  const [detections, setDetections] = useState<Detection[] | undefined>([]) // 检测结果列表
+  const [detections, setDetections] = useState<FrameDetection[] | undefined>([]) // 检测结果列表
   const [categories, setCategories] = useState<string[]>([]) // 目标类别列表
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]) // 当前选中的类别列表
   const [minConfidence, setMinConfidence] = useState(0.3) // 最小置信度过滤
@@ -40,7 +46,7 @@ export default function Page({
   const [datePopover, setDatePopover] = useState(false) // 日期选择弹窗开关
   const [detailOpen, setDetailOpen] = useState(false) // 控制详情弹窗开关
   const [selectedDetection, setSelectedDetection] = useState<
-    Detection[] | null
+    FrameDetection[] | null
   >(null) // 当前选中的检测结果
 
   /* 加载摄像头 */
@@ -57,7 +63,7 @@ export default function Page({
 
   /* Detections分组 */
   const detectionsGroups = useMemo(() => {
-    const grouped: Record<string, Record<string, Detection[]>> = {}
+    const grouped: Record<string, Record<string, FrameDetection[]>> = {}
     // 选中的类别
     const filteredDetections =
       detections?.filter((detection) =>
@@ -114,16 +120,16 @@ export default function Page({
         ],
       }
       const { data } = await openapi.POST('/Detection/Query', { body })
-      if ((data?.length ?? -1) <= 0) {
+      if ((data?.items.length ?? -1) <= 0) {
         // 清空
         setDetections([])
         return
       }
-      setDetections(data!)
+      setDetections(data!.items)
       // 提取类别（按 TargetId 排序，再去重）
       const cats = Array.from(
         new Map(
-          data!
+          data!.items
             .slice()
             .sort(
               (a, b) => (Number(a.targetId) ?? 0) - (Number(b.targetId) ?? 0),

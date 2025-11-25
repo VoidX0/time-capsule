@@ -1,6 +1,6 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { FrameDetection, QueryDto } from '@/api/generatedSchemas'
 import {
   Card,
   CardContent,
@@ -33,9 +33,6 @@ import {
   PieChart,
   XAxis,
 } from 'recharts'
-
-type FrameDetection = components['schemas']['FrameDetection']
-type QueryDto = components['schemas']['QueryDto']
 
 const chartConfig = {
   daily: {
@@ -97,7 +94,7 @@ export default function DetectionChart({
         ]
 
       const { data } = await openapi.POST('/Detection/Query', { body })
-      setDetections(data ?? [])
+      setDetections(data?.items ?? [])
     }
 
     getDetections().then()

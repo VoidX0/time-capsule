@@ -1,6 +1,6 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { Camera, QueryDto, VideoSegment } from '@/api/generatedSchemas'
 import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
 import HeroVideoDialog from '@/components/magicui/hero-video-dialog'
 import { Badge } from '@/components/ui/badge'
@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -28,10 +30,6 @@ import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 import { DateRange } from 'react-day-picker'
 
-type QueryDto = components['schemas']['QueryDto']
-type Camera = components['schemas']['Camera']
-type Segment = components['schemas']['VideoSegment']
-
 export default function Page({
   params,
 }: Readonly<{
@@ -39,14 +37,16 @@ export default function Page({
 }>) {
   const t = useTranslations('CameraSegmentsPage')
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
-  const [, setSegments] = useState<Segment[] | undefined>([]) // 视频切片列表
+  const [, setSegments] = useState<VideoSegment[] | undefined>([]) // 视频切片列表
   const [segmentsByDate, setSegmentsByDate] = useState<
-    Record<string, Segment[]>
+    Record<string, VideoSegment[]>
   >({}) // 按日期分组的视频切片
   const [date, setDate] = useState<DateRange | undefined>(rangeWeek())
   const [popover, setPopover] = useState(false) // 控制 Popover 开关
   const [detailOpen, setDetailOpen] = useState(false) // 控制详情弹窗开关
-  const [selectedSegment, setSelectedSegment] = useState<Segment | null>(null) // 当前选中的Segment
+  const [selectedSegment, setSelectedSegment] = useState<VideoSegment | null>(
+    null,
+  ) // 当前选中的Segment
 
   /* 加载摄像头 */
   useEffect(() => {
@@ -85,16 +85,16 @@ export default function Page({
         order: [{ fieldName: 'StartTime', orderByType: 1 }],
       }
       const { data } = await openapi.POST('/Segment/Query', { body })
-      if ((data?.length ?? -1) <= 0) {
+      if ((data?.items.length ?? -1) <= 0) {
         // 清空
         setSegments([])
         setSegmentsByDate({})
         return
       }
-      setSegments(data!)
+      setSegments(data!.items)
       // 按日期分组视频切片
-      const grouped: Record<string, Segment[]> = {}
-      data!.forEach((segment) => {
+      const grouped: Record<string, VideoSegment[]> = {}
+      data!.items.forEach((segment) => {
         const dateKey =
           new Date(segment.startTime!).toISOString().split('T')[0] ?? ''
         if (!grouped[dateKey]) grouped[dateKey] = []
@@ -107,7 +107,7 @@ export default function Page({
   }, [cameraInfo, date?.from, date?.to])
 
   /* 删除Segments */
-  const deleteSegments = async (segmentsToDelete: Segment[]) => {
+  const deleteSegments = async (segmentsToDelete: VideoSegment[]) => {
     if (segmentsToDelete.length === 0) return
     await openapi.DELETE('/Segment/Delete', { body: segmentsToDelete })
 
@@ -205,19 +205,23 @@ export default function Page({
                 <DialogContent className="max-w-sm">
                   <DialogHeader>
                     <DialogTitle>{t('confirmDeleteTitle')}</DialogTitle>
+                    <DialogDescription>
+                      {t('confirmDeleteMessage', {
+                        param: segments.length || 0,
+                      })}
+                    </DialogDescription>
                   </DialogHeader>
-                  <p className="py-2">
-                    {t('confirmDeleteMessage', { param: segments.length || 0 })}
-                  </p>
                   <div className="mt-4 flex justify-end gap-2">
-                    <Button
-                      variant="destructive"
-                      onClick={() => {
-                        deleteSegments(segments).then()
-                      }}
-                    >
-                      {t('deleteButton')}
-                    </Button>
+                    <DialogClose>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          deleteSegments(segments).then()
+                        }}
+                      >
+                        {t('deleteButton')}
+                      </Button>
+                    </DialogClose>
                   </div>
                 </DialogContent>
               </Dialog>

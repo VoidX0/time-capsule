@@ -1280,9 +1280,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["Camera"][];
-                        "application/json": components["schemas"]["Camera"][];
-                        "text/json": components["schemas"]["Camera"][];
+                        "text/plain": components["schemas"]["PagedResultOfCamera"];
+                        "application/json": components["schemas"]["PagedResultOfCamera"];
+                        "text/json": components["schemas"]["PagedResultOfCamera"];
                     };
                 };
             };
@@ -1332,6 +1332,50 @@ export interface paths {
                         "application/json": number | string;
                         "text/json": number | string;
                     };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Camera/DownloadExcel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 下载Excel
+         * @description 按照条件和排序方式将数据导出为Excel文件
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description 查询条件 */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["QueryDto"];
+                    "text/json": components["schemas"]["QueryDto"];
+                    "application/*+json": components["schemas"]["QueryDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
                 };
             };
         };
@@ -1560,9 +1604,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["FrameDetection"][];
-                        "application/json": components["schemas"]["FrameDetection"][];
-                        "text/json": components["schemas"]["FrameDetection"][];
+                        "text/plain": components["schemas"]["PagedResultOfFrameDetection"];
+                        "application/json": components["schemas"]["PagedResultOfFrameDetection"];
+                        "text/json": components["schemas"]["PagedResultOfFrameDetection"];
                     };
                 };
             };
@@ -1612,6 +1656,50 @@ export interface paths {
                         "application/json": number | string;
                         "text/json": number | string;
                     };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Detection/DownloadExcel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 下载Excel
+         * @description 按照条件和排序方式将数据导出为Excel文件
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description 查询条件 */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["QueryDto"];
+                    "text/json": components["schemas"]["QueryDto"];
+                    "application/*+json": components["schemas"]["QueryDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
                 };
             };
         };
@@ -1836,9 +1924,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["VideoSegment"][];
-                        "application/json": components["schemas"]["VideoSegment"][];
-                        "text/json": components["schemas"]["VideoSegment"][];
+                        "text/plain": components["schemas"]["PagedResultOfVideoSegment"];
+                        "application/json": components["schemas"]["PagedResultOfVideoSegment"];
+                        "text/json": components["schemas"]["PagedResultOfVideoSegment"];
                     };
                 };
             };
@@ -1888,6 +1976,50 @@ export interface paths {
                         "application/json": number | string;
                         "text/json": number | string;
                     };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/Segment/DownloadExcel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 下载Excel
+         * @description 按照条件和排序方式将数据导出为Excel文件
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description 查询条件 */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["QueryDto"];
+                    "text/json": components["schemas"]["QueryDto"];
+                    "application/*+json": components["schemas"]["QueryDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
                 };
             };
         };
@@ -2085,9 +2217,9 @@ export interface components {
              */
             id?: number | string;
             /** @description 摄像头名称 */
-            name?: string;
+            name: string;
             /** @description 基础路径 */
-            basePath?: string;
+            basePath: string;
             /** @description Segment解析模板 */
             segmentTemplate?: string;
             /** @description 启用目标检测 */
@@ -2104,7 +2236,7 @@ export interface components {
             detectionConfidence?: number | string;
         };
         /**
-         * @description 条件类型
+         * @description 条件类型条件类型
          *
          *     | 枚举值 | 描述 |
          *     |------|------|
@@ -2128,7 +2260,7 @@ export interface components {
          */
         CustomConditionalType: number;
         /**
-         * @description 排序类型
+         * @description 排序类型排序类型
          *
          *     | 枚举值 | 描述 |
          *     |------|------|
@@ -2195,6 +2327,94 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        /** @description 通用分页响应结果 */
+        PagedResultOfCamera: {
+            /** @description 当前页的数据列表 */
+            items: components["schemas"]["Camera"][];
+            /**
+             * Format: int32
+             * @description 数据总条数
+             */
+            totalCount: number | string;
+            /**
+             * Format: int32
+             * @description 当前页码
+             */
+            pageNumber: number | string;
+            /**
+             * Format: int32
+             * @description 每页大小
+             */
+            pageSize: number | string;
+            /**
+             * Format: int32
+             * @description 总页数
+             */
+            totalPages?: number | string;
+            /** @description 是否有上一页 */
+            hasPreviousPage?: boolean;
+            /** @description 是否有下一页 */
+            hasNextPage?: boolean;
+        };
+        /** @description 通用分页响应结果 */
+        PagedResultOfFrameDetection: {
+            /** @description 当前页的数据列表 */
+            items: components["schemas"]["FrameDetection"][];
+            /**
+             * Format: int32
+             * @description 数据总条数
+             */
+            totalCount: number | string;
+            /**
+             * Format: int32
+             * @description 当前页码
+             */
+            pageNumber: number | string;
+            /**
+             * Format: int32
+             * @description 每页大小
+             */
+            pageSize: number | string;
+            /**
+             * Format: int32
+             * @description 总页数
+             */
+            totalPages?: number | string;
+            /** @description 是否有上一页 */
+            hasPreviousPage?: boolean;
+            /** @description 是否有下一页 */
+            hasNextPage?: boolean;
+        };
+        /** @description 通用分页响应结果 */
+        PagedResultOfVideoSegment: {
+            /** @description 当前页的数据列表 */
+            items: components["schemas"]["VideoSegment"][];
+            /**
+             * Format: int32
+             * @description 数据总条数
+             */
+            totalCount: number | string;
+            /**
+             * Format: int32
+             * @description 当前页码
+             */
+            pageNumber: number | string;
+            /**
+             * Format: int32
+             * @description 每页大小
+             */
+            pageSize: number | string;
+            /**
+             * Format: int32
+             * @description 总页数
+             */
+            totalPages?: number | string;
+            /** @description 是否有上一页 */
+            hasPreviousPage?: boolean;
+            /** @description 是否有下一页 */
+            hasNextPage?: boolean;
+        };
+        /** @description 查询条件 */
         QueryCondition: {
             /** @description 字段名 */
             fieldName?: string;
@@ -2205,6 +2425,7 @@ export interface components {
             /** @description CSharp类型名 */
             cSharpTypeName?: string;
         };
+        /** @description 查询参数 */
         QueryDto: {
             /**
              * Format: int32
@@ -2221,6 +2442,7 @@ export interface components {
             /** @description 排序条件 */
             order?: null | components["schemas"]["QueryOrder"][];
         };
+        /** @description 排序条件 */
         QueryOrder: {
             /** @description 字段名 */
             fieldName?: string;

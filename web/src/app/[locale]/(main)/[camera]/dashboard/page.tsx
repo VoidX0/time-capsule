@@ -1,6 +1,6 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { Camera, QueryDto, VideoSegment } from '@/api/generatedSchemas'
 import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
 import CameraChart from '@/components/camera/camera-chart'
 import DetectionChart from '@/components/camera/detection-chart'
@@ -14,10 +14,6 @@ import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-type QueryDto = components['schemas']['QueryDto']
-type Camera = components['schemas']['Camera']
-type Segment = components['schemas']['VideoSegment']
-
 export default function Page({
   params,
 }: Readonly<{
@@ -26,7 +22,7 @@ export default function Page({
   const t = useTranslations('CameraDashboardPage')
   const locale = useLocale()
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
-  const [segments, setSegments] = useState<Segment[]>([]) // 视频切片列表
+  const [segments, setSegments] = useState<VideoSegment[]>([]) // 视频切片列表
   const [detectionCount, setDetectionCount] = useState(0) // 检测到的目标数量
 
   useEffect(() => {
@@ -44,8 +40,8 @@ export default function Page({
         order: [{ fieldName: 'StartTime', orderByType: 0 }],
       }
       const { data } = await openapi.POST('/Segment/Query', { body })
-      if (!data?.length) return
-      setSegments(data)
+      if (!data?.items.length) return
+      setSegments(data?.items)
     }
 
     const getDetectionCount = async (cameraId: string) => {

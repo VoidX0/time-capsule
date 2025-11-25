@@ -19,7 +19,29 @@ const errorMiddleware: Middleware = {
     const clone = response.clone() // 克隆响应以便读取内容
     let message = await clone.text()
     if (message.length == 0) message = clone.statusText
-    toast.warning(message)
+    // 尝试解析为 JSON
+    try {
+      const data = JSON.parse(message)
+      if (data && data.title && data.errors) {
+        // ASP.NET Core 风格的错误响应
+        const errorLines = Object.entries(data.errors).flatMap(
+          ([field, msgs]) => {
+            if (Array.isArray(msgs)) {
+              return msgs.map((msg) => `• ${field}: ${msg}`)
+            }
+            // 不是数组，直接转换成字符串
+            return [`• ${field}: ${String(msgs)}`]
+          },
+        )
+        // 拼接成字符串，每行一个错误
+        message = `${data.title}\n${errorLines.join('\n')}`
+      }
+    } catch {
+      // 不是 JSON，忽略
+    }
+    toast.warning(message, {
+      className: 'whitespace-pre-line',
+    })
     // 返回原始响应
     return response
   },

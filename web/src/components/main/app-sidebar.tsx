@@ -4,7 +4,7 @@ import { Camera as CameraIcon, LayoutDashboard, Search, Settings } from 'lucide-
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 
-import { components } from '@/api/schema'
+import { Camera, SystemUser } from '@/api/generatedSchemas'
 import { getCameras } from '@/app/[locale]/(main)/[camera]/camera'
 import { CameraSearchDialog } from '@/components/main/camera-search-dialog'
 import LanguageToggle from '@/components/main/language-toggle'
@@ -18,9 +18,6 @@ import { tokenParse } from '@/lib/security'
 import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-
-type SystemUser = components['schemas']['SystemUser']
-type Camera = components['schemas']['Camera']
 
 export function AppSidebar({
   onAuthChecked,

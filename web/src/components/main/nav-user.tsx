@@ -8,7 +8,7 @@ import {
   LogOut,
 } from 'lucide-react'
 
-import { components } from '@/api/schema'
+import { SystemUser } from '@/api/generatedSchemas'
 import { UserProfileDialog } from '@/components/main/user-profile-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -33,7 +33,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-type SystemUser = components['schemas']['SystemUser']
 export function NavUser({ user }: { user: SystemUser | undefined }) {
   const locale = useLocale()
   const t = useTranslations('MainLayout')

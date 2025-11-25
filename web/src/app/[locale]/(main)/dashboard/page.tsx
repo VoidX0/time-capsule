@@ -1,6 +1,6 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { Camera, VideoSegment } from '@/api/generatedSchemas'
 import { getCameras } from '@/app/[locale]/(main)/[camera]/camera'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -16,12 +16,9 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
 
-type Camera = components['schemas']['Camera']
-type Segment = components['schemas']['VideoSegment']
-
 type CameraSummary = {
   camera: Camera
-  segments: Segment[]
+  segments: VideoSegment[]
   days: number
   totalStorage: number
   totalDuration: number
@@ -60,7 +57,7 @@ export default function Page() {
             order: [{ fieldName: 'StartTime', orderByType: 0 }],
           },
         })
-        const segments: Segment[] = segs || []
+        const segments: VideoSegment[] = segs?.items || []
 
         // 汇总
         const daysRecorded =

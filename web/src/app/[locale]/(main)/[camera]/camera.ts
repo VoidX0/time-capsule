@@ -1,8 +1,5 @@
-import { components } from '@/api/schema'
+import { Camera, QueryDto } from '@/api/generatedSchemas'
 import { openapi } from '@/lib/http'
-
-type QueryDto = components['schemas']['QueryDto']
-type Camera = components['schemas']['Camera']
 
 /**
  * 获取所有摄像头列表
@@ -10,7 +7,7 @@ type Camera = components['schemas']['Camera']
 export async function getCameras(): Promise<Camera[] | undefined> {
   const body: QueryDto = { pageNumber: 1, pageSize: 1000 }
   const { data } = await openapi.POST('/Camera/Query', { body })
-  return data
+  return data?.items
 }
 
 /**
@@ -24,5 +21,5 @@ export async function getCameraById(id: string): Promise<Camera | undefined> {
     condition: [{ fieldName: 'Id', fieldValue: id, cSharpTypeName: 'long' }],
   }
   const { data } = await openapi.POST('/Camera/Query', { body })
-  return data?.[0]
+  return data?.items[0]
 }

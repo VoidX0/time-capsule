@@ -7,7 +7,7 @@ import {
   MoreHorizontal,
 } from 'lucide-react'
 
-import { components } from '@/api/schema'
+import { Camera } from '@/api/generatedSchemas'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,8 +27,6 @@ import {
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-
-type Camera = components['schemas']['Camera']
 
 export function NavCameras({ cameras }: { cameras: Camera[] }) {
   const t = useTranslations('MainLayout')

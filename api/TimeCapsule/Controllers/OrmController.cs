@@ -2,6 +2,7 @@
 using SqlSugar;
 using SqlSugar.IOC;
 using TimeCapsule.Core.Models.Common;
+using TimeCapsule.Utils;
 
 namespace TimeCapsule.Controllers;
 
@@ -20,6 +21,23 @@ public abstract class OrmController<T> : ControllerBase where T : class, new()
     /// DbClient
     /// </summary>
     protected ISqlSugarClient Db { get; } = DbScoped.SugarScope;
+
+    /// <summary>
+    /// 构建查询对象（处理条件和分表）
+    /// </summary>
+    protected virtual ISugarQueryable<T> BuildQuery(List<IConditionalModel> conditions)
+    {
+        // 拆分 Range 条件和其他条件
+        var rangeConditions = conditions
+            .Where(x => x is ConditionalModel { ConditionalType: ConditionalType.Range }).ToList();
+        var otherConditions = conditions.Except(rangeConditions).ToList();
+        var query = Db.Queryable<T>().Where(otherConditions);
+        // Range条件单独处理
+        query = rangeConditions.Aggregate(query, (current, condition) => current.Where([condition]));
+        // 处理分表
+        if (IsSplitTable) query = query.SplitTable();
+        return query;
+    }
 
     /// <summary>
     /// 添加数据
@@ -80,28 +98,28 @@ public abstract class OrmController<T> : ControllerBase where T : class, new()
     [EndpointSummary("查询数据")]
     [EndpointDescription("按照条件和排序方式查询数据列表")]
     [HttpPost]
-    public virtual async Task<ActionResult<List<T>>> Query(QueryDto dto)
+    public virtual async Task<ActionResult<PagedResult<T>>> Query(QueryDto dto)
     {
         var conditions = dto.GetConditions(Db);
         var orders = dto.GetOrders(Db);
         if (!conditions.IsSuccess || !orders.IsSuccess || conditions.Content is null || orders.Content is null)
             return BadRequest($"参数错误：{conditions.Message} {orders.Message}");
-        // Range条件
-        var rangeConditions = conditions.Content
-            .Where(x => x is ConditionalModel { ConditionalType: ConditionalType.Range }).ToList();
-        // 其他条件
-        var otherConditions = conditions.Content.Except(rangeConditions).ToList();
-        // 查询(Range条件 需要单独处理where)
-        var result = await Db.AsTenant().UseTranAsync(() =>
+        // 构建查询
+        var query = BuildQuery(conditions.Content).OrderBy(orders.Content);
+        RefAsync<int> total = 0;
+        List<T> list;
+        // 执行查询
+        try
         {
-            var query = Db.Queryable<T>().Where(otherConditions); //其他条件
-            // Range条件
-            query = rangeConditions.Aggregate(query, (current, condition) => current.Where([condition]));
-            return IsSplitTable
-                ? query.SplitTable().OrderBy(orders.Content).ToOffsetPageAsync(dto.PageNumber, dto.PageSize)
-                : query.OrderBy(orders.Content).ToOffsetPageAsync(dto.PageNumber, dto.PageSize);
-        });
-        return result.IsSuccess ? Ok(result.Data) : BadRequest(result.ErrorMessage);
+            // 分页同时获取总数
+            list = await query.ToPageListAsync(dto.PageNumber, dto.PageSize, total);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok(new PagedResult<T>(list, total, dto.PageNumber, dto.PageSize));
     }
 
     /// <summary>
@@ -116,19 +134,35 @@ public abstract class OrmController<T> : ControllerBase where T : class, new()
     {
         var conditions = dto.GetConditions(Db);
         if (!conditions.IsSuccess || conditions.Content is null) return BadRequest($"参数错误：{conditions.Message}");
-        // Range条件
-        var rangeConditions = conditions.Content
-            .Where(x => x is ConditionalModel { ConditionalType: ConditionalType.Range }).ToList();
-        // 其他条件
-        var otherConditions = conditions.Content.Except(rangeConditions).ToList();
-        // 查询(Range条件 需要单独处理where)
-        var result = await Db.AsTenant().UseTranAsync(() =>
-        {
-            var query = Db.Queryable<T>().Where(otherConditions); //其他条件
-            // Range条件
-            query = rangeConditions.Aggregate(query, (current, condition) => current.Where([condition]));
-            return IsSplitTable ? query.SplitTable().CountAsync() : query.CountAsync();
-        });
-        return result.IsSuccess ? Ok(result.Data) : BadRequest(result.ErrorMessage);
+        // 构建查询
+        var query = BuildQuery(conditions.Content);
+        var count = await query.CountAsync();
+        return Ok(count);
+    }
+
+    /// <summary>
+    /// 下载Excel
+    /// </summary>
+    /// <param name="dto">查询条件</param>
+    /// <returns></returns>
+    [EndpointSummary("下载Excel")]
+    [EndpointDescription("按照条件和排序方式将数据导出为Excel文件")]
+    [HttpPost]
+    public virtual async Task<ActionResult> DownloadExcel(QueryDto dto)
+    {
+        var conditions = dto.GetConditions(Db);
+        var orders = dto.GetOrders(Db);
+        if (!conditions.IsSuccess || !orders.IsSuccess || conditions.Content is null || orders.Content is null)
+            return BadRequest($"参数错误：{conditions.Message} {orders.Message}");
+        var list = await BuildQuery(conditions.Content)
+            .OrderBy(orders.Content)
+            .ToListAsync();
+        if (list == null || list.Count == 0) return BadRequest("没有数据可导出");
+        // 导出Excel
+        var stream = ExcelOperation.Serialize(list);
+        if (stream is null) return BadRequest("没有数据可导出");
+        stream.Position = 0; // 重置流位置
+        return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"{typeof(T).Name}_Export_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
     }
 }

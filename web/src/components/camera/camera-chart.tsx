@@ -1,4 +1,4 @@
-import { components } from '@/api/schema'
+import { QueryDto, VideoSegment } from '@/api/generatedSchemas'
 import {
   Card,
   CardContent,
@@ -35,8 +35,6 @@ const chartConfig = {
     color: '#f59e0b',
   },
 } satisfies ChartConfig
-type QueryDto = components['schemas']['QueryDto']
-type Segment = components['schemas']['VideoSegment']
 export default function CameraChart({
   cameraId,
 }: {
@@ -80,18 +78,18 @@ export default function CameraChart({
         ]
       const { data } = await openapi.POST('/Segment/Query', { body })
       // 按天分组
-      const segmentsByDay: Record<string, Segment[]> = {}
-      data?.forEach((segment: Segment) => {
+      const segmentsByDay: Record<string, VideoSegment[]> = {}
+      data?.items.forEach((segment: VideoSegment) => {
         const date = new Date(segment.startTime!).toISOString().split('T')[0]
         if (!segmentsByDay[date!]) {
           segmentsByDay[date!] = []
         }
         segmentsByDay[date!]!.push(segment)
       })
-      calculateChartData(data ?? [])
+      calculateChartData(data?.items ?? [])
     }
     // 计算图表数据
-    const calculateChartData = (segments: Segment[]) => {
+    const calculateChartData = (segments: VideoSegment[]) => {
       const groupedData: Record<
         string,
         { storage: number; segment: number; duration: number }
