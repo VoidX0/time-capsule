@@ -124,7 +124,7 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
   }
 
   return (
-    <div className="mb-4 flex w-full items-center justify-between">
+    <div className="mt-4 flex w-full flex-col items-center gap-3 md:flex-row md:items-center md:justify-between">
       {/* 左侧区域 */}
       <div className="flex flex-1 items-center gap-2">
         {!readOnly && onAdd && (
