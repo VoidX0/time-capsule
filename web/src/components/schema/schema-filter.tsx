@@ -1,15 +1,18 @@
-import { schemas } from '@/api/generatedSchemas'
-import { components } from '@/api/schema'
+import { QueryCondition, schemas } from '@/api/generatedSchemas'
 import { SchemaType } from '@/components/schema/schema'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { formatDate, formatDateTime, formatTime } from '@/lib/date-time'
 import { Check, Trash2 } from 'lucide-react'
 import { useMemo } from 'react'
-
-type QueryCondition = components['schemas']['QueryCondition']
 
 interface SchemaFilterProps<T extends Record<string, unknown>> {
   /** 类型名 */

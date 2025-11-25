@@ -1,6 +1,6 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { Camera } from '@/api/generatedSchemas'
 import {
   Dialog,
   DialogContent,
@@ -11,8 +11,6 @@ import { Input } from '@/components/ui/input'
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
-
-type Camera = components['schemas']['Camera']
 
 interface CameraSearchDialogProps {
   open: boolean

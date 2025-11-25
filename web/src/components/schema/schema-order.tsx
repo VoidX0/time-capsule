@@ -1,5 +1,4 @@
-import { schemas } from '@/api/generatedSchemas'
-import { components } from '@/api/schema'
+import { QueryOrder, schemas } from '@/api/generatedSchemas'
 import { SchemaType } from '@/components/schema/schema'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,8 +10,6 @@ import {
 } from '@/components/ui/select'
 import { ArrowUpAZ, ArrowUpZA, Check, Trash2 } from 'lucide-react'
 import { useMemo } from 'react'
-
-type QueryOrder = components['schemas']['QueryOrder']
 
 interface SchemaOrderProps<T extends Record<string, unknown>> {
   /** 类型名 */

@@ -1,8 +1,5 @@
-import { components } from '@/api/schema'
+import { Camera, QueryDto } from '@/api/generatedSchemas'
 import { openapi } from '@/lib/http'
-
-type QueryDto = components['schemas']['QueryDto']
-type Camera = components['schemas']['Camera']
 
 /**
  * 获取所有摄像头列表

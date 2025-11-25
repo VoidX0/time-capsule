@@ -1,6 +1,6 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { SystemUser } from '@/api/generatedSchemas'
 import { MagicCard } from '@/components/magicui/magic-card'
 import { Button } from '@/components/ui/button'
 import {
@@ -73,7 +73,7 @@ export default function Page() {
     if (!passwordEncrypted) {
       return
     }
-    const body: components['schemas']['SystemUser'] = {
+    const body: SystemUser = {
       email: email,
       password: passwordEncrypted,
     }

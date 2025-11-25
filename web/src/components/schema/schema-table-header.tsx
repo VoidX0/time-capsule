@@ -1,5 +1,4 @@
-import { schemas } from '@/api/generatedSchemas'
-import { components } from '@/api/schema'
+import { QueryCondition, QueryOrder, schemas } from '@/api/generatedSchemas'
 import { SchemaType } from '@/components/schema/schema'
 import { SchemaFilter } from '@/components/schema/schema-filter'
 import SchemaForm from '@/components/schema/schema-form'
@@ -12,16 +11,29 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from '@/components/ui/dialog'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { Check, Columns3Cog, Download, Edit, Ellipsis, ListFilter, ListOrdered, Plus, Trash2 } from 'lucide-react'
+import {
+  Check,
+  Columns3Cog,
+  Download,
+  Edit,
+  Ellipsis,
+  ListFilter,
+  ListOrdered,
+  Plus,
+  Trash2,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 
-type QueryCondition = components['schemas']['QueryCondition']
-type QueryOrder = components['schemas']['QueryOrder']
 interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   /** 表格标题 */
   title: string

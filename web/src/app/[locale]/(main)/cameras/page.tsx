@@ -1,6 +1,6 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { Camera } from '@/api/generatedSchemas'
 import { getCameras } from '@/app/[locale]/(main)/[camera]/camera'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { openapi } from '@/lib/http'
@@ -21,8 +21,6 @@ import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-
-type Camera = components['schemas']['Camera']
 
 export default function Page() {
   const t = useTranslations('CamerasPage')

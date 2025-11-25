@@ -1,6 +1,6 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { Camera } from '@/api/generatedSchemas'
 import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
 import CameraPlayer, {
   CameraPlayerHandle,
@@ -33,8 +33,6 @@ import {
   VolumeOff,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-
-type Camera = components['schemas']['Camera']
 
 export default function Page({
   params,

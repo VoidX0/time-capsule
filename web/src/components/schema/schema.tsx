@@ -1,5 +1,4 @@
-import { schemas } from '@/api/generatedSchemas'
-import { components } from '@/api/schema'
+import { QueryDto, schemas } from '@/api/generatedSchemas'
 import { MagicCard } from '@/components/magicui/magic-card'
 import SchemaTable from '@/components/schema/schema-table'
 import { SchemaTableFooter } from '@/components/schema/schema-table-footer'
@@ -7,7 +6,14 @@ import { SchemaTableHeader } from '@/components/schema/schema-table-header'
 import { Card } from '@/components/ui/card'
 import { openapi } from '@/lib/http'
 import { useTheme } from 'next-themes'
-import { forwardRef, Ref, useEffect, useImperativeHandle, useMemo, useState } from 'react'
+import {
+  forwardRef,
+  Ref,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useState,
+} from 'react'
 
 /** schema 字段类型 */
 export interface SchemaField {
@@ -77,7 +83,6 @@ export interface SchemaRef<T> {
   getData: () => T[]
 }
 
-type QueryDto = components['schemas']['QueryDto']
 /**
  * Schema表格管理组件
  */

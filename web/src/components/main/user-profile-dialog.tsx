@@ -1,9 +1,14 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { SystemUser } from '@/api/generatedSchemas'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { openapi } from '@/lib/http'
 import { rsaEncrypt } from '@/lib/security'
@@ -11,8 +16,6 @@ import { Pencil } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import React, { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-
-type SystemUser = components['schemas']['SystemUser']
 
 interface UserProfileDialogProps {
   user: SystemUser | undefined

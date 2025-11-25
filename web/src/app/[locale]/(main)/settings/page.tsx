@@ -1,6 +1,10 @@
 'use client'
 
-import { components } from '@/api/schema'
+import {
+  SystemController,
+  SystemRole,
+  SystemUser,
+} from '@/api/generatedSchemas'
 import CameraChart from '@/components/camera/camera-chart'
 import DetectionChart from '@/components/camera/detection-chart'
 import StorageChart from '@/components/main/storage-chart'
@@ -38,27 +42,23 @@ import {
 import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 
-type Role = components['schemas']['SystemRole']
-type User = components['schemas']['SystemUser']
-type SystemController = components['schemas']['SystemController']
-
 export default function Page() {
   const t = useTranslations('SettingsPage')
-  const [roles, setRoles] = useState<Role[]>([]) // 所有角色列表
-  const [users, setUsers] = useState<User[]>([]) // 所有用户列表
+  const [roles, setRoles] = useState<SystemRole[]>([]) // 所有角色列表
+  const [users, setUsers] = useState<SystemUser[]>([]) // 所有用户列表
   const [roleDialogOpen, setRoleDialogOpen] = useState(false) // 角色弹窗状态
-  const [editRole, setEditRole] = useState<Role | null>(null) // 正在编辑的角色
+  const [editRole, setEditRole] = useState<SystemRole | null>(null) // 正在编辑的角色
   const [userDialogOpen, setUserDialogOpen] = useState(false) // 用户弹窗状态
-  const [editUser, setEditUser] = useState<User | null>(null) // 正在编辑的用户
+  const [editUser, setEditUser] = useState<SystemUser | null>(null) // 正在编辑的用户
   const [selectedRoles, setSelectedRoles] = useState<number[]>([]) // 选中的角色列表
 
   const [authorizeDialogOpen, setAuthorizeDialogOpen] = useState(false) // 授权弹窗状态
   const [authorizeType, setAuthorizeType] = useState<'user' | 'role' | null>(
     null,
   ) // 授权类型（用户或角色）
-  const [authorizeTarget, setAuthorizeTarget] = useState<User | Role | null>(
-    null,
-  ) // 授权目标（用户或角色）
+  const [authorizeTarget, setAuthorizeTarget] = useState<
+    SystemUser | SystemRole | null
+  >(null) // 授权目标（用户或角色）
   const [grantedControllers, setGrantedControllers] = useState<
     SystemController[]
   >([]) // 已授权的控制器列表
@@ -134,7 +134,7 @@ export default function Page() {
   /* 打开授权 Dialog */
   const openAuthorizeDialog = async (
     type: 'user' | 'role',
-    target: User | Role,
+    target: SystemUser | SystemRole,
   ) => {
     setAuthorizeType(type)
     setAuthorizeTarget(target)
@@ -145,7 +145,7 @@ export default function Page() {
         ? await openapi.GET('/Authentication/UserControllers', {
             params: {
               query: {
-                userId: (target as User).id?.toString(),
+                userId: (target as SystemUser).id?.toString(),
                 isGranted: true,
               },
             },
@@ -153,7 +153,7 @@ export default function Page() {
         : await openapi.GET('/Authentication/RoleControllers', {
             params: {
               query: {
-                roleId: (target as Role).id?.toString(),
+                roleId: (target as SystemRole).id?.toString(),
                 isGranted: true,
               },
             },
@@ -165,7 +165,7 @@ export default function Page() {
         ? await openapi.GET('/Authentication/UserControllers', {
             params: {
               query: {
-                userId: (target as User).id?.toString(),
+                userId: (target as SystemUser).id?.toString(),
                 isGranted: false,
               },
             },
@@ -173,7 +173,7 @@ export default function Page() {
         : await openapi.GET('/Authentication/RoleControllers', {
             params: {
               query: {
-                roleId: (target as Role).id?.toString(),
+                roleId: (target as SystemRole).id?.toString(),
                 isGranted: false,
               },
             },
@@ -207,13 +207,19 @@ export default function Page() {
       if (authorizeType === 'user') {
         await openapi.POST('/Authentication/AddUserGrant', {
           params: {
-            query: { userId: (authorizeTarget as User).id, controllerId: id },
+            query: {
+              userId: (authorizeTarget as SystemUser).id,
+              controllerId: id,
+            },
           },
         })
       } else {
         await openapi.POST('/Authentication/AddRoleGrant', {
           params: {
-            query: { roleId: (authorizeTarget as Role).id, controllerId: id },
+            query: {
+              roleId: (authorizeTarget as SystemRole).id,
+              controllerId: id,
+            },
           },
         })
       }
@@ -223,13 +229,19 @@ export default function Page() {
       if (authorizeType === 'user') {
         await openapi.DELETE('/Authentication/DeleteUserGrant', {
           params: {
-            query: { userId: (authorizeTarget as User).id, controllerId: id },
+            query: {
+              userId: (authorizeTarget as SystemUser).id,
+              controllerId: id,
+            },
           },
         })
       } else {
         await openapi.DELETE('/Authentication/DeleteRoleGrant', {
           params: {
-            query: { roleId: (authorizeTarget as Role).id, controllerId: id },
+            query: {
+              roleId: (authorizeTarget as SystemRole).id,
+              controllerId: id,
+            },
           },
         })
       }
@@ -561,8 +573,10 @@ export default function Page() {
               {authorizeType === 'user'
                 ? t('authorizeUser') +
                   '：' +
-                  (authorizeTarget as User)?.nickName
-                : t('authorizeRole') + '：' + (authorizeTarget as Role)?.name}
+                  (authorizeTarget as SystemUser)?.nickName
+                : t('authorizeRole') +
+                  '：' +
+                  (authorizeTarget as SystemRole)?.name}
             </DialogTitle>
           </DialogHeader>
 

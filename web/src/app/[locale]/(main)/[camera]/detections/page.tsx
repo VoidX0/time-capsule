@@ -1,6 +1,6 @@
 'use client'
 
-import { components } from '@/api/schema'
+import { Camera, FrameDetection, QueryDto } from '@/api/generatedSchemas'
 import { getCameraById } from '@/app/[locale]/(main)/[camera]/camera'
 import { Lens } from '@/components/magicui/lens'
 import { Badge } from '@/components/ui/badge'
@@ -29,10 +29,6 @@ import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 import { DateRange } from 'react-day-picker'
 
-type QueryDto = components['schemas']['QueryDto']
-type Camera = components['schemas']['Camera']
-type Detection = components['schemas']['FrameDetection']
-
 export default function Page({
   params,
 }: Readonly<{
@@ -41,7 +37,7 @@ export default function Page({
   const t = useTranslations('CameraDetectionsPage')
   const tDetection = useTranslations('DetectionItem')
   const [cameraInfo, setCameraInfo] = useState<Camera | undefined>(undefined) // 摄像头信息
-  const [detections, setDetections] = useState<Detection[] | undefined>([]) // 检测结果列表
+  const [detections, setDetections] = useState<FrameDetection[] | undefined>([]) // 检测结果列表
   const [categories, setCategories] = useState<string[]>([]) // 目标类别列表
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]) // 当前选中的类别列表
   const [minConfidence, setMinConfidence] = useState(0.3) // 最小置信度过滤
@@ -50,7 +46,7 @@ export default function Page({
   const [datePopover, setDatePopover] = useState(false) // 日期选择弹窗开关
   const [detailOpen, setDetailOpen] = useState(false) // 控制详情弹窗开关
   const [selectedDetection, setSelectedDetection] = useState<
-    Detection[] | null
+    FrameDetection[] | null
   >(null) // 当前选中的检测结果
 
   /* 加载摄像头 */
@@ -67,7 +63,7 @@ export default function Page({
 
   /* Detections分组 */
   const detectionsGroups = useMemo(() => {
-    const grouped: Record<string, Record<string, Detection[]>> = {}
+    const grouped: Record<string, Record<string, FrameDetection[]>> = {}
     // 选中的类别
     const filteredDetections =
       detections?.filter((detection) =>
