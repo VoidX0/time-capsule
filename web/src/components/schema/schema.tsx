@@ -55,14 +55,12 @@ interface SchemaProps<T extends Record<string, unknown>> {
   labelMap?: Partial<Record<keyof T, string>>
   /** 只读模式 */
   readOnly?: boolean
-  /** 查询总数回调 */
-  fetchTotalCount?: (queryDto: QueryDto) => Promise<number>
   /** 查询分页数据回调 */
   fetchPageData?: (
     queryDto: QueryDto,
     page: number,
     pageSize: number,
-  ) => Promise<T[]>
+  ) => Promise<{ items: T[]; total: number }>
   /** 新增回调 */
   onAdd?: (item: T) => Promise<boolean>
   /** 编辑回调 */
@@ -82,7 +80,6 @@ export default function Schema<T extends Record<string, unknown>>({
   pageSize = 10,
   labelMap = {},
   readOnly = false,
-  fetchTotalCount,
   fetchPageData,
   onAdd,
   onEdit,
@@ -98,8 +95,6 @@ export default function Schema<T extends Record<string, unknown>>({
   const [currentPage, setCurrentPage] = useState(1)
   // 查询参数
   const [queryDto, setQueryDto] = useState<QueryDto>({})
-  // 数据初始化完成
-  const [initialized, setInitialized] = useState(false)
   // 所有数据
   const [data, setData] = useState<T[]>([])
   // 当前显示列
@@ -206,72 +201,60 @@ export default function Schema<T extends Record<string, unknown>>({
     }
   }
 
-  /** 初始化加载数据 */
+  /** 加载数据 */
   useEffect(() => {
-    /** 控制器API获取总数 */
-    const fetch = async (): Promise<number> => {
+    const load = async () => {
       const body: QueryDto = {
         ...queryDto,
-        pageNumber: 0,
-        pageSize: 0,
-      }
-      // @ts-expect-error 动态调用接口
-      const { data } = await openapi.POST(`/${controller}/Count`, { body })
-      return data ? Number(data) : 0
-    }
-
-    const loader = fetchTotalCount
-      ? fetchTotalCount(queryDto) // 使用自定义回调
-      : controller
-        ? fetch() // 使用控制器API
-        : null
-
-    const load = () => {
-      setInitialized(false)
-      loader?.then((total) => {
-        setData(Array(total).fill({})) // 设置总行数占位
-        setSelectedKeys([]) // 清空已选择项
-        setInitialized(true) // 标记初始化完成
-      })
-    }
-    load()
-  }, [controller, fetchTotalCount, queryDto])
-
-  /** 加载当前页数据 */
-  useEffect(() => {
-    /** 获取分页数据 */
-    const fetch = async (page: number): Promise<T[]> => {
-      const body: QueryDto = {
-        ...queryDto,
-        pageNumber: page,
+        pageNumber: currentPage,
         pageSize: pageSize,
       }
-      // @ts-expect-error 动态调用接口
-      const { data } = await openapi.POST(`/${controller}/Query`, { body })
-      return data ? (data as unknown as T[]) : []
-    }
 
-    const loader = fetchPageData
-      ? fetchPageData(queryDto, currentPage, pageSize) // 使用自定义回调
-      : controller
-        ? fetch(currentPage) // 使用控制器API
-        : Promise.resolve([])
+      let pagedItems: T[] = []
+      let totalCount = 0
+      // 请求
+      if (fetchPageData) {
+        // 自定义回调
+        const res = await fetchPageData(queryDto, currentPage, pageSize)
+        pagedItems = res.items
+        totalCount = res.total
+      } else if (controller) {
+        // 通用控制器请求
+        // @ts-expect-error 动态调用接口
+        const { data: res } = await openapi.POST(`/${controller}/Query`, {
+          body,
+        })
+        if (res) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          pagedItems = (res as any).items || []
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          totalCount = Number((res as any).totalCount) || 0
+        }
+      }
 
-    if (!initialized) return // 未初始化完成不加载数据
-    if (currentPage <= 0) return // 不加载数据
-    loader.then((pageData) => {
-      const start = (currentPage - 1) * pageSize // 找到开始索引
-      const end = start + pageData.length // 找到结束索引
-      // 更新数据
+      // 更新状态
       setData((prevData) => {
+        // 如果是首次加载，或者总数发生了变化，重置整个数组
+        let nextData = prevData
+        if (prevData.length !== totalCount) {
+          nextData = Array(totalCount).fill({}) // 设置总行数占位
+          setSelectedKeys([]) // 清空已选择项
+        }
+
+        // 计算当前页在全局数组中的位置
+        const start = (currentPage - 1) * pageSize
+        const end = start + pagedItems.length
+        // 将当前页数据填充到大数组的对应位置
         return [
-          ...(prevData?.slice(0, start) || []),
-          ...pageData,
-          ...(prevData?.slice(end) || []),
+          ...nextData.slice(0, start),
+          ...pagedItems,
+          ...nextData.slice(end), // 处理后续空位
         ]
       })
-    })
-  }, [controller, currentPage, fetchPageData, initialized, pageSize, queryDto])
+    }
+
+    load().then()
+  }, [controller, currentPage, fetchPageData, pageSize, queryDto])
 
   return (
     <Card className="w-full overflow-auto border-none p-0 shadow-none">
