@@ -183,7 +183,9 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
       </div>
 
       {/* 中间区域 */}
-      <div className="flex-1 text-center text-lg font-semibold">{title}</div>
+      <div className="order-first flex-1 text-center text-lg font-semibold md:order-none">
+        {title}
+      </div>
 
       {/* 右侧区域 */}
       <div className="flex flex-1 justify-end gap-2">
