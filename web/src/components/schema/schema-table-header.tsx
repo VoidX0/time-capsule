@@ -1,5 +1,6 @@
 import { QueryCondition, QueryOrder, schemas } from '@/api/generatedSchemas'
 import { SchemaType } from '@/components/schema/schema'
+import { SchemaChart } from '@/components/schema/schema-chart'
 import { SchemaFilter } from '@/components/schema/schema-filter'
 import SchemaForm from '@/components/schema/schema-form'
 import { SchemaOrder } from '@/components/schema/schema-order'
@@ -11,16 +12,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from '@/components/ui/dialog'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
+  ChartArea,
   Check,
   Columns3Cog,
   Download,
@@ -29,7 +26,7 @@ import {
   ListFilter,
   ListOrdered,
   Plus,
-  Trash2,
+  Trash2
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
@@ -43,6 +40,8 @@ interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   visibleColumns: (keyof T)[]
   /** label 映射 */
   labelMap?: Partial<Record<keyof T, string>>
+  /** 表格数据 */
+  data?: T[]
   /** 选中的数据 */
   selectedData?: T[]
   /** 只读模式 */
@@ -76,6 +75,7 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
   typeName,
   visibleColumns,
   labelMap,
+  data = [],
   selectedData = [],
   readOnly = false,
   onVisibleColumnsChange,
@@ -91,12 +91,23 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
   const [conditionSetOpen, setConditionSetOpen] = useState(false) // 过滤条件下拉菜单打开状态
   const [orderSetOpen, setOrderSetOpen] = useState(false) // 排序下拉菜单打开状态
   const [columnSetOpen, setColumnSetOpen] = useState(false) // 列名设置下拉菜单打开状态
+  const [chartOpen, setChartOpen] = useState(false) // 控制图表Dialog状态
   const [detailOpen, setDetailOpen] = useState(false) // 详情对话框打开状态
   const [detailData, setDetailData] = useState<T | null>(null) // 详情数据
   const [detailMode, setDetailMode] = useState<'add' | 'edit'>('add') // 详情模式
 
   const schema = useMemo(() => schemas[typeName] as SchemaType, [typeName])
   const columns = useMemo(() => Object.keys(schema) as (keyof T)[], [schema])
+
+  // 图表数据源
+  const chartData = useMemo(() => {
+    // 优先使用用户手动选中的数据
+    if (selectedData && selectedData.length > 0) return selectedData
+    // 如果没有选中，则使用 data 中已加载的数据
+    if (data && data.length > 0)
+      return data.filter((item) => item && Object.keys(item).length > 0)
+    return []
+  }, [selectedData, data])
 
   // 筛选条件
   const [conditions, setConditions] = useState<QueryCondition[]>(
@@ -298,7 +309,12 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
             {/*导出Excel*/}
             <DropdownMenuItem onClick={() => onDownload?.()}>
               <Download />
-              Excel
+              <span>Excel</span>
+            </DropdownMenuItem>
+            {/* 图表分析 */}
+            <DropdownMenuItem onClick={() => setChartOpen(true)}>
+              <ChartArea />
+              <span>{t('chart')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -330,6 +346,15 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
           />
         </DialogContent>
       </Dialog>
+      {/*图表Dialog*/}
+      <SchemaChart
+        title={title}
+        open={chartOpen}
+        onOpenChange={setChartOpen}
+        data={chartData}
+        typeName={typeName}
+        labelMap={labelMap}
+      />
     </div>
   )
 }

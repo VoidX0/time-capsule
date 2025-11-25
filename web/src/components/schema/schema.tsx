@@ -336,6 +336,7 @@ const Schema = forwardRef(function Schema<T extends Record<string, unknown>>(
             typeName={typeName}
             visibleColumns={visibleColumns as (keyof T)[]}
             labelMap={labelMap}
+            data={data}
             selectedData={selectedData as T[]}
             readOnly={readOnly}
             onVisibleColumnsChange={(cols) =>
