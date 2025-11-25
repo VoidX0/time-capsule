@@ -14,9 +14,9 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { Check, Columns3Cog, Edit, ListFilter, ListOrdered, Plus, Trash2 } from 'lucide-react'
+import { Check, Columns3Cog, Download, Edit, Ellipsis, ListFilter, ListOrdered, Plus, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 
@@ -47,6 +47,8 @@ interface SchemaTableHeaderProps<T extends Record<string, unknown>> {
   onConditionChange?: (conditions: QueryCondition[]) => void
   /** 排序变化回调 */
   onOrderChange?: (orders: QueryOrder[]) => void
+  /** 导出回调 */
+  onDownload?: () => void
 }
 
 /** 根据 format 获取 C# 类型名 */
@@ -70,6 +72,7 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
   onDelete,
   onConditionChange,
   onOrderChange,
+  onDownload,
 }: SchemaTableHeaderProps<T>) {
   const isMobile = useIsMobile()
   const t = useTranslations('Schema')
@@ -268,6 +271,21 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
                 <span>{getColumnLabel(col)}</span>
               </div>
             ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {/*其他功能区域*/}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Ellipsis />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {/*导出Excel*/}
+            <DropdownMenuItem onClick={() => onDownload?.()}>
+              <Download />
+              Excel
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

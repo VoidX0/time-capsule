@@ -256,6 +256,47 @@ export default function Schema<T extends Record<string, unknown>>({
     load().then()
   }, [controller, currentPage, fetchPageData, pageSize, queryDto])
 
+  /**
+   * 导出 Excel
+   */
+  const handleDownload = async () => {
+    // 发起请求
+    const { data, response } = await openapi.POST(
+      // @ts-expect-error 动态调用接口
+      `/${controller}/DownloadExcel`,
+      {
+        body: queryDto, // 传入当前的查询条件
+        parseAs: 'blob', // 强制将响应解析为 Blob 对象，而不是 JSON
+      },
+    )
+
+    // 获取文件名 (从 Content-Disposition 响应头中提取)
+    // 后端返回格式通常是: attachment; filename="User_Export_20251125.xlsx"
+    const contentDisposition = response.headers.get('content-disposition')
+    let filename = `${typeName}_Export.xlsx` // 默认文件名
+    if (contentDisposition) {
+      // 正则提取 filename="xxx.xlsx" 或 filename=xxx.xlsx
+      const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(
+        contentDisposition,
+      )
+      if (matches != null && matches[1]) {
+        filename = matches[1].replace(/['"]/g, '') // 去除可能存在的引号
+      }
+    }
+    // 触发浏览器下载
+    const url = window.URL.createObjectURL(data as unknown as Blob) // 创建一个临时的 Blob URL
+    // 创建一个隐藏的 a 标签
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', filename) // 设置下载文件名
+    document.body.appendChild(link)
+    // 模拟点击
+    link.click()
+    // 清理资源
+    link.remove() // 移除 a 标签
+    window.URL.revokeObjectURL(url) // 释放 Blob URL 内存
+  }
+
   return (
     <Card className="w-full overflow-auto border-none p-0 shadow-none">
       <MagicCard gradientColor={gradientColor} className="p-4">
@@ -280,6 +321,7 @@ export default function Schema<T extends Record<string, unknown>>({
             onOrderChange={(orders) =>
               setQueryDto({ ...queryDto, order: orders })
             }
+            onDownload={handleDownload}
           />
         </div>
         {/*表格区域*/}
