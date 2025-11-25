@@ -5,9 +5,7 @@ using TimeCapsule.Core.Utils.Extension;
 
 namespace TimeCapsule.Core.Models.Common;
 
-/// <summary>
-/// 查询参数
-/// </summary>
+[Description("查询参数")]
 public class QueryDto
 {
     [Description("页数")] public int PageNumber { get; set; } = 1;
@@ -74,6 +72,7 @@ public class QueryDto
 /// 条件类型
 /// <seealso cref="ConditionalType"/>
 /// </summary>
+[Description("条件类型")]
 public enum CustomConditionalType
 {
     [Description("Equal")] Equal = 0,
@@ -99,6 +98,7 @@ public enum CustomConditionalType
 /// 排序类型
 /// <seealso cref="OrderByType"/>
 /// </summary>
+[Description("排序类型")]
 public enum CustomOrderByType
 {
     [Description("Asc")] Asc = 0,
@@ -109,6 +109,7 @@ public enum CustomOrderByType
 /// 查询条件
 /// <seealso cref="ConditionalModel"/>
 /// </summary>
+[Description("查询条件")]
 public class QueryCondition
 {
     [Description("字段名")] public string FieldName { get; set; } = string.Empty;
@@ -124,6 +125,7 @@ public class QueryCondition
 /// 排序条件
 /// <seealso cref="OrderByModel"/>
 /// </summary>
+[Description("排序条件")]
 public class QueryOrder
 {
     [Description("字段名")] public string FieldName { get; set; } = string.Empty;
