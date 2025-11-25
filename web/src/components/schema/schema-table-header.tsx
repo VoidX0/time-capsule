@@ -291,7 +291,7 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
       </div>
       {/*详情Dialog*/}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="bg-background max-h-[90vh] w-full !max-w-[90vw] overflow-auto border-none p-0 shadow-none sm:w-fit">
+        <DialogContent className="bg-background max-h-[90vh] w-full max-w-[90vw] overflow-y-auto border-none p-0 shadow-none md:max-w-screen-lg lg:max-w-screen-xl">
           <DialogHeader>
             <DialogTitle />
             <DialogDescription />
@@ -302,7 +302,6 @@ export function SchemaTableHeader<T extends Record<string, unknown>>({
             data={detailData as T}
             labelMap={labelMap}
             labelPosition={isMobile ? 'top' : 'left'}
-            columns={isMobile ? 1 : 2}
             onConfirm={(item) => {
               if (detailMode === 'add') {
                 onAdd?.(item).then((success) => {
