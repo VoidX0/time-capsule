@@ -3,12 +3,7 @@
 import { components } from '@/api/schema'
 import { getCameras } from '@/app/[locale]/(main)/[camera]/camera'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { openapi } from '@/lib/http'
 import { timeSpanToMilliseconds } from '@/lib/time-span'
 import { useLocale, useTranslations } from 'next-intl'
@@ -60,7 +55,7 @@ export default function Page() {
             order: [{ fieldName: 'StartTime', orderByType: 0 }],
           },
         })
-        const segments: Segment[] = segs || []
+        const segments: Segment[] = segs?.items || []
 
         // 汇总
         const daysRecorded =

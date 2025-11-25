@@ -44,8 +44,8 @@ export default function Page({
         order: [{ fieldName: 'StartTime', orderByType: 0 }],
       }
       const { data } = await openapi.POST('/Segment/Query', { body })
-      if (!data?.length) return
-      setSegments(data)
+      if (!data?.items.length) return
+      setSegments(data?.items)
     }
 
     const getDetectionCount = async (cameraId: string) => {

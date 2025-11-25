@@ -81,14 +81,14 @@ export default function CameraChart({
       const { data } = await openapi.POST('/Segment/Query', { body })
       // 按天分组
       const segmentsByDay: Record<string, Segment[]> = {}
-      data?.forEach((segment: Segment) => {
+      data?.items.forEach((segment: Segment) => {
         const date = new Date(segment.startTime!).toISOString().split('T')[0]
         if (!segmentsByDay[date!]) {
           segmentsByDay[date!] = []
         }
         segmentsByDay[date!]!.push(segment)
       })
-      calculateChartData(data ?? [])
+      calculateChartData(data?.items ?? [])
     }
     // 计算图表数据
     const calculateChartData = (segments: Segment[]) => {

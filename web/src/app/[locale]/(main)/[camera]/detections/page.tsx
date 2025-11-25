@@ -7,8 +7,18 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import { formatDate, rangeWeek } from '@/lib/date-time'
@@ -114,16 +124,16 @@ export default function Page({
         ],
       }
       const { data } = await openapi.POST('/Detection/Query', { body })
-      if ((data?.length ?? -1) <= 0) {
+      if ((data?.items.length ?? -1) <= 0) {
         // 清空
         setDetections([])
         return
       }
-      setDetections(data!)
+      setDetections(data!.items)
       // 提取类别（按 TargetId 排序，再去重）
       const cats = Array.from(
         new Map(
-          data!
+          data!.items
             .slice()
             .sort(
               (a, b) => (Number(a.targetId) ?? 0) - (Number(b.targetId) ?? 0),

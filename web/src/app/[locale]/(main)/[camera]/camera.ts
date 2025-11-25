@@ -10,7 +10,7 @@ type Camera = components['schemas']['Camera']
 export async function getCameras(): Promise<Camera[] | undefined> {
   const body: QueryDto = { pageNumber: 1, pageSize: 1000 }
   const { data } = await openapi.POST('/Camera/Query', { body })
-  return data
+  return data?.items
 }
 
 /**
@@ -24,5 +24,5 @@ export async function getCameraById(id: string): Promise<Camera | undefined> {
     condition: [{ fieldName: 'Id', fieldValue: id, cSharpTypeName: 'long' }],
   }
   const { data } = await openapi.POST('/Camera/Query', { body })
-  return data?.[0]
+  return data?.items[0]
 }

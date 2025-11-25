@@ -87,16 +87,16 @@ export default function Page({
         order: [{ fieldName: 'StartTime', orderByType: 1 }],
       }
       const { data } = await openapi.POST('/Segment/Query', { body })
-      if ((data?.length ?? -1) <= 0) {
+      if ((data?.items.length ?? -1) <= 0) {
         // 清空
         setSegments([])
         setSegmentsByDate({})
         return
       }
-      setSegments(data!)
+      setSegments(data!.items)
       // 按日期分组视频切片
       const grouped: Record<string, Segment[]> = {}
-      data!.forEach((segment) => {
+      data!.items.forEach((segment) => {
         const dateKey =
           new Date(segment.startTime!).toISOString().split('T')[0] ?? ''
         if (!grouped[dateKey]) grouped[dateKey] = []

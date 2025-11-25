@@ -97,7 +97,7 @@ export default function DetectionChart({
         ]
 
       const { data } = await openapi.POST('/Detection/Query', { body })
-      setDetections(data ?? [])
+      setDetections(data?.items ?? [])
     }
 
     getDetections().then()
