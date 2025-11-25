@@ -7,7 +7,7 @@ import { SchemaTableHeader } from '@/components/schema/schema-table-header'
 import { Card } from '@/components/ui/card'
 import { openapi } from '@/lib/http'
 import { useTheme } from 'next-themes'
-import { useEffect, useMemo, useState } from 'react'
+import { forwardRef, Ref, useEffect, useImperativeHandle, useMemo, useState } from 'react'
 
 /** schema 字段类型 */
 export interface SchemaField {
@@ -69,27 +69,41 @@ interface SchemaProps<T extends Record<string, unknown>> {
   onDelete?: (items: T[]) => Promise<boolean>
 }
 
+/** Schema表格管理组件引用实例 */
+export interface SchemaRef<T> {
+  /** 获取当前选中的数据 */
+  getSelectedData: () => T[]
+  /** 获取当前所有数据 */
+  getData: () => T[]
+}
+
 type QueryDto = components['schemas']['QueryDto']
 /**
  * Schema表格管理组件
  */
-export default function Schema<T extends Record<string, unknown>>({
-  typeName,
-  controller,
-  title,
-  pageSize = 10,
-  labelMap = {},
-  readOnly = false,
-  fetchPageData,
-  onAdd,
-  onEdit,
-  onDelete,
-}: SchemaProps<T>) {
+const Schema = forwardRef(function Schema<T extends Record<string, unknown>>(
+  props: SchemaProps<T>,
+  ref: Ref<SchemaRef<T>>,
+) {
   // 生成动态颜色
   const { resolvedTheme } = useTheme()
   const gradientColor = useMemo(() => {
     return resolvedTheme === 'dark' ? '#262626' : '#D9D9D955'
   }, [resolvedTheme])
+
+  // props 解构
+  const {
+    typeName,
+    controller,
+    title,
+    pageSize = 10,
+    labelMap = {},
+    readOnly = false,
+    fetchPageData,
+    onAdd,
+    onEdit,
+    onDelete,
+  } = props
 
   // 当前页码
   const [currentPage, setCurrentPage] = useState(1)
@@ -297,6 +311,16 @@ export default function Schema<T extends Record<string, unknown>>({
     window.URL.revokeObjectURL(url) // 释放 Blob URL 内存
   }
 
+  /** 暴露方法给父组件 */
+  useImperativeHandle(
+    ref,
+    () => ({
+      getSelectedData: () => selectedData.map((item) => item as T),
+      getData: () => data,
+    }),
+    [selectedData, data],
+  )
+
   return (
     <Card className="w-full overflow-auto border-none p-0 shadow-none">
       <MagicCard gradientColor={gradientColor} className="p-4">
@@ -349,4 +373,8 @@ export default function Schema<T extends Record<string, unknown>>({
       </MagicCard>
     </Card>
   )
-}
+}) as <T extends Record<string, unknown>>(
+  props: SchemaProps<T> & { ref?: Ref<SchemaRef<T>> },
+) => React.ReactElement
+
+export default Schema
