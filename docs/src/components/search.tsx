@@ -10,7 +10,7 @@ import {
   SearchDialogInput,
   SearchDialogList,
   SearchDialogOverlay,
-  type SharedProps,
+  type SharedProps
 } from 'fumadocs-ui/components/dialog/search'
 import { useI18n } from 'fumadocs-ui/contexts/i18n'
 import { createTokenizer } from '@orama/tokenizers/mandarin'
@@ -18,6 +18,8 @@ import { useCallback } from 'react'
 
 export default function DefaultSearchDialog(props: SharedProps) {
   const { locale } = useI18n()
+  // 获取环境变量中的 basePath (如果没有则为空字符串)
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
 
   const initOrama = useCallback(async () => {
     if (locale === 'zh') {
@@ -41,6 +43,7 @@ export default function DefaultSearchDialog(props: SharedProps) {
     type: 'static',
     initOrama,
     locale,
+    from: `${basePath}/api/search`, // 兼容子目录部署
   })
 
   return (
