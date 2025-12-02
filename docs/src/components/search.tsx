@@ -10,22 +10,37 @@ import {
   SearchDialogInput,
   SearchDialogList,
   SearchDialogOverlay,
-  type SharedProps
+  type SharedProps,
 } from 'fumadocs-ui/components/dialog/search'
-
-function initOrama() {
-  return create({
-    schema: { _: 'string' },
-    // https://docs.orama.com/docs/orama-js/supported-languages
-    language: 'english',
-  })
-}
+import { useI18n } from 'fumadocs-ui/contexts/i18n'
+import { createTokenizer } from '@orama/tokenizers/mandarin'
+import { useCallback } from 'react'
 
 export default function DefaultSearchDialog(props: SharedProps) {
+  const { locale } = useI18n()
+
+  const initOrama = useCallback(async () => {
+    if (locale === 'zh') {
+      // 中文环境
+      return create({
+        schema: { _: 'string' },
+        components: {
+          tokenizer: createTokenizer(), // 使用中文分词器
+        },
+      })
+    }
+
+    // 英文环境保持默认
+    return create({
+      schema: { _: 'string' },
+      language: 'english',
+    })
+  }, [locale])
+
   const { search, setSearch, query } = useDocsSearch({
     type: 'static',
     initOrama,
-    locale: 'zh',
+    locale,
   })
 
   return (

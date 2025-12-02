@@ -1,6 +1,6 @@
 import SearchDialog from '@/components/search'
 import type { Translations } from 'fumadocs-ui/i18n'
-import { RootProvider } from 'fumadocs-ui/provider'
+import { RootProvider } from 'fumadocs-ui/provider/next'
 import { Inter } from 'next/font/google'
 import '../global.css'
 
