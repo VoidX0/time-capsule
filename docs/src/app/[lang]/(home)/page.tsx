@@ -1,6 +1,7 @@
 import { i18n } from '@/lib/i18n'
 import Link from 'next/link'
 import { Ball } from '@/components/loader/ball'
+import { GradientTitle } from '@/components/loader/gradient-title'
 
 export const generateStaticParams = () =>
   i18n.languages.map((lang) => ({ lang }))
@@ -13,9 +14,9 @@ export default async function HomePage({
   const { lang } = await params
   return (
     <main className="flex flex-1 flex-col items-center justify-center text-center">
-      <h1 className="mb-4 text-2xl font-bold">
-        {process.env.NEXT_PUBLIC_PROJECT_NAME || ''}
-      </h1>
+      <GradientTitle>
+        {process.env.NEXT_PUBLIC_PROJECT_NAME?.toUpperCase() || ''}
+      </GradientTitle>
       <p className="text-fd-muted-foreground">
         {lang === 'en'
           ? process.env.NEXT_PUBLIC_PROJECT_DESCRIPTION_EN || ''
