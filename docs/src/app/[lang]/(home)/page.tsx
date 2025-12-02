@@ -1,6 +1,7 @@
-import { Circuit } from '@/components/loader/circuit'
 import { i18n } from '@/lib/i18n'
 import Link from 'next/link'
+import { Ball } from '@/components/loader/ball'
+import { GradientTitle } from '@/components/loader/gradient-title'
 
 export const generateStaticParams = () =>
   i18n.languages.map((lang) => ({ lang }))
@@ -12,26 +13,20 @@ export default async function HomePage({
 }) {
   const { lang } = await params
   return (
-    <main className="flex flex-1 flex-col justify-center text-center">
-      <h1 className="mb-4 text-2xl font-bold">
-        {' '}
-        {lang === 'en' ? 'Get started' : '快速开始'}
-      </h1>
+    <main className="flex flex-1 flex-col items-center justify-center text-center">
+      <GradientTitle>
+        {process.env.NEXT_PUBLIC_PROJECT_NAME?.toUpperCase() || ''}
+      </GradientTitle>
       <p className="text-fd-muted-foreground">
         {lang === 'en'
-          ? 'Get started with our step-by-step guide, explore deployment options, or browse the reference.'
-          : '通过我们的分步指南快速上手，了解部署选项，或浏览参考文档。'}
+          ? process.env.NEXT_PUBLIC_PROJECT_DESCRIPTION_EN || ''
+          : process.env.NEXT_PUBLIC_PROJECT_DESCRIPTION_ZH || ''}
       </p>
       <Link
         href={`/${lang}/docs/started`}
         className="text-fd-foreground font-semibold underline"
-        // style={{
-        //   position: 'absolute',
-        //   bottom: '30%',
-        //   left: '50%',
-        // }}
       >
-        <Circuit />
+        <Ball />
       </Link>
     </main>
   )

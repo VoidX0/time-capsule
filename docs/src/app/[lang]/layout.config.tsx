@@ -34,7 +34,7 @@ export function baseOptions(locale: string): BaseLayoutProps {
               />
             </path>
           </svg>
-          Time Capsule
+          {process.env.NEXT_PUBLIC_PROJECT_NAME || ''}
         </>
       ),
     },

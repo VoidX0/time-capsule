@@ -22,7 +22,7 @@ export default async function Layout({
               GitHub
             </span>
           ),
-          url: 'https://github.com/VoidX0',
+          url: process.env.NEXT_PUBLIC_PROJECT_REPO || '',
         },
       ]}
     >
