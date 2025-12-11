@@ -38,7 +38,7 @@ public static class WebApplicationExtension
                 {
                     diagnosticContext.Set("RemoteHost", httpContext.Connection.RemoteIpAddress ?? IPAddress.None);
                     diagnosticContext.Set("JwtName",
-                        httpContext.User.Claims.FirstOrDefault(y => y.Type is ClaimTypes.NameIdentifier)?.Value ??
+                        httpContext.User.Claims.FirstOrDefault(y => y.Type is ClaimTypes.Name)?.Value ??
                         "Anonymous");
                     diagnosticContext.Set("JwtId",
                         httpContext.User.Claims.FirstOrDefault(y => y.Type is ClaimTypes.PrimarySid)?.Value ?? "0");
