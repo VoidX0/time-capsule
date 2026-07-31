@@ -15,4 +15,4 @@ dotnet restore ./TimeCapsule/TimeCapsule.csproj
 
 # frontend deps
 cd ../web || exit 1
-pnpm install --frozen-lockfile
+pnpm install --no-frozen-lockfile
