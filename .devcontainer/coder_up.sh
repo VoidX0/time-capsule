@@ -7,7 +7,15 @@ echo "⚙️ Coder up script executed."
 echo "⚙️ Install packages..."
 
 echo "🧩 Waiting VSCode..."
-sleep 30
+while ! curl -s http://127.0.0.1:13338/ > /dev/null; do
+  echo "⏳ VSCode Web is starting, waiting 3s..."
+  sleep 3
+done
+# 额外再等 10 秒
+echo "⏳ Waiting 10s for VSCode Web background tasks to settle..."
+sleep 10
+echo "🚀 VSCode Web is ready! Installing extensions..."
+
 echo "🧩 Installing extension..."
 # common
 $CODE_SERVER --install-extension tamasfe.even-better-toml
